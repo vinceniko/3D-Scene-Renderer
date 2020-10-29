@@ -26,6 +26,8 @@
     #include <iostream>
 #endif
 
+#include "mesh.h"
+
 // VertexBufferObject wrapper
 VertexBufferObject VBO;
 
@@ -86,6 +88,8 @@ int main(void)
 {
     #ifdef DEBUG
         std::cout << "DEBUG ENABLED" << std::endl;
+        Mesh mesh("../data/bumpy_cube.off");
+        mesh.print();
     #endif
 
     GLFWwindow* window;
