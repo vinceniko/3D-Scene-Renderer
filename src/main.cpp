@@ -22,6 +22,10 @@
 // Timer
 #include <chrono>
 
+#ifdef DEBUG
+    #include <iostream>
+#endif
+
 // VertexBufferObject wrapper
 VertexBufferObject VBO;
 
@@ -80,6 +84,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 int main(void)
 {
+    #ifdef DEBUG
+        std::cout << "DEBUG ENABLED" << std::endl;
+    #endif
+
     GLFWwindow* window;
 
     // Initialize the library

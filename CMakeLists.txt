@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.12)
-project(Assignment2)
+project(Assignment3)
 
 find_package(OpenGL REQUIRED)
 find_package(GLU REQUIRED)
@@ -66,6 +66,10 @@ file(GLOB SOURCES
 
 add_executable(${PROJECT_NAME}_bin ${SOURCES})
 target_link_libraries(${PROJECT_NAME}_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
+
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+  target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DDEBUG)
+endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 add_executable(main_blending_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_blending.cpp ${SOURCES2})
 target_link_libraries(main_blending_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
