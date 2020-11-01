@@ -86,12 +86,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 int main(void)
 {
-    #ifdef DEBUG
-        std::cout << "DEBUG ENABLED" << std::endl;
-        Mesh mesh("../data/bumpy_cube.off");
-        mesh.print();
-    #endif
-
     GLFWwindow* window;
 
     // Initialize the library
@@ -167,10 +161,10 @@ int main(void)
     Program program;
     const GLchar* vertex_shader =
             "#version 150 core\n"
-                    "in vec2 position;"
+                    "in vec3 position;"
                     "void main()"
                     "{"
-                    "    gl_Position = vec4(position, 0.0, 1.0);"
+                    "    gl_Position = vec4(position, 1.0);"
                     "}";
     const GLchar* fragment_shader =
             "#version 150 core\n"
@@ -187,10 +181,11 @@ int main(void)
     program.init(vertex_shader,fragment_shader,"outColor");
     program.bind();
 
-    // The vertex shader wants the position of the vertices as an input.
-    // The following line connects the VBO we defined above with the position "slot"
-    // in the vertex shader
-    program.bindVertexAttribArray("position",VBO);
+    #ifdef DEBUG
+        std::cout << "DEBUG ENABLED" << std::endl;
+    #endif
+    GLMeshCtx ctx(program);
+    auto meshes = ctx.push({ BunnyMesh{}, BumpyCubeMesh{}, UnitSquare{} });
 
     // Save the current time --- it will be used to dynamically change the triangle color
     auto t_start = std::chrono::high_resolution_clock::now();
@@ -223,7 +218,10 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Draw a triangle
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
+        for (auto mesh : meshes) {
+            mesh.draw();
+        }
 
         // Swap front and back buffers
         glfwSwapBuffers(window);

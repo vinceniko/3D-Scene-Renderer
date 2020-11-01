@@ -5,8 +5,7 @@ Mesh::Mesh(std::string f_path) {
 
     // TODO: throw error
     if (!f.is_open()) {
-        std::cout << "Error opening file" << std::endl;
-        exit(1);
+        throw std::runtime_error("Error opening file");
     }
 
     // local scope to destroy `OFF` string
@@ -17,8 +16,7 @@ Mesh::Mesh(std::string f_path) {
 
         // TODO: throw error
         if (f.bad()) {
-            std::cout << "Error reading file" << std::endl;
-            exit(1);
+            throw std::runtime_error("Error reading file");
         }
 
         // First line (optional): the letters OFF to mark the file type.
@@ -49,8 +47,11 @@ Mesh::Mesh(std::string f_path) {
     // push indices
     for (size_t i = 0; i < faces_.capacity(); i++) {
         f >> n_verts_face;
+        if (static_cast<unsigned long>(n_verts_face) != TRI) {
+            throw std::runtime_error("Error: Not A Triangle Mesh");
+        }
         // indexes of the composing vertices
-        Indexer indexer(n_verts_face);
+        Indexer indexer;
         for (size_t i = 0; i < n_verts_face; i++) {
             f >> indexer[i];
         }
@@ -62,7 +63,7 @@ void Mesh::push_back(glm::vec3 vert, Indexer indexer) {
     verts_.push_back(vert);
     faces_.push_back(indexer);
 }
-void Mesh::print() {
+void Mesh::print() const {
     std::cout << verts_.size() << ' ' << faces_.size() << ' ' << ' ' << 0 << std::endl;
     for (auto vert : verts_) {
         std::cout << vert.x << ' ' << vert.y << ' ' << vert.z << std::endl;
@@ -74,4 +75,84 @@ void Mesh::print() {
         }
         std::cout << std::endl;
     }
+}
+
+const size_t MeshEntity::get_id() const {
+    return id_;
+}
+
+void MeshEntity::draw() const {
+    const GLMesh& mesh_ref = ctx_.get_meshes()[id_];
+    glBindVertexArray(mesh_ref.VAO_);
+
+    glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    #ifdef DEBUG
+        check_gl_error();
+    #endif
+}
+
+std::vector<MeshEntity> GLMeshCtx::push(std::vector<Mesh> meshes) {
+    // gen gl objects
+    std::vector<uint> VAOs(meshes.size()), VBOs(meshes.size()), EBOs(meshes.size());
+    glGenVertexArrays(meshes.size(), VAOs.data());
+    glGenBuffers(meshes.size(), VBOs.data());
+    glGenBuffers(meshes.size(), EBOs.data());
+
+    // return prototype entities
+    std::vector<MeshEntity> out;
+    out.reserve(meshes.size());
+
+    for (uint i = 0; i < meshes.size(); i++) {
+        // assign gl objects and commit to mesh list
+        meshes_.push_back(GLMesh{VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i])});
+        const GLMesh& inserted_mesh = meshes_[meshes_.size() - 1];
+
+        // bind to VAO
+        glBindVertexArray(VAOs[i]);
+        // buffer data to VBO
+        glBindBuffer(GL_ARRAY_BUFFER, VBOs[i]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * inserted_mesh.get_verts().size(), inserted_mesh.get_verts().data(), GL_STATIC_DRAW);
+        // buffer data to EBO
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[i]);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * TRI * inserted_mesh.get_faces().size(), inserted_mesh.get_faces().data(), GL_STATIC_DRAW);
+        
+        // vertex positions
+        int position_id = program_.attrib("position");
+        if (position_id < 0) {
+            throw std::runtime_error("gl vertex attribute not found");
+        }
+        glEnableVertexAttribArray(position_id);
+        glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+        // TODO: add calculated norms
+
+        // unbind VAO
+        glBindVertexArray(0);
+
+        #ifdef DEBUG
+            check_gl_error();
+        #endif
+
+        out.push_back(MeshEntity{*this, i, meshes_[meshes_.size() - 1]});
+    }
+
+    return out;
+};
+MeshEntity GLMeshCtx::push(Mesh mesh) {
+    // gen gl objects
+    uint VAO, VBO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    // assign gl object
+    meshes_.push_back(GLMesh{VAO, VBO, EBO, mesh});
+
+    // return prototype entity
+    return MeshEntity{*this, meshes_.size() - 1, meshes_[meshes_.size() - 1]};
+};
+
+const std::vector<GLMesh>& GLMeshCtx::get_meshes() const {
+    return meshes_;
 }
