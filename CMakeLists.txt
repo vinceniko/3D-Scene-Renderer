@@ -71,6 +71,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DDEBUG)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
+if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/extra)
 add_executable(main_blending_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_blending.cpp ${SOURCES2})
 target_link_libraries(main_blending_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
 
@@ -88,3 +89,4 @@ target_link_libraries(main_properties_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
 
 add_executable(main_view_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_view.cpp ${SOURCES2})
 target_link_libraries(main_view_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
+endif (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/extra)
