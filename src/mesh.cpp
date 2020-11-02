@@ -85,7 +85,14 @@ void MeshEntity::draw() const {
     const GLMesh& mesh_ref = ctx_.get_meshes()[id_];
     glBindVertexArray(mesh_ref.VAO_);
 
+    glUniform3f(ctx_.program_.uniform("triangleColor"), color_.r, color_.g, color_.b);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL );
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
+
+    glUniform3f(ctx_.program_.uniform("triangleColor"), 1.0f, 1.0f, 1.0f);
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
+
     glBindVertexArray(0);
 
     #ifdef DEBUG
@@ -93,7 +100,7 @@ void MeshEntity::draw() const {
     #endif
 }
 
-std::vector<MeshEntity> GLMeshCtx::push(std::vector<Mesh> meshes) {
+MeshEntityList GLMeshCtx::push(std::vector<Mesh> meshes) {
     // gen gl objects
     std::vector<uint> VAOs(meshes.size()), VBOs(meshes.size()), EBOs(meshes.size());
     glGenVertexArrays(meshes.size(), VAOs.data());
@@ -101,7 +108,7 @@ std::vector<MeshEntity> GLMeshCtx::push(std::vector<Mesh> meshes) {
     glGenBuffers(meshes.size(), EBOs.data());
 
     // return prototype entities
-    std::vector<MeshEntity> out;
+    MeshEntityList out;
     out.reserve(meshes.size());
 
     for (uint i = 0; i < meshes.size(); i++) {

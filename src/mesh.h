@@ -1,3 +1,5 @@
+#pragma once
+
 #include <helpers.h>
 
 #include <fstream>
@@ -11,10 +13,14 @@
 
 #include <iostream>
 
-typedef unsigned int uint;
+#include "definitions.h"
 
 #define TRI 3
 using Indexer = std::array<uint, TRI>;
+
+class MeshEntity;
+
+using MeshEntityList = std::vector<MeshEntity>;
 
 class Mesh {
     std::vector<glm::vec3> verts_;
@@ -52,18 +58,44 @@ public:
     BunnyMesh() : Mesh("../data/bunny.off") {}
 };
 
-class UnitSquare : public Mesh {
+class UnitCube : public Mesh {
 public:
-    UnitSquare() : Mesh(
+    UnitCube() : Mesh(
         std::vector<glm::vec3>{
-            glm::vec3(0.5f,  0.5f, 0.0f),  // top right
-            glm::vec3(0.5f, -0.5f, 0.0f),  // bottom right
-            glm::vec3(-0.5f, -0.5f, 0.0f),  // bottom left
-            glm::vec3(-0.5f,  0.5f, 0.0f)   // top left 
+            glm::vec3(0.5f,  0.5f, -0.5f),  // top right
+            glm::vec3(0.5f, -0.5f, -0.5f),  // bottom right
+            glm::vec3(-0.5f, -0.5f, -0.5f),  // bottom left
+            glm::vec3(-0.5f,  0.5f, -0.5f),   // top left
+
+            glm::vec3(0.5f,  0.5f, 0.5f),  // top right
+            glm::vec3(0.5f, -0.5f, 0.5f),  // bottom right
+            glm::vec3(-0.5f, -0.5f, 0.5f),  // bottom left
+            glm::vec3(-0.5f,  0.5f, 0.5f),   // top left
         },
         std::vector<Indexer>{  // note that we start from 0!
+            // front
             Indexer{0, 1, 3},   // first triangle
-            Indexer{1, 2, 3}    // second triangle
+            Indexer{1, 2, 3},    // second triangle
+        
+            // back
+            Indexer{4, 5, 7},
+            Indexer{5, 6, 7},
+
+            // right
+            Indexer{3, 2, 7},
+            Indexer{2, 6, 7},
+
+            // left
+            Indexer{4, 5, 0},
+            Indexer{5, 1, 0},
+
+            // top
+            Indexer{0, 3, 4},
+            Indexer{3, 7, 4},
+
+            // bottom
+            Indexer{1, 2, 5},
+            Indexer{2, 6, 5},
         }
     ) {}
 };
@@ -86,14 +118,23 @@ class MeshEntity {
     const size_t id_;
 
     std::vector<glm::mat4> model_trans_;
+    glm::vec3 color_;
 
-    MeshEntity(GLMeshCtx& ctx, size_t id, const GLMesh& mesh) : ctx_(ctx), id_(id), model_trans_(1.f) {}
+    MeshEntity(GLMeshCtx& ctx, size_t id, const GLMesh& mesh) : ctx_(ctx), id_(id), model_trans_(1.f), color_(glm::vec3(0.0, 0.0, 1.0)) {}
 public:
     friend class GLMeshCtx;
 
     const size_t get_id() const;
+    void set_color(glm::vec3 new_color) {
+        color_ = new_color;
+    }
+    glm::vec3 get_color() {
+        return color_;
+    }
 
     void draw() const;
+
+    // TODO draw with model_trans_ and update model_trans_ on GL side
 };
 
 // holds mesh prototypes
@@ -107,7 +148,7 @@ public:
     friend class MeshEntity;
 
     GLMeshCtx(Program& program) : program_(program), meshes_() {}
-    std::vector<MeshEntity> push(std::vector<Mesh> meshes);
+    MeshEntityList push(std::vector<Mesh> meshes);
     MeshEntity push(Mesh mesh);
 
     const std::vector<GLMesh>& get_meshes() const;

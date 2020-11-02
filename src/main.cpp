@@ -22,11 +22,20 @@
 // Timer
 #include <chrono>
 
+#include <memory>
+
 #ifdef DEBUG
     #include <iostream>
 #endif
 
 #include "mesh.h"
+#include "context.h"
+#include "camera.h"
+
+float width = 640.f;
+float height = 480.f;
+
+std::unique_ptr<GLContext> ctx;
 
 // VertexBufferObject wrapper
 VertexBufferObject VBO;
@@ -64,24 +73,38 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    // Update the position of the first vertex if the keys 1,2, or 3 are pressed
-    switch (key)
-    {
-        case  GLFW_KEY_1:
-            V[0] = glm::vec2(-0.5,  0.5);
-            break;
-        case GLFW_KEY_2:
-            V[0] = glm::vec2(0,  0.5);
-            break;
-        case  GLFW_KEY_3:
-            V[0] = glm::vec2(0.5,  0.5);
-            break;
-        default:
-            break;
-    }
+    if (action == GLFW_PRESS) {
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+        float window_size_factor = -2 * 0.1;
 
-    // Upload the change to the GPU
-    VBO.update(V);
+        // Update the position of the first vertex if the keys 1,2, or 3 are pressed
+        switch (key)
+        {
+            case GLFW_KEY_D:
+                ctx->camera.translate(glm::vec3(window_size_factor, 0.0, 0.0));
+                break;
+            case GLFW_KEY_A:
+                ctx->camera.translate(glm::vec3(-window_size_factor, 0.0, 0.0));
+                break;
+            case GLFW_KEY_W:
+                ctx->camera.translate(glm::vec3(0.0, window_size_factor, 0.0));
+                break;
+            case GLFW_KEY_S:
+                ctx->camera.translate(glm::vec3(0.0, -window_size_factor, 0.0));
+                break;
+            case GLFW_KEY_EQUAL:
+                ctx->camera.zoom(Camera::ZoomDir::In);
+                break;
+            case GLFW_KEY_MINUS:
+                ctx->camera.zoom(Camera::ZoomDir::Out);
+                break;
+            // projection
+            case GLFW_KEY_C:
+                ctx->camera.switch_projection();
+                break;
+        }
+    }
 }
 
 int main(void)
@@ -106,7 +129,7 @@ int main(void)
 #endif
 
     // Create a windowed mode window and its OpenGL context
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(width, height, "3D Scene Editor", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -162,9 +185,11 @@ int main(void)
     const GLchar* vertex_shader =
             "#version 150 core\n"
                     "in vec3 position;"
+                    "uniform mat4 view_trans;"
+                    "uniform mat4 projection;"
                     "void main()"
                     "{"
-                    "    gl_Position = vec4(position, 1.0);"
+                    "    gl_Position = projection * view_trans * vec4(position, 1.0);"
                     "}";
     const GLchar* fragment_shader =
             "#version 150 core\n"
@@ -184,8 +209,8 @@ int main(void)
     #ifdef DEBUG
         std::cout << "DEBUG ENABLED" << std::endl;
     #endif
-    GLMeshCtx ctx(program);
-    auto meshes = ctx.push({ BunnyMesh{}, BumpyCubeMesh{}, UnitSquare{} });
+    ctx = std::unique_ptr<GLContext>(new GLContext(program, GLCamera(program, width / height)));
+    ctx->mesh_list = ctx->mesh_ctx.push(std::vector<Mesh>{ /*BunnyMesh{},*/ BumpyCubeMesh{}, UnitCube{}, });
 
     // Save the current time --- it will be used to dynamically change the triangle color
     auto t_start = std::chrono::high_resolution_clock::now();
@@ -211,15 +236,20 @@ int main(void)
         // Set the uniform value depending on the time difference
         auto t_now = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
-        glUniform3f(program.uniform("triangleColor"), (float)(sin(time * 4.0f) + 1.0f) / 2.0f, 0.0f, 0.0f);
+        // glUniform3f(program.uniform("triangleColor"), 0.0f, 0.0f, (float)(sin(time * 4.0f) + 1.0f) / 2.0f);
 
         // Clear the framebuffer
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // ctx->camera.swivel();
+
         // Draw a triangle
         // glDrawArrays(GL_TRIANGLES, 0, 3);
-        for (auto mesh : meshes) {
+        float i = 0.f;
+        for (auto mesh : ctx->mesh_list) {
+            mesh.set_color(glm::vec3(i));
+            i+=0.24;
             mesh.draw();
         }
 
