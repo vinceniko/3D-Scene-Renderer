@@ -37,13 +37,6 @@ float height = 480.f;
 
 std::unique_ptr<GLContext> ctx;
 
-// VertexBufferObject wrapper
-VertexBufferObject VBO;
-
-// Contains the vertex positions
-//Eigen::MatrixXf V(2,3);
-std::vector<glm::vec2> V(3);
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -55,20 +48,34 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
 
+    // Update the position of the first vertex if the left button is pressed
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        ctx->mouse_ctx.hold();
+    } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+        ctx->mouse_ctx.release();
+    }
+}
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     // Get the size of the window
     int width, height;
     glfwGetWindowSize(window, &width, &height);
 
-    // Convert screen position to world coordinates
-    double xworld = ((xpos/double(width))*2)-1;
-    double yworld = (((height-1-ypos)/double(height))*2)-1; // NOTE: y axis is flipped in glfw
-
-    // Update the position of the first vertex if the left button is pressed
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-        V[0] = glm::vec2(xworld, yworld);
-
-    // Upload the change to the GPU
-    VBO.update(V);
+    // Convert screen position to nds
+    double x_nds = ((xpos/double(width))*2)-1;
+    double y_nds = (((height-1-ypos)/double(height))*2)-1; // NOTE: y axis is flipped in glfw
+    glm::vec2 ray_nds = glm::vec2(x_nds, y_nds);
+    glm::vec4 ray_clip = glm::vec4(glm::vec2(ray_nds), -1.0, 1.0);
+    glm::vec4 ray_eye = glm::inverse(ctx->camera.get_projection()) * ray_clip;
+    ray_eye = glm::vec4(glm::vec2(ray_eye), -1.0, 0.0);
+    glm::vec3 ray_world = glm::vec3(inverse(ctx->camera.get_view()) * ray_eye);
+    ray_world = glm::normalize(ray_world);
+    
+    // #ifdef DEBUG
+    // std::cout << "Ray World: " << ray_world[0] << ' ' << ray_world[1] << ' ' << ray_world[2] << ' ' << std::endl;
+    // #endif
+    
+    ctx->mouse_ctx.set_world_point(ray_nds);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -105,6 +112,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 break;
         }
     }
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    ctx->mouse_ctx.set_scroll(yoffset);
+    double scroll_diff = ctx->mouse_ctx.get_scroll() - ctx->mouse_ctx.get_prev_scroll();
+
+    #ifdef DEBUG
+    std::cout << "scroll: " << ctx->mouse_ctx.get_scroll() << std::endl;
+    #endif
+    ctx->camera.zoom(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ZoomDir::In : Camera::ZoomDir::Out,  glm::abs(scroll_diff  / 20.f));
 }
 
 int main(void)
@@ -159,25 +176,6 @@ int main(void)
     printf("Supported OpenGL is %s\n", (const char*)glGetString(GL_VERSION));
     printf("Supported GLSL is %s\n", (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-    // Initialize the VAO
-    // A Vertex Array Object (or VAO) is an object that describes how the vertex
-    // attributes are stored in a Vertex Buffer Object (or VBO). This means that
-    // the VAO is not the actual object storing the vertex data,
-    // but the descriptor of the vertex data.
-    VertexArrayObject VAO;
-    VAO.init();
-    VAO.bind();
-
-    // Initialize the VBO with the vertices data
-    // A VBO is a data container that lives in the GPU memory
-    VBO.init();
-
-    V.resize(3);
-    V[0] = glm::vec2(0,  0.5);
-    V[1] = glm::vec2(-0.5, -0.5);
-    V[2] = glm::vec2(0.5, -0.5);
-    VBO.update(V);
-
     // Initialize the OpenGL Program
     // A program controls the OpenGL pipeline and it must contains
     // at least a vertex shader and a fragment shader to be valid
@@ -186,6 +184,7 @@ int main(void)
             "#version 150 core\n"
                     "in vec3 position;"
                     "uniform mat4 view_trans;"
+                    "uniform mat4 model_trans;"
                     "uniform mat4 projection;"
                     "void main()"
                     "{"
@@ -193,17 +192,17 @@ int main(void)
                     "}";
     const GLchar* fragment_shader =
             "#version 150 core\n"
-                    "out vec4 outColor;"
-                    "uniform vec3 triangleColor;"
+                    "out vec4 out_color;"
+                    "uniform vec3 triangle_color;"
                     "void main()"
                     "{"
-                    "    outColor = vec4(triangleColor, 1.0);"
+                    "    out_color = vec4(triangle_color, 1.0);"
                     "}";
 
     // Compile the two shaders and upload the binary to the GPU
-    // Note that we have to explicitly specify that the output "slot" called outColor
+    // Note that we have to explicitly specify that the output "slot" called out_color
     // is the one that we want in the fragment buffer (and thus on screen)
-    program.init(vertex_shader,fragment_shader,"outColor");
+    program.init(vertex_shader,fragment_shader,"out_color");
     program.bind();
 
     #ifdef DEBUG
@@ -221,22 +220,23 @@ int main(void)
     // Register the mouse callback
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+
+    glfwSetScrollCallback(window, scroll_callback);
+
     // Update viewport
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
-        // Bind your VAO (not necessary if you have only one)
-        VAO.bind();
-
         // Bind your program
         program.bind();
 
         // Set the uniform value depending on the time difference
         auto t_now = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
-        // glUniform3f(program.uniform("triangleColor"), 0.0f, 0.0f, (float)(sin(time * 4.0f) + 1.0f) / 2.0f);
+        // glUniform3f(program.uniform("triangle_color"), 0.0f, 0.0f, (float)(sin(time * 4.0f) + 1.0f) / 2.0f);
 
         // Clear the framebuffer
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -244,10 +244,12 @@ int main(void)
 
         // ctx->camera.swivel();
 
+        ctx->update();
+
         // Draw a triangle
         // glDrawArrays(GL_TRIANGLES, 0, 3);
         float i = 0.f;
-        for (auto mesh : ctx->mesh_list) {
+        for (auto& mesh : ctx->mesh_list) {
             mesh.set_color(glm::vec3(i));
             i+=0.24;
             mesh.draw();
@@ -262,8 +264,6 @@ int main(void)
 
     // Deallocate opengl memory
     program.free();
-    VAO.free();
-    VBO.free();
 
     // Deallocate glfw internals
     glfwTerminate();

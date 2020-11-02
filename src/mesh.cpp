@@ -81,15 +81,40 @@ const size_t MeshEntity::get_id() const {
     return id_;
 }
 
-void MeshEntity::draw() const {
+MeshEntity::MeshEntity(GLMeshCtx& ctx, size_t id, const GLMesh& mesh) : 
+    ctx_(ctx), id_(id), model_uniform_(ctx.program_, "model_trans", model_trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {}
+
+
+bool MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) {
+    GLMesh mesh = ctx_.get_meshes()[id_];
+    for (Indexer face : mesh.get_faces()) {
+        std::array<glm::vec3, TRI> tri{mesh.get_verts()[face[0]], mesh.get_verts()[face[1]], mesh.get_verts()[face[2]]};
+
+        for (glm::vec3& local_vert : tri) {
+            glm::vec3 world_vert = glm::inverse(model_trans_) * glm::vec4(local_vert, 1.0);
+            local_vert = world_vert;
+        }
+
+        glm::vec2 bary_pos;
+        float distance;
+        if (glm::intersectRayTriangle(world_ray_origin, world_ray_dir, tri[0], tri[1], tri[2], bary_pos, distance)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void MeshEntity::draw() {
     const GLMesh& mesh_ref = ctx_.get_meshes()[id_];
     glBindVertexArray(mesh_ref.VAO_);
 
-    glUniform3f(ctx_.program_.uniform("triangleColor"), color_.r, color_.g, color_.b);
+    model_uniform_.buffer(model_trans_);
+
+    glUniform3f(ctx_.program_.uniform("triangle_color"), color_.r, color_.g, color_.b);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL );
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
-    glUniform3f(ctx_.program_.uniform("triangleColor"), 1.0f, 1.0f, 1.0f);
+    glUniform3f(ctx_.program_.uniform("triangle_color"), 1.0f, 1.0f, 1.0f);
     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 

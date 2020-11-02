@@ -20,6 +20,7 @@ public:
 
     id_ = id;
   }
+
   void buffer(const glm::mat4& mat) {
     glUniformMatrix4fv(id_, 1, GL_FALSE, (float*)&mat);
     #ifdef DEBUG

@@ -10,10 +10,12 @@
 
 #include <glm/vec3.hpp> // glm::vec3
 #include <glm/mat4x4.hpp> // glm::mat4
+#include <glm/gtx/intersect.hpp>
 
 #include <iostream>
 
 #include "definitions.h"
+#include "transform.h"
 
 #define TRI 3
 using Indexer = std::array<uint, TRI>;
@@ -105,6 +107,12 @@ struct GLMesh : public Mesh {
 
 public:
     GLMesh(uint VAO, uint VBO, uint EBO, Mesh mesh) : VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(mesh) {}
+    // // TODO, cannot use emplace due to vector resizing deleting mem, put freeing into ctx
+    // ~GLMesh() {
+    //     glDeleteVertexArrays(1, &VAO_);
+    //     glDeleteBuffers(1, &VBO_);
+    //     glDeleteBuffers(1, &EBO_);
+    // }
 };
 
 class GLMeshCtx;
@@ -117,10 +125,11 @@ class MeshEntity {
     // the index into the list of meshes in GLMeshCtx
     const size_t id_;
 
-    std::vector<glm::mat4> model_trans_;
+    glm::mat4 model_trans_{1.f};
+    GLTransform model_uniform_;
     glm::vec3 color_;
 
-    MeshEntity(GLMeshCtx& ctx, size_t id, const GLMesh& mesh) : ctx_(ctx), id_(id), model_trans_(1.f), color_(glm::vec3(0.0, 0.0, 1.0)) {}
+    MeshEntity(GLMeshCtx& ctx, size_t id, const GLMesh& mesh);
 public:
     friend class GLMeshCtx;
 
@@ -132,7 +141,9 @@ public:
         return color_;
     }
 
-    void draw() const;
+    void draw();
+
+    bool intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir);
 
     // TODO draw with model_trans_ and update model_trans_ on GL side
 };
@@ -148,6 +159,7 @@ public:
     friend class MeshEntity;
 
     GLMeshCtx(Program& program) : program_(program), meshes_() {}
+    
     MeshEntityList push(std::vector<Mesh> meshes);
     MeshEntity push(Mesh mesh);
 

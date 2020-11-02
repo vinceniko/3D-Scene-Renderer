@@ -105,8 +105,8 @@ GLCamera::GLCamera(const Program& program, float aspect, float fov) :
     TrackballCamera(aspect, fov) {}
 
 void GLCamera::update_view_uniform() {
-        view_uniform_.buffer(view_trans_);
-    }
+    view_uniform_.buffer(view_trans_);
+}
 void GLCamera::update_projection_uniform() {
     projection_uniform_.buffer(projection_trans_);
 }

@@ -32,8 +32,18 @@ public:
     void perspective();
     void ortho();
 
+    glm::mat4 get_projection() const {
+        return projection_trans_;
+    }
+    glm::mat4 get_view() const {
+        return view_trans_;
+    }
+    glm::vec3 get_position() const {
+        return glm::vec3(view_trans_[3]);
+    }
+
 protected:
-    glm::mat4 view_trans_{1.f};
+    glm::mat4 view_trans_{0.f};
     glm::mat4 projection_trans_;
     Projection projection_mode_;
 
