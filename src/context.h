@@ -52,57 +52,10 @@ public:
     GLContext(Program& program);
     GLContext(Program& program, GLCamera camera);
 
-    int intersected_mesh(glm::vec3 world_ray_dir) {
-        float min_dist = std::numeric_limits<float>::infinity();
-        int closest = -1;
-        for (size_t i = 0; i < mesh_list.size(); i++) {
-            float distance = mesh_list[i].intersected_triangles(camera.get_position(), world_ray_dir);
-            if (distance >= 0) {
-                if (min_dist > distance) {
-                    min_dist = distance;
-                    closest = i;
-                }
-            }
-        }
-        return closest;
-    }
-    void select(glm::vec3 world_ray_dir) {
-        int found = intersected_mesh(world_ray_dir);
-        if (found >= 0 && found != mouse_ctx.get_selected()) {
-            deselect();
-            mouse_ctx.hold(found);
-            mesh_list[found].set_color(glm::vec3(1.f) - mesh_list[found].get_color());
-        } else if (found >= 0) {
-            deselect();
-        }
-    }
-    void deselect() {
-        if (mouse_ctx.is_selected()) {
-            mesh_list[mouse_ctx.get_selected()].set_color(glm::vec3(1.f) - mesh_list[mouse_ctx.get_selected()].get_color());   
-        }
-        mouse_ctx.deselect();
-    }
-    MeshEntity& get_selected() {
-        return mesh_list[mouse_ctx.get_selected()];
-    }
+    int intersected_mesh(glm::vec3 world_ray_dir);
+    void select(glm::vec3 world_ray_dir);
+    void deselect();
+    MeshEntity& get_selected();
 
-    void update() {
-        glm::vec2 old_point = mouse_ctx.get_prev_world_point();
-        glm::vec2 new_point = mouse_ctx.get_world_point();
-
-        // #ifdef DEBUG
-        // std::cout << "new_point: " << new_point[0] << ' ' << new_point[1] << ' ' << 
-        // "old_point: " << old_point[0] << ' ' << old_point[1] << ' ' << std::endl;
-        // #endif
-
-        glm::vec2 diff = glm::vec2(new_point.x - old_point.x, -(new_point.y - old_point.y));
-        const float diff_min = 0.001;
-        if (mouse_ctx.is_held()) {
-            camera.translate(glm::abs(diff.x) > diff_min || glm::abs(diff.y) > diff_min ? diff : glm::vec2(0.f));
-        }
-
-        if (mouse_ctx.is_selected()) {
-            std::cout << "selected: " << mouse_ctx.get_selected() << std::endl;
-        }
-    }
+    void update();
 };
