@@ -120,6 +120,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case GLFW_KEY_MINUS:
                 ctx->get_selected().translate(ctx->camera.get_view(), glm::vec3(0.0, 0.0, window_size_factor));
                 break;
+            // scale
             case GLFW_KEY_J:
                 ctx->get_selected().scale(ctx->camera.get_view(), MeshEntity::ScaleDir::In, window_size_factor);
                 break;
@@ -229,7 +230,7 @@ int main(void)
         std::cout << "DEBUG ENABLED" << std::endl;
     #endif
     ctx = std::unique_ptr<GLContext>(new GLContext(program, GLCamera(program, width / height)));
-    ctx->mesh_list = ctx->mesh_ctx.push(std::vector<Mesh>{ BunnyMesh{}, BumpyCubeMesh{}, UnitCube{}, });
+    ctx->mesh_list = ctx->mesh_ctx.push(std::vector<Mesh>{ /*BunnyMesh{},*/ BumpyCubeMesh{}, UnitCube{}, });
 
     // Save the current time --- it will be used to dynamically change the triangle color
     auto t_start = std::chrono::high_resolution_clock::now();
@@ -260,7 +261,7 @@ int main(void)
 
         // Clear the framebuffer
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // ctx->camera.swivel();
 

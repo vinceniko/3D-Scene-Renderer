@@ -71,6 +71,8 @@ bool Program::init(
     return false;
   }
 
+  glEnable(GL_DEPTH_TEST);
+  
   check_gl_error();
   return true;
 }

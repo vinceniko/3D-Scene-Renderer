@@ -154,11 +154,14 @@ public:
     void scale(glm::mat4 view_trans, ScaleDir dir, float offset) {
         model_trans_ = glm::scale(model_trans_, glm::vec3(dir == In ? 1 + offset : 1 - offset));
     }
+    void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) {
+        model_trans_ = glm::rotate(model_trans_, glm::radians(degrees), axis);
+    }
 
 
     void draw();
 
-    bool intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir);
+    float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir);
 
     // TODO draw with model_trans_ and update model_trans_ on GL side
 };

@@ -87,31 +87,28 @@ ctx_(ctx), id_(id), model_uniform_(ctx.program_, "model_trans", model_trans_), c
 }
 
 
-bool MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) {
+float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) {
     const GLMesh& mesh = ctx_.get_meshes()[id_];
 
     glm::vec3 model_ray_origin = glm::inverse(model_trans_) * glm::vec4(world_ray_origin, 1.f);
     glm::vec3 model_ray_dir = glm::inverse(model_trans_) * glm::vec4(world_ray_dir, 0.f);
 
-    std::cout << "world_ray_origin: " << world_ray_origin[0] << ' ' << world_ray_origin[1] << ' ' << world_ray_origin[2] << std::endl;
-    std::cout << "world_ray_dir: " << world_ray_dir[0] << ' ' << world_ray_dir[1] << ' ' << world_ray_dir[2] << std::endl;
-    std::cout << "model_ray_origin: " << model_ray_origin[0] << ' ' << model_ray_origin[1] << ' ' << model_ray_origin[2] << std::endl;
-    std::cout << "model_ray_dir: " << model_ray_dir[0] << ' ' << model_ray_dir[1] << ' ' << model_ray_dir[2] << std::endl;
-
+    float min_dist = std::numeric_limits<float>::infinity();
     for (const Indexer& face : mesh.get_faces()) {
         std::array<glm::vec3, TRI> tri{mesh.get_verts()[face[0]], mesh.get_verts()[face[1]], mesh.get_verts()[face[2]]};
-        // std::cout << "mesh: " << tri[0][0] << ' ' << tri[0][1] << ' ' << tri[0][2] << std::endl;
-        // std::cout << "mesh: " << tri[1][0] << ' ' << tri[1][1] << ' ' << tri[1][2] << std::endl;
-        // std::cout << "mesh: " << tri[2][0] << ' ' << tri[2][1] << ' ' << tri[2][2] << std::endl;
-
 
         glm::vec2 bary_pos;
         float distance;
         if (glm::intersectRayTriangle(model_ray_origin, model_ray_dir, tri[0], tri[1], tri[2], bary_pos, distance)) {
-            return true;
+            if (min_dist > distance) {
+                min_dist = distance;
+            }
         }
     }
-    return false;
+    if (min_dist == std::numeric_limits<float>::infinity()) {
+        return -1;
+    }
+    return min_dist;
 }
 
 void MeshEntity::draw() {

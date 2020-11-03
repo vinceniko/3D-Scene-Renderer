@@ -53,12 +53,18 @@ public:
     GLContext(Program& program, GLCamera camera);
 
     int intersected_mesh(glm::vec3 world_ray_dir) {
+        float min_dist = std::numeric_limits<float>::infinity();
+        int closest = -1;
         for (size_t i = 0; i < mesh_list.size(); i++) {
-            if (mesh_list[i].intersected_triangles(camera.get_position(), world_ray_dir)) {
-                return i;
+            float distance = mesh_list[i].intersected_triangles(camera.get_position(), world_ray_dir);
+            if (distance >= 0) {
+                if (min_dist > distance) {
+                    min_dist = distance;
+                    closest = i;
+                }
             }
         }
-        return -1;
+        return closest;
     }
     void select(glm::vec3 world_ray_dir) {
         int found = intersected_mesh(world_ray_dir);
