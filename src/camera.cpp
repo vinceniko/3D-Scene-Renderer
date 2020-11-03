@@ -51,6 +51,8 @@ TrackballCamera::TrackballCamera(float aspect, float fov) : Camera(aspect, fov) 
 }
 
 void TrackballCamera::zoom(ZoomDir zoom_dir, float percent) {
+    // TODO: limit zoom in
+    
     radius_ *= zoom_dir == Out ? 1.f + percent : 1.f - percent;
     translate(glm::vec2(0.0));
 }

@@ -25,6 +25,7 @@ public:
     void hold();
     void hold(size_t i);
     void release();
+    void deselect();
     int get_selected() const;
     bool is_selected() const;
     bool is_held() const;
@@ -61,9 +62,22 @@ public:
     }
     void select(glm::vec3 world_ray_dir) {
         int found = intersected_mesh(world_ray_dir);
-        if (found >= 0) {
+        if (found >= 0 && found != mouse_ctx.get_selected()) {
+            deselect();
             mouse_ctx.hold(found);
+            mesh_list[found].set_color(glm::vec3(1.f) - mesh_list[found].get_color());
+        } else if (found >= 0) {
+            deselect();
         }
+    }
+    void deselect() {
+        if (mouse_ctx.is_selected()) {
+            mesh_list[mouse_ctx.get_selected()].set_color(glm::vec3(1.f) - mesh_list[mouse_ctx.get_selected()].get_color());   
+        }
+        mouse_ctx.deselect();
+    }
+    MeshEntity& get_selected() {
+        return mesh_list[mouse_ctx.get_selected()];
     }
 
     void update() {

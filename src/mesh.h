@@ -134,6 +134,11 @@ class MeshEntity {
 public:
     friend class GLMeshCtx;
 
+    enum ScaleDir {
+        In,
+        Out,
+    };
+
     const size_t get_id() const;
     void set_color(glm::vec3 new_color) {
         color_ = new_color;
@@ -141,6 +146,15 @@ public:
     glm::vec3 get_color() {
         return color_;
     }
+
+    void translate(glm::mat4 view_trans, glm::vec3 offset) {
+        offset = glm::inverse(view_trans) * glm::vec4(offset, 0.0);
+        model_trans_ = glm::translate(model_trans_, offset);;
+    }
+    void scale(glm::mat4 view_trans, ScaleDir dir, float offset) {
+        model_trans_ = glm::scale(model_trans_, glm::vec3(dir == In ? 1 + offset : 1 - offset));
+    }
+
 
     void draw();
 

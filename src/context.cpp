@@ -1,7 +1,6 @@
 #include "context.h"
 
 void MouseContext::hold() {
-    selected_ = -1;
     held_ = true;
 }
 void MouseContext::hold(size_t i) {
@@ -10,6 +9,9 @@ void MouseContext::hold(size_t i) {
 }
 void MouseContext::release() {
     held_ = false;
+}
+void MouseContext::deselect() {
+    selected_ = -1;
 }
 int MouseContext::get_selected() const {
     return selected_;
