@@ -39,11 +39,11 @@ public:
         return view_trans_;
     }
     glm::vec3 get_position() const {
-        return glm::vec3(view_trans_[3]);
+        return glm::vec3(glm::inverse(view_trans_)[3]);
     }
 
 protected:
-    glm::mat4 view_trans_{0.f};
+    glm::mat4 view_trans_{1.f};
     glm::mat4 projection_trans_;
     Projection projection_mode_;
 
@@ -52,8 +52,8 @@ protected:
 
 class TrackballCamera : public Camera {
     float radius_ = 3.1f;
-    float theta_ = 0.f;
-    float phi_ = glm::pi<float>() / 2.f;
+    float theta_ = glm::half_pi<float>();
+    float phi_ = glm::half_pi<float>();
 
     float up_ = 1.0;
     

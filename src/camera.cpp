@@ -19,7 +19,6 @@ Camera::Camera(float aspect, float fov) : projection_mode_(Perspective), aspect_
 void Camera::translate(glm::vec2 offset) {
     view_trans_ = glm::translate(view_trans_, glm::vec3(offset, 0.f));
 }
-// TODO: zoom would have to be done last, after projection
 void Camera::zoom(ZoomDir zoom_dir, float percent) {
     glm::mat4 clone = glm::translate(glm::mat4(1.0f), glm::vec3(glm::inverse(view_trans_) * glm::vec4(glm::vec3(0.0), 1.0)));
     float zoom_perc = static_cast<bool>(zoom_dir) ? 1.f + percent : 1.f - percent;
@@ -76,10 +75,10 @@ void TrackballCamera::translate(glm::vec2 offset) {
         up_ = -1.0f;
     }
 
-    #ifdef DEBUG
-    std::cout << theta_ << std::endl;
-    std::cout << phi_ << std::endl;
-    #endif
+    // #ifdef DEBUG
+    // std::cout << theta_ << std::endl;
+    // std::cout << phi_ << std::endl;
+    // #endif
 
     float camX =  radius_ * glm::sin(phi_) * glm::cos(theta_);
     float camY =  radius_ * glm::cos(phi_ );

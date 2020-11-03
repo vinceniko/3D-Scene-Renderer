@@ -48,9 +48,21 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
 
+    // Convert screen position to nds
+    float x_nds = (2.0f * xpos) / width - 1.0f;
+    float y_nds = 1.0f - (2.0f * ypos) / height;
+
+    glm::vec2 ray_nds = glm::vec2(x_nds, y_nds);
+    glm::vec4 ray_clip = glm::vec4(ray_nds, -1.0, 1.0);
+    glm::vec4 ray_eye = glm::inverse(ctx->camera.get_projection()) * ray_clip;
+    ray_eye = glm::vec4(glm::vec2(ray_eye), -1.0, 0.0);
+    glm::vec3 ray_world = glm::vec3(inverse(ctx->camera.get_view()) * ray_eye);
+    ray_world = glm::normalize(ray_world);
+
     // Update the position of the first vertex if the left button is pressed
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         ctx->mouse_ctx.hold();
+        ctx->select(glm::vec3(ray_world));
     } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         ctx->mouse_ctx.release();
     }
@@ -62,10 +74,11 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     glfwGetWindowSize(window, &width, &height);
 
     // Convert screen position to nds
-    double x_nds = ((xpos/double(width))*2)-1;
-    double y_nds = (((height-1-ypos)/double(height))*2)-1; // NOTE: y axis is flipped in glfw
+    float x_nds = (2.0f * xpos) / width - 1.0f;
+    float y_nds = 1.0f - (2.0f * ypos) / height;
+
     glm::vec2 ray_nds = glm::vec2(x_nds, y_nds);
-    glm::vec4 ray_clip = glm::vec4(glm::vec2(ray_nds), -1.0, 1.0);
+    glm::vec4 ray_clip = glm::vec4(ray_nds, -1.0, 1.0);
     glm::vec4 ray_eye = glm::inverse(ctx->camera.get_projection()) * ray_clip;
     ray_eye = glm::vec4(glm::vec2(ray_eye), -1.0, 0.0);
     glm::vec3 ray_world = glm::vec3(inverse(ctx->camera.get_view()) * ray_eye);
@@ -188,7 +201,7 @@ int main(void)
                     "uniform mat4 projection;"
                     "void main()"
                     "{"
-                    "    gl_Position = projection * view_trans * vec4(position, 1.0);"
+                    "    gl_Position = projection * view_trans * model_trans * vec4(position, 1.0);"
                     "}";
     const GLchar* fragment_shader =
             "#version 150 core\n"
@@ -209,7 +222,7 @@ int main(void)
         std::cout << "DEBUG ENABLED" << std::endl;
     #endif
     ctx = std::unique_ptr<GLContext>(new GLContext(program, GLCamera(program, width / height)));
-    ctx->mesh_list = ctx->mesh_ctx.push(std::vector<Mesh>{ /*BunnyMesh{},*/ BumpyCubeMesh{}, UnitCube{}, });
+    ctx->mesh_list = ctx->mesh_ctx.push(std::vector<Mesh>{ /*BunnyMesh{}, BumpyCubeMesh{}, */ UnitCube{}, });
 
     // Save the current time --- it will be used to dynamically change the triangle color
     auto t_start = std::chrono::high_resolution_clock::now();
@@ -243,6 +256,8 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         // ctx->camera.swivel();
+
+        // std::cout << "camera: " << ctx->camera.get_position()[0] << ' ' << ctx->camera.get_position()[1] << ' ' << ctx->camera.get_position()[2] << std::endl;
 
         ctx->update();
 
