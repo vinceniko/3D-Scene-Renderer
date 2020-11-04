@@ -13,12 +13,14 @@
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 
+#ifdef DEBUG
 #include <iostream>
+#endif
 
 #include "definitions.h"
 #include "transform.h"
+#include "triangle.h"
 
-#define TRI 3
 using Indexer = std::array<uint, TRI>;
 
 class MeshEntity;
@@ -29,8 +31,11 @@ class Mesh {
     std::vector<glm::vec3> verts_;
     std::vector<Indexer> faces_;
 
+    glm::vec3 centroid_;
+    glm::vec3 calc_centroid() const;
+
 public:
-    Mesh(std::vector<glm::vec3> verts, std::vector<Indexer> faces) : verts_(verts), faces_(faces) {}
+    Mesh(std::vector<glm::vec3> verts, std::vector<Indexer> faces) : verts_(verts), faces_(faces), centroid_(calc_centroid()) {}
     // file path constructor
     Mesh(std::string f_path);
     
@@ -41,6 +46,9 @@ public:
     }
     const std::vector<Indexer>& get_faces() const {
         return faces_;
+    }
+    const glm::vec3& get_centroid() const {
+        return centroid_;
     }
 
     // * DEBUG
@@ -158,10 +166,11 @@ public:
         model_trans_ = glm::rotate(model_trans_, glm::radians(degrees), axis);
     }
 
-
     void draw();
 
     float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir);
+
+    void center_to_origin();
 
     // TODO draw with model_trans_ and update model_trans_ on GL side
 };

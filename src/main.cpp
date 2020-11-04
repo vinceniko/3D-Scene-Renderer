@@ -101,6 +101,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         // Update the position of the first vertex if the keys 1,2, or 3 are pressed
         switch (key)
         {
+            // model
+            // translate
             case GLFW_KEY_D:
                 ctx->get_selected().translate(ctx->camera.get_view(), glm::vec3(window_size_factor, 0.0, 0.0));
                 break;
@@ -127,6 +129,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case GLFW_KEY_K:
                 ctx->get_selected().scale(ctx->camera.get_view(), MeshEntity::ScaleDir::Out, window_size_factor);
                 break;
+            // center to origin
+            case GLFW_KEY_O:
+                ctx->get_selected().center_to_origin();
+                break;
+            
             // projection
             case GLFW_KEY_C:
                 ctx->camera.switch_projection();
@@ -230,7 +237,7 @@ int main(void)
         std::cout << "DEBUG ENABLED" << std::endl;
     #endif
     ctx = std::unique_ptr<GLContext>(new GLContext(program, GLCamera(program, width / height)));
-    ctx->mesh_list = ctx->mesh_ctx.push(std::vector<Mesh>{ /*BunnyMesh{},*/ BumpyCubeMesh{}, UnitCube{}, });
+    ctx->mesh_list = ctx->mesh_ctx.push(std::vector<Mesh>{ BunnyMesh{}, /*BumpyCubeMesh{}, UnitCube{},*/ });
 
     // Save the current time --- it will be used to dynamically change the triangle color
     auto t_start = std::chrono::high_resolution_clock::now();
