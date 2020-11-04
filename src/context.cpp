@@ -97,7 +97,9 @@ void GLContext::update() {
         camera.translate(glm::abs(diff.x) > diff_min || glm::abs(diff.y) > diff_min ? diff : glm::vec2(0.f));
     }
 
+    #ifdef DEBUG
     if (mouse_ctx.is_selected()) {
         std::cout << "selected: " << mouse_ctx.get_selected() << std::endl;
     }
+    #endif
 }
