@@ -57,6 +57,8 @@ Mesh::Mesh(std::string f_path) {
         }
         faces_.push_back(indexer);
     }
+
+    centroid_ = calc_centroid();
 }
 
 void Mesh::push_back(glm::vec3 vert, Indexer indexer) {
@@ -76,6 +78,25 @@ void Mesh::print() const {
         std::cout << std::endl;
     }
 }
+glm::vec3 Mesh::calc_centroid() const {
+    glm::vec3 mg{0.f};
+    float m = 0.f;
+
+    for (Indexer face : get_faces()) {
+        Triangle tri{get_verts()[face[0]], get_verts()[face[1]], get_verts()[face[2]]};
+        float tri_area = area(tri);
+        m += tri_area;
+        mg += tri_area * centroid(tri);
+    }
+    glm::vec3 out = mg / m;
+    #ifdef DEBUG
+    std::cout << "m: " << m << ' ' 
+    << "mg: " << mg[0] << ' ' << mg[1] << ' ' << mg[2] << ' ' << std::endl
+    << "out: " << out[0] << ' ' << out[1] << ' ' << out[2] << ' ' << std::endl;
+    #endif
+
+    return out;
+}
 
 const size_t MeshEntity::get_id() const {
     return id_;
@@ -84,8 +105,12 @@ const size_t MeshEntity::get_id() const {
 MeshEntity::MeshEntity(GLMeshCtx& ctx, size_t id, const GLMesh& mesh) : 
 ctx_(ctx), id_(id), model_uniform_(ctx.program_, "model_trans", model_trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
     // model_trans_ = glm::translate(model_trans_, glm::vec3(1.f, 1.f, -2.f));
+    center_to_origin();
 }
 
+void MeshEntity::center_to_origin() {
+    model_trans_ = glm::translate(glm::mat4{1.f}, -ctx_.get_meshes()[id_].get_centroid());
+}
 
 float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) {
     const GLMesh& mesh = ctx_.get_meshes()[id_];
