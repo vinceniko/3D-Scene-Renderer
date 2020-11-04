@@ -58,7 +58,7 @@ Mesh::Mesh(std::string f_path) {
         faces_.push_back(indexer);
     }
 
-    centroid_ = calc_centroid();
+    init();
 }
 
 void Mesh::push_back(glm::vec3 vert, Indexer indexer) {
@@ -84,6 +84,7 @@ glm::vec3 Mesh::calc_centroid() const {
 
     for (Indexer face : get_faces()) {
         Triangle tri{get_verts()[face[0]], get_verts()[face[1]], get_verts()[face[2]]};
+
         float tri_area = area(tri);
         m += tri_area;
         mg += tri_area * centroid(tri);
@@ -97,6 +98,26 @@ glm::vec3 Mesh::calc_centroid() const {
 
     return out;
 }
+glm::vec3 Mesh::calc_scale() const {
+    float xmin = std::numeric_limits<float>::infinity();
+    float xmax = -std::numeric_limits<float>::infinity();
+    float ymin = std::numeric_limits<float>::infinity();
+    float ymax = -std::numeric_limits<float>::infinity();
+    float zmin = std::numeric_limits<float>::infinity();
+    float zmax = -std::numeric_limits<float>::infinity();
+    for (glm::vec3 pos : get_verts()) {
+        xmin = std::min(xmin, pos.x);
+        xmax = std::max(xmax, pos.x);
+
+        ymin = std::min(ymin, pos.y);
+        ymax = std::max(ymax, pos.y);
+
+        zmin = std::min(zmin, pos.z);
+        zmax = std::max(zmax, pos.z);
+    }
+
+    return glm::vec3{1.f / (xmax - xmin), 1.f / (ymax - ymin), 1.f / (zmax - zmin)};
+}
 
 const size_t MeshEntity::get_id() const {
     return id_;
@@ -105,11 +126,33 @@ const size_t MeshEntity::get_id() const {
 MeshEntity::MeshEntity(GLMeshCtx& ctx, size_t id, const GLMesh& mesh) : 
 ctx_(ctx), id_(id), model_uniform_(ctx.program_, "model_trans", model_trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
     // model_trans_ = glm::translate(model_trans_, glm::vec3(1.f, 1.f, -2.f));
-    center_to_origin();
+    // scale_to_unit();
+    set_to_origin();
 }
 
-void MeshEntity::center_to_origin() {
-    model_trans_ = glm::translate(glm::mat4{1.f}, -ctx_.get_meshes()[id_].get_centroid());
+void MeshEntity::set_to_origin() {
+    glm::mat4 scale = glm::scale(glm::mat4{1.f}, ctx_.get_meshes()[id_].get_scale());
+    glm::mat4 trans = glm::translate(glm::mat4{1.f}, -ctx_.get_meshes()[id_].get_centroid());
+    model_trans_ = scale * trans;
+}
+
+void MeshEntity::translate(glm::mat4 view_trans, glm::vec3 offset) {
+    offset = glm::inverse(model_trans_) * glm::inverse(view_trans) * glm::vec4(offset, 0.0);
+    model_trans_ = glm::translate(model_trans_, offset);;
+}
+void MeshEntity::scale(glm::mat4 view_trans, ScaleDir dir, float offset) {
+    glm::mat4 trans = glm::translate(glm::mat4{1.f}, ctx_.get_meshes()[id_].get_centroid());
+    trans = glm::scale(trans, glm::vec3(dir == In ? 1 + offset : 1 - offset));
+    trans = glm::translate(trans, -ctx_.get_meshes()[id_].get_centroid());
+    model_trans_ = model_trans_ * trans;
+}
+void MeshEntity::rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) {
+    glm::vec3 view_axis = glm::vec3{glm::inverse(model_trans_) * glm::inverse(view_trans) * glm::vec4{axis, 0.0}};
+
+    glm::mat4 trans = glm::translate(glm::mat4{1.f}, ctx_.get_meshes()[id_].get_centroid());
+    trans = glm::rotate(trans, glm::radians(degrees), view_axis);
+    trans = glm::translate(trans, -ctx_.get_meshes()[id_].get_centroid());
+    model_trans_ = model_trans_ * trans;
 }
 
 float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) {

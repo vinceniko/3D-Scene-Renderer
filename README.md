@@ -1,10 +1,15 @@
 # TODO
 
-* scaling to unit cube
-* centering around barycentric coordinate
-  * make sure that scaling a model works on bunny after doing this
-* object selection depth test
-  * use min distance to triangle of glm::rayTriangleIntersection
-* Depth Test
 * Rotate objects
+* mesh spawning
+```
+// mesh spawn
+case GLFW_KEY_1:
+    ctx->mesh_ctx.push(UnitCube{});
+    break;
+```
 * shading
+
+## Bugs
+
+* prevent segfault on transforming no selection
