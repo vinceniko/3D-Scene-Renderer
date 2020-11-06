@@ -78,8 +78,12 @@ void GLContext::deselect() {
     }
     mouse_ctx.deselect();
 }
-MeshEntity& GLContext::get_selected() {
-    return mesh_list[mouse_ctx.get_selected()];
+MeshEntity::Optional GLContext::get_selected() {
+    if (mouse_ctx.is_selected()) {
+        return {{mesh_list[mouse_ctx.get_selected()] }};
+    }
+
+    return {};
 }
 
 void GLContext::update() {

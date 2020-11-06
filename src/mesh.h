@@ -21,6 +21,9 @@
 #include "transform.h"
 #include "triangle.h"
 
+#include <optional>
+#include <functional>
+
 enum MeshList {
     CUBE,
     BUMPY,
@@ -166,6 +169,8 @@ public:
         In,
         Out,
     };
+
+    using Optional = std::optional<std::reference_wrapper<MeshEntity>>;
 
     const size_t get_id() const;
     void set_color(glm::vec3 new_color) {

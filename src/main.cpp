@@ -98,6 +98,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         glfwGetWindowSize(window, &width, &height);
         float window_size_factor = 2 * 0.1;
 
+        MeshEntity::Optional selected = ctx->get_selected();
+
         // Update the position of the first vertex if the keys 1,2, or 3 are pressed
         switch (key)
         {
@@ -114,56 +116,86 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             // model
             // translate
             case GLFW_KEY_D:
-                ctx->get_selected().translate(ctx->camera.get_view(), glm::vec3(window_size_factor, 0.0, 0.0));
+                if (selected.has_value()) {
+                    selected->get().translate(ctx->camera.get_view(), glm::vec3(window_size_factor, 0.0, 0.0));
+                }
                 break;
             case GLFW_KEY_A:
-                ctx->get_selected().translate(ctx->camera.get_view(), glm::vec3(-window_size_factor, 0.0, 0.0));
+                if (selected.has_value()) {
+                    selected->get().translate(ctx->camera.get_view(), glm::vec3(-window_size_factor, 0.0, 0.0));
+                }
                 break;
             case GLFW_KEY_W:
-                ctx->get_selected().translate(ctx->camera.get_view(), glm::vec3(0.0, window_size_factor, 0.0));
+                if (selected.has_value()) {
+                    selected->get().translate(ctx->camera.get_view(), glm::vec3(0.0, window_size_factor, 0.0));
+                }
                 break;
             case GLFW_KEY_S:
-                ctx->get_selected().translate(ctx->camera.get_view(), glm::vec3(0.0, -window_size_factor, 0.0));
+                if (selected.has_value()) {
+                    selected->get().translate(ctx->camera.get_view(), glm::vec3(0.0, -window_size_factor, 0.0));
+                }
                 break;
             // z axis
             case GLFW_KEY_EQUAL:
-                ctx->get_selected().translate(ctx->camera.get_view(), glm::vec3(0.0, 0.0, -window_size_factor));
+                if (selected.has_value()) {
+                    selected->get().translate(ctx->camera.get_view(), glm::vec3(0.0, 0.0, -window_size_factor));
+                }
                 break;
             case GLFW_KEY_MINUS:
-                ctx->get_selected().translate(ctx->camera.get_view(), glm::vec3(0.0, 0.0, window_size_factor));
+                if (selected.has_value()) {
+                    selected->get().translate(ctx->camera.get_view(), glm::vec3(0.0, 0.0, window_size_factor));
+                }
                 break;
             // scale
             case GLFW_KEY_K:
-                ctx->get_selected().scale(ctx->camera.get_view(), MeshEntity::ScaleDir::In, window_size_factor);
+                if (selected.has_value()) {
+                    selected->get().scale(ctx->camera.get_view(), MeshEntity::ScaleDir::In, window_size_factor);
+                }
                 break;
             case GLFW_KEY_L:
-                ctx->get_selected().scale(ctx->camera.get_view(), MeshEntity::ScaleDir::Out, window_size_factor);
+                if (selected.has_value()) {
+                    selected->get().scale(ctx->camera.get_view(), MeshEntity::ScaleDir::Out, window_size_factor);
+                }
                 break;
             // rotate
             // x
             case GLFW_KEY_T:
-                ctx->get_selected().rotate(ctx->camera.get_view(), -10.f, glm::vec3(1.f, 0.f, 0.f));
+                if (selected.has_value()) {
+                    selected->get().rotate(ctx->camera.get_view(), -10.f, glm::vec3(1.f, 0.f, 0.f));
+                }
                 break;
             case GLFW_KEY_Y:
-                ctx->get_selected().rotate(ctx->camera.get_view(), 10.f, glm::vec3(1.f, 0.f, 0.f));
+                if (selected.has_value()) {
+                    selected->get().rotate(ctx->camera.get_view(), 10.f, glm::vec3(1.f, 0.f, 0.f));
+                }
                 break;
             // y
             case GLFW_KEY_F:
-                ctx->get_selected().rotate(ctx->camera.get_view(), -10.f, glm::vec3(0.f, 1.f, 0.f));
+                if (selected.has_value()) {
+                    selected->get().rotate(ctx->camera.get_view(), -10.f, glm::vec3(0.f, 1.f, 0.f));
+                }
                 break;
             case GLFW_KEY_G:
-                ctx->get_selected().rotate(ctx->camera.get_view(), 10.f, glm::vec3(0.f, 1.f, 0.f));
+                if (selected.has_value()) {
+                    selected->get().rotate(ctx->camera.get_view(), 10.f, glm::vec3(0.f, 1.f, 0.f));
+                }
                 break;
             // z
             case GLFW_KEY_H:
-                ctx->get_selected().rotate(ctx->camera.get_view(), 10.f, glm::vec3(0.f, 0.f, 1.f));
+                if (selected.has_value()) {
+                    selected->get().rotate(ctx->camera.get_view(), 10.f, glm::vec3(0.f, 0.f, 1.f));
+                }
                 break;
             case GLFW_KEY_J:
-                ctx->get_selected().rotate(ctx->camera.get_view(), -10.f, glm::vec3(0.f, 0.f, 1.f));
+                if (selected.has_value()) {
+                    selected->get().rotate(ctx->camera.get_view(), -10.f, glm::vec3(0.f, 0.f, 1.f));
+                }
                 break;
             // center to origin
             case GLFW_KEY_O:
-                ctx->get_selected().set_to_origin();
+                if (selected.has_value()) {
+                    selected->get().set_to_origin();
+                }
                 break;
             
             // projection
