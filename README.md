@@ -1,20 +1,15 @@
 # TODO
 
 * Rotate objects
-* mesh spawning
-```
-// mesh spawn
-case GLFW_KEY_1:
-    ctx->mesh_ctx.push(UnitCube{});
-    break;
-```
+* mesh despawning
 * shading
 * aspect scaling
-* rename mesh entity to mesh instance?
+
+## Refactor
+
+* Camera inheritance
 
 ## Bugs
-
-* prevent segfault on transforming no selection
 
 ## For Writeup
 
