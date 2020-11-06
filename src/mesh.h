@@ -56,7 +56,7 @@ public:
     Mesh(std::string f_path);
     
     // accessors
-    void push_back(glm::vec3 vert, Indexer indexer);
+    void push_back(glm::vec3 vert, const Indexer& indexer);
     const std::vector<glm::vec3>& get_verts() const {
         return verts_;
     }
@@ -71,7 +71,9 @@ public:
     }
 
     // * DEBUG
+    #ifdef DEBUG
     void print() const ;
+    #endif
 
     // operations
     // TODO
@@ -174,7 +176,7 @@ public:
     void set_color(glm::vec3 new_color) {
         color_ = new_color;
     }
-    glm::vec3 get_color() {
+    glm::vec3 get_color() const {
         return color_;
     }
 
@@ -182,9 +184,9 @@ public:
     void scale(glm::mat4 view_trans, ScaleDir dir, float offset);
     void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis);
 
-    void draw();
+    void draw() const;
 
-    float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir);
+    float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const;
 
     void set_to_origin();
 

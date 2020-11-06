@@ -61,10 +61,11 @@ Mesh::Mesh(std::string f_path) {
     init();
 }
 
-void Mesh::push_back(glm::vec3 vert, Indexer indexer) {
+void Mesh::push_back(glm::vec3 vert, const Indexer& indexer) {
     verts_.push_back(vert);
     faces_.push_back(indexer);
 }
+#ifdef DEBUG
 void Mesh::print() const {
     std::cout << verts_.size() << ' ' << faces_.size() << ' ' << ' ' << 0 << std::endl;
     for (auto vert : verts_) {
@@ -78,6 +79,7 @@ void Mesh::print() const {
         std::cout << std::endl;
     }
 }
+#endif
 glm::vec3 Mesh::calc_centroid() const {
     glm::vec3 mg{0.f};
     float m = 0.f;
@@ -155,7 +157,7 @@ void MeshEntity::rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) {
     model_trans_ = model_trans_ * trans;
 }
 
-float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) {
+float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const {
     const GLMesh& mesh = ctx_.get_meshes()[id_];
 
     glm::vec3 model_ray_origin = glm::inverse(model_trans_) * glm::vec4(world_ray_origin, 1.f);
@@ -179,7 +181,7 @@ float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 wo
     return min_dist;
 }
 
-void MeshEntity::draw() {
+void MeshEntity::draw() const {
     const GLMesh& mesh_ref = ctx_.get_meshes()[id_];
     glBindVertexArray(mesh_ref.VAO_);
 
