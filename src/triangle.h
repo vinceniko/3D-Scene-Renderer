@@ -4,7 +4,7 @@
 #include <glm/ext/quaternion_geometric.hpp> // length, cross
 #include <array>
 
-#define TRI 3
+constexpr int TRI = 3;
 using Triangle = std::array<glm::vec3, TRI>;
 
 float area(Triangle tri);

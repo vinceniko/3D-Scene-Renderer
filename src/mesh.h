@@ -21,6 +21,12 @@
 #include "transform.h"
 #include "triangle.h"
 
+enum MeshList {
+    CUBE,
+    BUMPY,
+    BUNNY,
+};
+
 using Indexer = std::array<uint, TRI>;
 
 class MeshEntity;
@@ -33,6 +39,15 @@ class Mesh {
 
     glm::vec3 centroid_;
     glm::vec3 calc_centroid() const;
+
+    glm::vec3 scale_;
+    glm::vec3 calc_scale() const;
+
+protected:
+    void init() {
+        centroid_ = calc_centroid();
+        scale_ = calc_scale();
+    }
 
 public:
     Mesh(std::vector<glm::vec3> verts, std::vector<Indexer> faces) : verts_(verts), faces_(faces), centroid_(calc_centroid()) {}
@@ -49,6 +64,9 @@ public:
     }
     const glm::vec3& get_centroid() const {
         return centroid_;
+    }
+    const glm::vec3& get_scale() const {
+        return scale_;
     }
 
     // * DEBUG
@@ -108,7 +126,9 @@ public:
             Indexer{1, 2, 5},
             Indexer{2, 6, 5},
         }
-    ) {}
+    ) {
+        init();
+    }
 };
 
 struct GLMesh : public Mesh {
@@ -129,7 +149,7 @@ class GLMeshCtx;
 // a reference to a Mesh inside the GLMeshCtx
 // represents one entity being drawn
 class MeshEntity {
-    GLMeshCtx& ctx_;
+    const GLMeshCtx& ctx_;
 
     // the index into the list of meshes in GLMeshCtx
     const size_t id_;
@@ -138,7 +158,7 @@ class MeshEntity {
     GLTransform model_uniform_;
     glm::vec3 color_;
 
-    MeshEntity(GLMeshCtx& ctx, size_t id, const GLMesh& mesh);
+    MeshEntity(GLMeshCtx& ctx, size_t id);
 public:
     friend class GLMeshCtx;
 
@@ -155,22 +175,15 @@ public:
         return color_;
     }
 
-    void translate(glm::mat4 view_trans, glm::vec3 offset) {
-        offset = glm::inverse(view_trans) * glm::vec4(offset, 0.0);
-        model_trans_ = glm::translate(model_trans_, offset);;
-    }
-    void scale(glm::mat4 view_trans, ScaleDir dir, float offset) {
-        model_trans_ = glm::scale(model_trans_, glm::vec3(dir == In ? 1 + offset : 1 - offset));
-    }
-    void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) {
-        model_trans_ = glm::rotate(model_trans_, glm::radians(degrees), axis);
-    }
+    void translate(glm::mat4 view_trans, glm::vec3 offset);
+    void scale(glm::mat4 view_trans, ScaleDir dir, float offset);
+    void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis);
 
     void draw();
 
     float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir);
 
-    void center_to_origin();
+    void set_to_origin();
 
     // TODO draw with model_trans_ and update model_trans_ on GL side
 };
@@ -188,7 +201,7 @@ public:
     GLMeshCtx(Program& program) : program_(program), meshes_() {}
     
     MeshEntityList push(std::vector<Mesh> meshes);
-    MeshEntity push(Mesh mesh);
 
     const std::vector<GLMesh>& get_meshes() const;
+    MeshEntity get_mesh_entity(size_t i);
 };
