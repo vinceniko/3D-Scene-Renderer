@@ -3,10 +3,8 @@
 #include <helpers.h>
 
 #include <fstream>
-#include <string>
 #include <vector>
 #include <array>
-#include <exception>
 
 #include <glm/vec3.hpp> // glm::vec3
 #include <glm/mat4x4.hpp> // glm::mat4

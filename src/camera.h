@@ -4,8 +4,6 @@
 #include <glm/mat4x4.hpp> // glm::mat4
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 
-#include <exception>
-
 #include "helpers.h"
 
 #include "definitions.h"

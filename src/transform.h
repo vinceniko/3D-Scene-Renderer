@@ -1,7 +1,5 @@
 #pragma once
 
-#include <exception>
-
 #include "helpers.h"
 #include "definitions.h"
 
