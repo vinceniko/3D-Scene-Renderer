@@ -52,7 +52,7 @@ public:
     GLContext(Program& program);
     GLContext(Program& program, GLCamera camera);
 
-    int intersected_mesh(glm::vec3 world_ray_dir);
+    int intersected_mesh(glm::vec3 world_ray_dir) const;
     void select(glm::vec3 world_ray_dir);
     void deselect();
     MeshEntity::Optional get_selected();

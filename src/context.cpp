@@ -48,7 +48,7 @@ GLContext::GLContext(Program& program) :
 GLContext::GLContext(Program& program, GLCamera camera) : 
     program_(program), camera(camera), mesh_ctx(program_) {}
 
-int GLContext::intersected_mesh(glm::vec3 world_ray_dir) {
+int GLContext::intersected_mesh(glm::vec3 world_ray_dir) const {
     float min_dist = std::numeric_limits<float>::infinity();
     int closest = -1;
     for (size_t i = 0; i < mesh_list.size(); i++) {
