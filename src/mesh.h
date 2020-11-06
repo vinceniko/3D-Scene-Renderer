@@ -21,6 +21,12 @@
 #include "transform.h"
 #include "triangle.h"
 
+enum MeshList {
+    CUBE,
+    BUMPY,
+    BUNNY,
+};
+
 using Indexer = std::array<uint, TRI>;
 
 class MeshEntity;
@@ -143,7 +149,7 @@ class GLMeshCtx;
 // a reference to a Mesh inside the GLMeshCtx
 // represents one entity being drawn
 class MeshEntity {
-    GLMeshCtx& ctx_;
+    const GLMeshCtx& ctx_;
 
     // the index into the list of meshes in GLMeshCtx
     const size_t id_;
@@ -152,7 +158,7 @@ class MeshEntity {
     GLTransform model_uniform_;
     glm::vec3 color_;
 
-    MeshEntity(GLMeshCtx& ctx, size_t id, const GLMesh& mesh);
+    MeshEntity(GLMeshCtx& ctx, size_t id);
 public:
     friend class GLMeshCtx;
 
@@ -195,7 +201,7 @@ public:
     GLMeshCtx(Program& program) : program_(program), meshes_() {}
     
     MeshEntityList push(std::vector<Mesh> meshes);
-    MeshEntity push(Mesh mesh);
 
     const std::vector<GLMesh>& get_meshes() const;
+    MeshEntity get_mesh_entity(size_t i);
 };

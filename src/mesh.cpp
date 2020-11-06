@@ -123,7 +123,7 @@ const size_t MeshEntity::get_id() const {
     return id_;
 }
 
-MeshEntity::MeshEntity(GLMeshCtx& ctx, size_t id, const GLMesh& mesh) : 
+MeshEntity::MeshEntity(GLMeshCtx& ctx, size_t id) : 
 ctx_(ctx), id_(id), model_uniform_(ctx.program_, "model_trans", model_trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
     // model_trans_ = glm::translate(model_trans_, glm::vec3(1.f, 1.f, -2.f));
     // scale_to_unit();
@@ -241,25 +241,16 @@ MeshEntityList GLMeshCtx::push(std::vector<Mesh> meshes) {
             check_gl_error();
         #endif
 
-        out.push_back(MeshEntity{*this, i, meshes_[meshes_.size() - 1]});
+        out.push_back(get_mesh_entity(meshes_.size() - 1));
     }
 
     return out;
 };
-MeshEntity GLMeshCtx::push(Mesh mesh) {
-    // gen gl objects
-    uint VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    // assign gl object
-    meshes_.push_back(GLMesh{VAO, VBO, EBO, mesh});
-
-    // return prototype entity
-    return MeshEntity{*this, meshes_.size() - 1, meshes_[meshes_.size() - 1]};
-};
 
 const std::vector<GLMesh>& GLMeshCtx::get_meshes() const {
     return meshes_;
+}
+
+MeshEntity GLMeshCtx::get_mesh_entity(size_t i) {
+    return MeshEntity{*this, i};
 }

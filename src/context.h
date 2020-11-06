@@ -57,5 +57,14 @@ public:
     void deselect();
     MeshEntity& get_selected();
 
+    void init_meshes(std::vector<Mesh> meshes) {
+        mesh_ctx.push(meshes);
+    }
+    void push_mesh_entity(std::vector<size_t> ids) {
+        for (const auto& id : ids) {
+            mesh_list.push_back(mesh_ctx.get_mesh_entity(id));
+        }
+    }
+
     void update();
 };
