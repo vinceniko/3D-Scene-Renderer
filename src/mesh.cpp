@@ -61,10 +61,17 @@ Mesh::Mesh(std::string f_path) {
     init();
 }
 
+void Mesh::init() {
+    centroid_ = calc_centroid();
+    scale_ = calc_scale();
+    normals_ = calc_normals();
+}
+
 void Mesh::push_back(glm::vec3 vert, const Indexer& indexer) {
     verts_.push_back(vert);
     faces_.push_back(indexer);
 }
+
 #ifdef DEBUG
 void Mesh::print() const {
     std::cout << verts_.size() << ' ' << faces_.size() << ' ' << ' ' << 0 << std::endl;
@@ -80,6 +87,25 @@ void Mesh::print() const {
     }
 }
 #endif
+
+std::vector<glm::vec3> Mesh::calc_normals() const {
+    std::vector<glm::vec3> normals{verts_.size(), glm::vec3{0.0}};
+    for (const Indexer& face : get_faces()) {
+        Triangle tri{get_verts()[face[0]], get_verts()[face[1]], get_verts()[face[2]]};
+
+        glm::vec3 normal = glm::cross(tri[1] - tri[0], tri[2] - tri[0]);
+
+        normals[face[0]] += normal;
+        normals[face[1]] += normal;
+        normals[face[2]] += normal;
+    }
+    for (glm::vec3& normal : normals) {
+        normal = glm::normalize(normal);
+    }
+
+    return normals;
+}
+
 glm::vec3 Mesh::calc_centroid() const {
     glm::vec3 mg{0.f};
     float m = 0.f;
@@ -191,9 +217,9 @@ void MeshEntity::draw() const {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL );
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
-    glUniform3f(ctx_.program_.uniform("triangle_color"), 1.f - color_.r, 1.f - color_.g, 1.f - color_.b);
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
+    // glUniform3f(ctx_.program_.uniform("triangle_color"), 1.f - color_.r, 1.f - color_.g, 1.f - color_.b);
+    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    // glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
 
@@ -222,19 +248,30 @@ MeshEntityList GLMeshCtx::push(std::vector<Mesh> meshes) {
         glBindVertexArray(VAOs[i]);
         // buffer data to VBO
         glBindBuffer(GL_ARRAY_BUFFER, VBOs[i]);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * inserted_mesh.get_verts().size(), inserted_mesh.get_verts().data(), GL_STATIC_DRAW);
+        size_t size_verts = sizeof(glm::vec3) * inserted_mesh.get_verts().size();
+        size_t size_normals = sizeof(glm::vec3) * inserted_mesh.get_verts().size();
+        glBufferData(GL_ARRAY_BUFFER, size_verts + size_normals, 0, GL_STATIC_DRAW);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, size_verts, inserted_mesh.get_verts().data());
+        glBufferSubData(GL_ARRAY_BUFFER, size_verts, size_normals, inserted_mesh.get_normals().data());
         // buffer data to EBO
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[i]);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * TRI * inserted_mesh.get_faces().size(), inserted_mesh.get_faces().data(), GL_STATIC_DRAW);
         
         // vertex positions
-        int position_id = program_.attrib("position");
+        GLint position_id = 0;
+        glEnableVertexAttribArray(position_id);
         if (position_id < 0) {
             throw std::runtime_error("gl vertex attribute not found");
         }
-        glEnableVertexAttribArray(position_id);
+
+        GLint normal_id = 1;
+        glEnableVertexAttribArray(normal_id);
+        if (normal_id < 0) {
+            throw std::runtime_error("gl vertex attribute not found");
+        }
+       
         glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-        // TODO: add calculated norms
+        glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)(size_verts));
 
         // unbind VAO
         glBindVertexArray(0);

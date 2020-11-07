@@ -78,7 +78,7 @@ void GLContext::deselect() {
     }
     mouse_ctx.deselect();
 }
-MeshEntity::Optional GLContext::get_selected() {
+Optional<MeshEntity> GLContext::get_selected() {
     if (mouse_ctx.is_selected()) {
         return {{mesh_list[mouse_ctx.get_selected()] }};
     }
@@ -106,4 +106,6 @@ void GLContext::update() {
         std::cout << "selected: " << mouse_ctx.get_selected() << std::endl;
     }
     #endif
+    
+    camera.update();
 }

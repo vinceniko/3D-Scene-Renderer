@@ -105,13 +105,15 @@ public:
 
   GLuint vertex_shader;
   GLuint fragment_shader;
+  GLuint geometry_shader;
   GLuint program_shader;
 
-  Program() : vertex_shader(0), fragment_shader(0), program_shader(0) { }
+  Program() : vertex_shader(0), fragment_shader(0), geometry_shader(0), program_shader(0) { }
 
   // Create a new shader from the specified source strings
   bool init(const std::string &vertex_shader_string,
   const std::string &fragment_shader_string,
+  const std::string &geometry_shader_string,
   const std::string &fragment_data_name);
 
   // Select this shader for subsequent draw calls

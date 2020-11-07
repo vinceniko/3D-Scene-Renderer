@@ -80,8 +80,8 @@ public:
 
     GLCamera(const Program& program, float aspect, float fov = 50.f);
     
-    void translate(glm::vec2 offset);
-    void zoom(ZoomDir zoom_dir, float percent = 0.2);
-    void swivel();
-    void switch_projection();
+    void update() {
+        update_view_uniform();
+        update_projection_uniform();
+    }
 };

@@ -38,6 +38,9 @@ class Mesh {
     std::vector<glm::vec3> verts_;
     std::vector<Indexer> faces_;
 
+    std::vector<glm::vec3> normals_;
+    std::vector<glm::vec3> calc_normals() const;
+
     glm::vec3 centroid_;
     glm::vec3 calc_centroid() const;
 
@@ -45,13 +48,10 @@ class Mesh {
     glm::vec3 calc_scale() const;
 
 protected:
-    void init() {
-        centroid_ = calc_centroid();
-        scale_ = calc_scale();
-    }
+    void init();
 
 public:
-    Mesh(std::vector<glm::vec3> verts, std::vector<Indexer> faces) : verts_(verts), faces_(faces), centroid_(calc_centroid()) {}
+    Mesh(std::vector<glm::vec3> verts, std::vector<Indexer> faces) : verts_(verts), faces_(faces) {}
     // file path constructor
     Mesh(std::string f_path);
     
@@ -59,6 +59,9 @@ public:
     void push_back(glm::vec3 vert, const Indexer& indexer);
     const std::vector<glm::vec3>& get_verts() const {
         return verts_;
+    }
+    const std::vector<glm::vec3>& get_normals() const {
+        return normals_;
     }
     const std::vector<Indexer>& get_faces() const {
         return faces_;
@@ -169,8 +172,6 @@ public:
         In,
         Out,
     };
-
-    using Optional = std::optional<std::reference_wrapper<MeshEntity>>;
 
     const size_t get_id() const;
     void set_color(glm::vec3 new_color) {

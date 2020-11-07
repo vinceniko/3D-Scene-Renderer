@@ -55,7 +55,7 @@ public:
     int intersected_mesh(glm::vec3 world_ray_dir) const;
     void select(glm::vec3 world_ray_dir);
     void deselect();
-    MeshEntity::Optional get_selected();
+    Optional<MeshEntity> get_selected();
 
     void init_meshes(std::vector<Mesh> meshes) {
         mesh_ctx.push(meshes);

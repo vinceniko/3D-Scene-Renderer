@@ -5,13 +5,13 @@
 
 class GLTransform {
 public:
-  int id_;
+  GLint id_;
 
   GLTransform(const Program& program, const std::string& name, const glm::mat4& mat) : GLTransform(program, name) {
     buffer(mat);
   }
   GLTransform(const Program& program, const std::string& name) {
-    uint id = program.uniform(name);
+    GLint id = program.uniform(name);
     if (id < 0) {
         throw std::runtime_error("Error Getting ID of Uniform");
     }

@@ -98,7 +98,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         glfwGetWindowSize(window, &width, &height);
         float window_size_factor = 2 * 0.1;
 
-        MeshEntity::Optional selected = ctx->get_selected();
+        Optional<MeshEntity> selected = ctx->get_selected();
 
         // Update the position of the first vertex if the keys 1,2, or 3 are pressed
         switch (key)
@@ -273,29 +273,121 @@ int main(void)
     // at least a vertex shader and a fragment shader to be valid
     Program program;
     const GLchar* vertex_shader =
-            "#version 150 core\n"
-                    "in vec3 position;"
-                    "uniform mat4 view_trans;"
-                    "uniform mat4 model_trans;"
-                    "uniform mat4 projection;"
-                    "void main()"
-                    "{"
-                    "    gl_Position = projection * view_trans * model_trans * vec4(position, 1.0);"
-                    "}";
+            R"V0G0N(#version 330 core
+            layout (location = 0) in vec3 aPos;
+            layout (location = 1) in vec3 aNormal;
+
+            out vec3 normal;
+            out vec3 frag_pos;
+
+            uniform mat4 projection;
+            uniform mat4 view_trans;
+            uniform mat4 model_trans;
+
+            void main()
+            {
+                frag_pos = vec3(model_trans * vec4(aPos, 1.0));
+                normal = mat3(transpose(inverse(model_trans))) * aNormal;
+
+                gl_Position = projection * view_trans * vec4(frag_pos, 1.0); 
+            })V0G0N";
     const GLchar* fragment_shader =
-            "#version 150 core\n"
-                    "out vec4 out_color;"
-                    "uniform vec3 triangle_color;"
-                    "void main()"
-                    "{"
-                    "    out_color = vec4(triangle_color, 1.0);"
-                    "}";
+        R"V0G0N(#version 330 core
+        in vec3 frag_pos;
+        in vec3 normal;
+
+        uniform vec3 triangle_color;
+
+        uniform mat4 model_trans;
+        uniform mat4 view_trans;
+
+        out vec4 out_color;
+
+        void main()
+        {
+            vec3 light_pos = vec3(0.0, 0.0, 20.0);
+            vec3 lightColor = vec3(1.0);
+
+            float ambientStrength = 0.2;
+            vec3 ambient = ambientStrength * lightColor;
+ 
+            vec3 norm = normalize(normal);
+            vec3 lightDir = normalize(light_pos - frag_pos);  
+            float diff = max(dot(norm, lightDir), 0.0);
+            vec3 diffuse = diff * lightColor;
+
+            vec3 result = (ambient + diffuse) * triangle_color;
+            out_color = vec4(result, 1.0);
+        })V0G0N";
+    const GLchar* vertex_shader_normal =
+            R"V0G0N(#version 330 core
+            layout (location = 0) in vec3 aPos;
+            layout (location = 1) in vec3 aNormal;
+
+            out VS_OUT {
+                vec3 normal;
+            } vs_out;
+
+            uniform mat4 projection;
+            uniform mat4 view_trans;
+            uniform mat4 model_trans;
+
+            void main()
+            {
+                projection;
+                gl_Position = view_trans * model_trans * vec4(aPos, 1.0); 
+                mat3 normalMatrix = mat3(transpose(inverse(view_trans * model_trans)));
+                vs_out.normal = normalize(vec3(vec4(normalMatrix * aNormal, 0.0)));
+            })V0G0N";
+    const GLchar* geometry_shader_normal = 
+        R"V0G0N(#version 330 core
+            layout (triangles) in;
+            layout (line_strip, max_vertices = 6) out;
+
+            in VS_OUT {
+                vec3 normal;
+            } gs_in[];
+
+            const float MAGNITUDE = 0.1;
+            
+            uniform mat4 projection;
+
+            void GenerateLine(int index)
+            {
+                gl_Position = projection * gl_in[index].gl_Position;
+                EmitVertex();
+                gl_Position = projection * (gl_in[index].gl_Position + 
+                                            vec4(gs_in[index].normal, 0.0) * MAGNITUDE);
+                EmitVertex();
+                EndPrimitive();
+            }
+
+            void main()
+            {
+                GenerateLine(0); // first vertex normal
+                GenerateLine(1); // second vertex normal
+                GenerateLine(2); // third vertex normal
+            })V0G0N";
+    const GLchar* fragment_shader_normal =
+            R"V0G0N(#version 330 core
+            
+            uniform vec3 triangle_color;
+
+            out vec4 out_color;
+
+            void main()
+            {
+                out_color = vec4(triangle_color, 1.0);
+            })V0G0N";
 
     // Compile the two shaders and upload the binary to the GPU
     // Note that we have to explicitly specify that the output "slot" called out_color
     // is the one that we want in the fragment buffer (and thus on screen)
-    program.init(vertex_shader,fragment_shader,"out_color");
+    program.init(vertex_shader,fragment_shader, "", "out_color");
+
     program.bind();
+    Program program_normal;
+    program_normal.init(vertex_shader_normal,fragment_shader_normal, geometry_shader_normal, "out_color");
 
     #ifdef DEBUG
         std::cout << "DEBUG ENABLED" << std::endl;
@@ -322,9 +414,6 @@ int main(void)
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
-        // Bind your program
-        program.bind();
-
         // Set the uniform value depending on the time difference
         auto t_now = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
@@ -338,12 +427,29 @@ int main(void)
 
         // std::cout << "camera: " << ctx->camera.get_position()[0] << ' ' << ctx->camera.get_position()[1] << ' ' << ctx->camera.get_position()[2] << std::endl;
 
+        // Bind your program
+        program.bind();
+        
         ctx->update();
+
 
         // Draw a triangle
         // glDrawArrays(GL_TRIANGLES, 0, 3);
         for (auto& mesh : ctx->mesh_list) {
             mesh.draw();
+        }
+
+        program_normal.bind();
+
+        ctx->update();
+
+        // Draw a triangle
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
+        for (auto& mesh : ctx->mesh_list) {
+            auto temp = mesh.get_color();
+            mesh.set_color(glm::vec3(1.0, 0.0, 0.0));
+            mesh.draw();
+            mesh.set_color(temp);
         }
 
         // Swap front and back buffers

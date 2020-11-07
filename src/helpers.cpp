@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <definitions.h>
+
 void VertexArrayObject::init()
 {
   glGenVertexArrays(1, &id);
@@ -42,19 +44,26 @@ void VertexBufferObject::free()
 bool Program::init(
   const std::string &vertex_shader_string,
   const std::string &fragment_shader_string,
+  const std::string &geometry_shader_string,
   const std::string &fragment_data_name)
 {
   using namespace std;
   vertex_shader = create_shader_helper(GL_VERTEX_SHADER, vertex_shader_string);
   fragment_shader = create_shader_helper(GL_FRAGMENT_SHADER, fragment_shader_string);
+  if (geometry_shader_string.size() > 0) {
+    geometry_shader = create_shader_helper(GL_GEOMETRY_SHADER, geometry_shader_string);
+  }
 
-  if (!vertex_shader || !fragment_shader)
+  if (!vertex_shader || !fragment_shader || (geometry_shader_string.size() > 1 && !geometry_shader))
     return false;
 
   program_shader = glCreateProgram();
 
   glAttachShader(program_shader, vertex_shader);
   glAttachShader(program_shader, fragment_shader);
+  if (geometry_shader_string.size() > 0) {
+    glAttachShader(program_shader, geometry_shader);
+  }
 
   glBindFragDataLocation(program_shader, 0, fragment_data_name.c_str());
   glLinkProgram(program_shader);

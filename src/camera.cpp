@@ -111,20 +111,3 @@ void GLCamera::update_view_uniform() {
 void GLCamera::update_projection_uniform() {
     projection_uniform_.buffer(projection_trans_);
 }
-    
-void GLCamera::translate(glm::vec2 offset) {
-    TrackballCamera::translate(offset);
-    update_view_uniform();
-}
-void GLCamera::zoom(ZoomDir zoom_dir, float percent) {
-    TrackballCamera::zoom(zoom_dir, percent);
-    update_view_uniform();
-}
-void GLCamera::swivel() {
-    TrackballCamera::swivel();
-    update_view_uniform();
-}
-void GLCamera::switch_projection() {
-    TrackballCamera::switch_projection();
-    update_projection_uniform();
-}
