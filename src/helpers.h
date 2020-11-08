@@ -44,6 +44,8 @@ void _check_gl_error(const char *file, int line);
 
 #endif
 
+#include <definitions.h>
+
 class VertexArrayObject
 {
 public:
@@ -109,11 +111,15 @@ public:
   GLuint program_shader;
 
   Program() : vertex_shader(0), fragment_shader(0), geometry_shader(0), program_shader(0) { }
+  Program(const std::string &vertex_path,
+  const Optional<std::string> geometry_path,
+  const std::string &fragment_path,
+  const std::string &fragment_data_name);
 
   // Create a new shader from the specified source strings
   bool init(const std::string &vertex_shader_string,
-  const std::string &fragment_shader_string,
   const std::string &geometry_shader_string,
+  const std::string &fragment_shader_string,
   const std::string &fragment_data_name);
 
   // Select this shader for subsequent draw calls

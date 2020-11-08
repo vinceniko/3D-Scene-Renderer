@@ -1,9 +1,7 @@
 #include "helpers.h"
 
 #include <iostream>
-#include <fstream>
-
-#include <definitions.h>
+#include "utilities.cpp"
 
 void VertexArrayObject::init()
 {
@@ -41,10 +39,26 @@ void VertexBufferObject::free()
   check_gl_error();
 }
 
+Program::Program(const std::string &vertex_path,
+const Optional<std::string> geometry_path,
+const std::string &fragment_path,
+const std::string &fragment_data_name) : Program() {
+  std::string vertex_shader_string = get_file_str(vertex_path);
+
+  std::string geometry_shader_string = "";
+  if (geometry_path.has_value()) {
+    geometry_shader_string = get_file_str(geometry_path->get());
+  }
+
+  std::string fragment_shader_string = get_file_str(fragment_path);
+
+  init(vertex_shader_string, geometry_shader_string, fragment_shader_string, fragment_data_name); 
+}
+
 bool Program::init(
   const std::string &vertex_shader_string,
-  const std::string &fragment_shader_string,
   const std::string &geometry_shader_string,
+  const std::string &fragment_shader_string,
   const std::string &fragment_data_name)
 {
   using namespace std;
