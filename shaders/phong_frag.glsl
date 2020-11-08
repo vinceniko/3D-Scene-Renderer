@@ -16,7 +16,7 @@ const float ambient_strength = 0.5;
 
 const float specular_strength = 1.0;
 
-const float roughness = 128;
+const float shininess = 128;
 
 void main()
 {
@@ -28,8 +28,14 @@ void main()
     vec3 diffuse = diff * light_color;
 
     vec3 view_dir = normalize(vec3(inverse(view_trans)[3]) - frag_pos);
-    vec3 reflect_dir = reflect(-light_dir, norm);
-    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), roughness);
+
+    // // phong
+    // vec3 reflect_dir = reflect(-light_dir, norm);
+    // float spec = pow(max(dot(view_dir, reflect_dir), 0.0), shininess);
+    
+    // blinn-phong
+    vec3 halfDir = normalize(light_dir + view_dir);
+    float spec = pow(max(dot(halfDir, norm), 0.0), shininess);
     vec3 specular = specular_strength * spec * light_color;
 
     vec3 result = (ambient + diffuse + specular) * triangle_color;
