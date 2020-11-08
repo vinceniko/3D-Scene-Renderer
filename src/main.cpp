@@ -379,8 +379,8 @@ int main(void)
     // Note that we have to explicitly specify that the output "slot" called out_color
     // is the one that we want in the fragment buffer (and thus on screen)
     program.init(vertex_shader,fragment_shader, "", "out_color");
-
     program.bind();
+
     Program program_normal;
     program_normal.init(vertex_shader_normal,fragment_shader_normal, geometry_shader_normal, "out_color");
 
@@ -389,9 +389,6 @@ int main(void)
     #endif
     ctx = std::unique_ptr<GLContext>(new GLContext(program, GLCamera(program, width / height)));
     ctx->init_meshes(std::vector<Mesh>{ BunnyMesh{}, BumpyCubeMesh{}, UnitCube{}, });
-
-    // Save the current time --- it will be used to dynamically change the triangle color
-    auto t_start = std::chrono::high_resolution_clock::now();
 
     // Register the keyboard callback
     glfwSetKeyCallback(window, key_callback);
@@ -409,11 +406,6 @@ int main(void)
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
-        // Set the uniform value depending on the time difference
-        auto t_now = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
-        // glUniform3f(program.uniform("triangle_color"), 0.0f, 0.0f, (float)(sin(time * 4.0f) + 1.0f) / 2.0f);
-
         // Clear the framebuffer
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -424,28 +416,26 @@ int main(void)
 
         // Bind your program
         program.bind();
-        
+
         ctx->update();
 
-
-        // Draw a triangle
-        // glDrawArrays(GL_TRIANGLES, 0, 3);
         for (auto& mesh : ctx->mesh_list) {
             mesh.draw();
         }
 
+        // draw normals
+        #ifdef DEBUG
         program_normal.bind();
 
         ctx->update();
 
-        // Draw a triangle
-        // glDrawArrays(GL_TRIANGLES, 0, 3);
         for (auto& mesh : ctx->mesh_list) {
             auto temp = mesh.get_color();
             mesh.set_color(glm::vec3(1.0, 0.0, 0.0));
             mesh.draw();
             mesh.set_color(temp);
         }
+        #endif
 
         // Swap front and back buffers
         glfwSwapBuffers(window);
