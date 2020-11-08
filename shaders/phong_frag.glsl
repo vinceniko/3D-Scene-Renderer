@@ -9,19 +9,29 @@ uniform mat4 view_trans;
 
 out vec4 out_color;
 
+const vec3 light_pos = vec3(0.0, 20.0, 20.0);
+const vec3 light_color = vec3(0.5);
+
+const float ambient_strength = 0.5;
+
+const float specular_strength = 1.0;
+
+const float roughness = 128;
+
 void main()
 {
-    vec3 light_pos = vec3(0.0, 0.0, 20.0);
-    vec3 lightColor = vec3(1.0);
-
-    float ambientStrength = 0.2;
-    vec3 ambient = ambientStrength * lightColor;
+    vec3 ambient = ambient_strength * light_color;
 
     vec3 norm = normalize(normal);
-    vec3 lightDir = normalize(light_pos - frag_pos);  
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor;
+    vec3 light_dir = normalize(light_pos - frag_pos);  
+    float diff = max(dot(norm, light_dir), 0.0);
+    vec3 diffuse = diff * light_color;
 
-    vec3 result = (ambient + diffuse) * triangle_color;
+    vec3 view_dir = normalize(vec3(inverse(view_trans)[3]) - frag_pos);
+    vec3 reflect_dir = reflect(-light_dir, norm);
+    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), roughness);
+    vec3 specular = specular_strength * spec * light_color;
+
+    vec3 result = (ambient + diffuse + specular) * triangle_color;
     out_color = vec4(result, 1.0);
 }
