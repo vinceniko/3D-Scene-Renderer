@@ -78,12 +78,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     float y_nds = 1.0f - (2.0f * ypos) / height;
 
     glm::vec2 ray_nds = glm::vec2(x_nds, y_nds);
-    glm::vec4 ray_clip = glm::vec4(ray_nds, -1.0, 1.0);
-    glm::vec4 ray_eye = glm::inverse(ctx->camera.get_projection()) * ray_clip;
-    ray_eye = glm::vec4(glm::vec2(ray_eye), -1.0, 0.0);
-    glm::vec3 ray_world = glm::vec3(inverse(ctx->camera.get_view()) * ray_eye);
-    ray_world = glm::normalize(ray_world);
-    
+
     // #ifdef DEBUG
     // std::cout << "Ray World: " << ray_world[0] << ' ' << ray_world[1] << ' ' << ray_world[2] << ' ' << std::endl;
     // #endif

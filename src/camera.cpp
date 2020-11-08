@@ -19,6 +19,9 @@ Camera::Camera(float aspect, float fov) : projection_mode_(Perspective), aspect_
 void Camera::translate(glm::vec2 offset) {
     view_trans_ = glm::translate(view_trans_, glm::vec3(offset, 0.f));
 }
+void Camera::translate(glm::vec2 new_point, glm::vec2 old_point) {
+    view_trans_ = glm::translate(view_trans_, glm::vec3(new_point - old_point, 0.f));
+}
 void Camera::zoom(ZoomDir zoom_dir, float percent) {
     glm::mat4 clone = glm::translate(glm::mat4(1.0f), glm::vec3(glm::inverse(view_trans_) * glm::vec4(glm::vec3(0.0), 1.0)));
     float zoom_perc = static_cast<bool>(zoom_dir) ? 1.f + percent : 1.f - percent;
@@ -86,6 +89,11 @@ void TrackballCamera::translate(glm::vec2 offset) {
     float camY =  radius_ * glm::cos(phi_ );
     float camZ =  radius_ * glm::sin(phi_) * glm::sin(theta_);
     view_trans_ = glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, up_, 0.0));
+}
+void TrackballCamera::translate(glm::vec2 new_point, glm::vec2 old_point) {
+    const float diff_min = 0.001;  // hacky bug fix: drifting due to the camera
+    auto diff = glm::vec2(new_point.x - old_point.x, -(new_point.y - old_point.y));
+    translate(glm::abs(diff.x) > diff_min || glm::abs(diff.y) > diff_min ? diff : glm::vec2(0.f));
 }
 void TrackballCamera::swivel() {
     float camY =  radius_ * sin(theta_ + glfwGetTime()) * cos(phi_);

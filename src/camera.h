@@ -22,9 +22,10 @@ public:
     // perspective projection
     Camera(float aspect, float fov = 50.f);
 
-    void translate(glm::vec2 offset);
+    virtual void translate(glm::vec2 offset);
+    virtual void translate(glm::vec2 new_point, glm::vec2 old_point);
 
-    void zoom(ZoomDir zoom_dir, float percent = 0.2);
+    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2);
 
     void switch_projection();
     void perspective();
@@ -59,8 +60,9 @@ public:
     TrackballCamera();
     TrackballCamera(float aspect, float fov = 50.f);
 
-    void zoom(ZoomDir zoom_dir, float percent = 0.2);
-    void translate(glm::vec2 offset);
+    void zoom(ZoomDir zoom_dir, float percent = 0.2) override;
+    void translate(glm::vec2 offset) override;
+    void translate(glm::vec2 new_point, glm::vec2 old_point) override;
     void swivel();
 };
 

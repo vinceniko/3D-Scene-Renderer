@@ -95,10 +95,8 @@ void GLContext::update() {
     // "old_point: " << old_point[0] << ' ' << old_point[1] << ' ' << std::endl;
     // #endif
 
-    glm::vec2 diff = glm::vec2(new_point.x - old_point.x, -(new_point.y - old_point.y));
-    const float diff_min = 0.001;
     if (mouse_ctx.is_held()) {
-        camera.translate(glm::abs(diff.x) > diff_min || glm::abs(diff.y) > diff_min ? diff : glm::vec2(0.f));
+        camera.translate(new_point, old_point);
     }
 
     #ifdef DEBUG
