@@ -1,7 +1,7 @@
 #include "helpers.h"
 
 #include <iostream>
-#include "utilities.cpp"
+#include "utilities.h"
 
 Program::Program(const std::string &vertex_path,
 const Optional<std::string> geometry_path,

@@ -43,6 +43,11 @@ enum MeshList {
     BUNNY,
 };
 
+enum ProgramList {
+    PHONG,
+    NORMAL,
+};
+
 std::unique_ptr<GLContext> ctx;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -290,15 +295,19 @@ int main(void)
         std::cout << "DEBUG ENABLED" << std::endl;
     #endif
 
-    Program program(SHADER_PATH + "/phong_vert.glsl", {}, SHADER_PATH + "/flat_frag.glsl", "out_color");
-    program.bind();
+    ProgramCtx programs;
+
+    programs.push_back(Program{SHADER_PATH + "/phong_vert.glsl", {}, SHADER_PATH + "/phong_frag.glsl", "out_color"});
 
     std::string normal_geom_shader_path = SHADER_PATH + "/normal_geom.glsl";
-    Program program_normal(SHADER_PATH + "/normal_vert.glsl", Optional<std::string>{{normal_geom_shader_path}}, SHADER_PATH + "/normal_frag.glsl", "out_color");
+    programs.push_back(Program(SHADER_PATH + "/normal_vert.glsl", Optional<std::string>{{normal_geom_shader_path}}, SHADER_PATH + "/normal_frag.glsl", "out_color"));
+    
+    programs.bind(ProgramList::PHONG);
 
-    ctx = std::unique_ptr<GLContext>(new GLContext(program, GLCamera(program, WIDTH / HEIGHT)));
+    // TODO: currently GLContext and GLCamera both want references to the ProgramCtx, but I want GLContext to own the single reference.
+    // This means that GLContext should construct the GLCamera itself
+    ctx = std::unique_ptr<GLContext>(new GLContext(std::move(programs), WIDTH / HEIGHT));
     ctx->init_meshes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{}, });
-
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
@@ -312,7 +321,7 @@ int main(void)
         // std::cout << "camera: " << ctx->camera.get_position()[0] << ' ' << ctx->camera.get_position()[1] << ' ' << ctx->camera.get_position()[2] << std::endl;
 
         // Bind your program
-        program.bind();
+        ctx->programs.bind(ProgramList::PHONG);
 
         ctx->update();
 
@@ -322,7 +331,7 @@ int main(void)
 
         // draw normals
         #ifdef DEBUG
-        program_normal.bind();
+        ctx->programs.bind(ProgramList::NORMAL);;
 
         ctx->update();
 
@@ -342,8 +351,10 @@ int main(void)
     }
 
     // Deallocate opengl memory
-    program.free();
-    program_normal.free();
+    // TODO? Deallocate buffers
+    for (Program& program: ctx->programs) {
+        program.free();
+    }
 
     // Deallocate glfw internals
     glfwTerminate();

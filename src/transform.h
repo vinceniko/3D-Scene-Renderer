@@ -1,26 +1,25 @@
 #pragma once
 
-#include "helpers.h"
+#include "program.h"
 #include "definitions.h"
 
 class GLTransform {
 public:
-  GLint id_;
+  ProgramCtx& programs_;
+  std::string name_;
 
-  GLTransform(const Program& program, const std::string& name, const glm::mat4& mat) : GLTransform(program, name) {
+  GLTransform(ProgramCtx& programs, const std::string& name, const glm::mat4& mat) : GLTransform(programs, name) {
     buffer(mat);
   }
-  GLTransform(const Program& program, const std::string& name) {
-    GLint id = program.uniform(name);
+  GLTransform(ProgramCtx& programs, const std::string& name) : programs_(programs), name_(name) {}
+
+  void buffer(const glm::mat4& mat) const {
+    GLint id = programs_.get_selected_program().uniform(name_);
     if (id < 0) {
         throw std::runtime_error("Error Getting ID of Uniform");
     }
 
-    id_ = id;
-  }
-
-  void buffer(const glm::mat4& mat) const {
-    glUniformMatrix4fv(id_, 1, GL_FALSE, (float*)&mat);
+    glUniformMatrix4fv(id, 1, GL_FALSE, (float*)&mat);
     #ifdef DEBUG
     check_gl_error();
     #endif

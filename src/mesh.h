@@ -18,6 +18,7 @@
 #include "definitions.h"
 #include "transform.h"
 #include "triangle.h"
+#include "program.h"
 
 #include <optional>
 #include <functional>
@@ -110,7 +111,7 @@ class GLMeshCtx;
 // a reference to a Mesh inside the GLMeshCtx
 // represents one entity being drawn
 class MeshEntity {
-    const GLMeshCtx& ctx_;
+    GLMeshCtx& ctx_;
 
     // the index into the list of meshes in GLMeshCtx
     const size_t id_;
@@ -140,7 +141,7 @@ public:
     void scale(glm::mat4 view_trans, ScaleDir dir, float offset);
     void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis);
 
-    void draw() const;
+    void draw();
 
     float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const;
 
@@ -152,14 +153,14 @@ public:
 // holds mesh prototypes
 // i.e. each GLMesh in meshes_ is unique
 class GLMeshCtx {
-    Program& program_;
+    ProgramCtx& programs_;
 
     std::vector<GLMesh> meshes_;
 
 public:
     friend class MeshEntity;
 
-    GLMeshCtx(Program& program) : program_(program), meshes_() {}
+    GLMeshCtx(ProgramCtx& programs) : programs_(programs), meshes_() {}
     
     MeshEntityList push(std::vector<Mesh> meshes);
 

@@ -6,6 +6,7 @@
 
 #include "camera.h"
 #include "mesh.h"
+#include "program.h"
 
 #ifdef DEBUG
 #include <iostream>
@@ -39,18 +40,22 @@ public:
 };
 
 class GLContext {
-    Program& program_;
-
 public:
     friend MeshEntity;
 
+    ProgramCtx programs;
+    
     GLCamera camera;
     GLMeshCtx mesh_ctx;
     MouseContext mouse_ctx;
     MeshEntityList mesh_list;
 
-    GLContext(Program& program);
-    GLContext(Program& program, GLCamera camera);
+    GLContext(ProgramCtx programs);
+    template <typename ...CameraArgs>
+    GLContext(ProgramCtx programs, CameraArgs ...camera_args);
+
+    template <typename... Args>
+    void attach_camera(Args... args);
 
     int intersected_mesh(glm::vec3 world_ray_dir) const;
     void select(glm::vec3 world_ray_dir);

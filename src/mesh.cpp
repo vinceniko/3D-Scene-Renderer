@@ -152,7 +152,7 @@ const size_t MeshEntity::get_id() const {
 }
 
 MeshEntity::MeshEntity(GLMeshCtx& ctx, size_t id) : 
-ctx_(ctx), id_(id), model_uniform_(ctx.program_, "model_trans", model_trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
+ctx_(ctx), id_(id), model_uniform_(ctx.programs_, "model_trans", model_trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
     // model_trans_ = glm::translate(model_trans_, glm::vec3(1.f, 1.f, -2.f));
     // scale_to_unit();
     set_to_origin();
@@ -207,19 +207,19 @@ float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 wo
     return min_dist;
 }
 
-void MeshEntity::draw() const {
+void MeshEntity::draw() {
     const GLMesh& mesh_ref = ctx_.get_meshes()[id_];
     glBindVertexArray(mesh_ref.VAO_);
 
     model_uniform_.buffer(model_trans_);
 
-    glUniform3f(ctx_.program_.uniform("triangle_color"), color_.r, color_.g, color_.b);
+    glUniform3f(ctx_.programs_.get_selected_program().uniform("triangle_color"), color_.r, color_.g, color_.b);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL );
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
-    // glUniform3f(ctx_.program_.uniform("triangle_color"), 1.f - color_.r, 1.f - color_.g, 1.f - color_.b);
-    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    // glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
+    glUniform3f(ctx_.programs_.get_selected_program().uniform("triangle_color"), 1.f - color_.r, 1.f - color_.g, 1.f - color_.b);
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
 

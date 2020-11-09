@@ -8,6 +8,7 @@
 
 #include "definitions.h"
 #include "transform.h"
+#include "program.h"
 
 class Camera {
     float fov_;
@@ -69,7 +70,7 @@ public:
 class GLCamera : public TrackballCamera {
     uint id_;
 
-    Program program_;
+    ProgramCtx& programs_;
 
     GLTransform view_uniform_;
     GLTransform projection_uniform_;
@@ -77,10 +78,8 @@ class GLCamera : public TrackballCamera {
     void update_view_uniform();
     void update_projection_uniform();
 public:
-    // TODO: pass in aspect
-    GLCamera(const Program& program);
-
-    GLCamera(const Program& program, float aspect, float fov = 50.f);
+    GLCamera(ProgramCtx& programs);
+    GLCamera(ProgramCtx& programs, float aspect, float fov = 50.f);
     
     void update() {
         update_view_uniform();
