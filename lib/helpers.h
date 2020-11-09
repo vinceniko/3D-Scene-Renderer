@@ -44,7 +44,7 @@ void _check_gl_error(const char *file, int line);
 
 #endif
 
-#include <definitions.h>
+#include "definitions.h"
 
 // This class wraps an OpenGL program composed of two shaders
 class Program

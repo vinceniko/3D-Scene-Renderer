@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.16)
 project(Assignment3)
+
+set ( CMAKE_CXX_STANDARD 17 )
 
 find_package(OpenGL REQUIRED)
 find_package(GLU REQUIRED)
@@ -19,8 +21,6 @@ if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /bigobj") ### Enable parallel compilation
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR} )
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR} )
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 endif()
 
 ### Add src to the include directories
@@ -30,7 +30,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
 set(LIBRARIES ${OPENGL_LIBRARIES})
 
-### Include Eigen for linear algebra
+### Include glm for linear algebra
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../ext/glm")
 
 ### Compile GLFW3 statically
@@ -55,9 +55,16 @@ if(APPLE)
 endif()
 
 ### Compile all the cpp files in src
-file(GLOB SOURCES2
+file(GLOB HELPERS
   "${CMAKE_CURRENT_SOURCE_DIR}/extra/Helpers.*"
 )
+
+### Compile all the cpp files in lib
+file(GLOB LIB
+  "${CMAKE_CURRENT_SOURCE_DIR}/lib/*"
+)
+
+add_library(Lib ${LIB})
 
 ### Compile all the cpp files in src
 file(GLOB SOURCES
@@ -65,28 +72,29 @@ file(GLOB SOURCES
 )
 
 add_executable(${PROJECT_NAME}_bin ${SOURCES})
-target_link_libraries(${PROJECT_NAME}_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_bin ${LIBRARIES} ${OPENGL_LIBRARIES} Lib)
+target_include_directories(${PROJECT_NAME}_bin PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DDEBUG)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/extra)
-add_executable(main_blending_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_blending.cpp ${SOURCES2})
+add_executable(main_blending_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_blending.cpp ${HELPERS})
 target_link_libraries(main_blending_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
 
-add_executable(main_border_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_border.cpp ${SOURCES2})
+add_executable(main_border_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_border.cpp ${HELPERS})
 target_link_libraries(main_border_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
 
-add_executable(main_depth_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_depth.cpp ${SOURCES2})
+add_executable(main_depth_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_depth.cpp ${HELPERS})
 target_link_libraries(main_depth_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
 
-add_executable(main_positions_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_positions.cpp ${SOURCES2})
+add_executable(main_positions_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_positions.cpp ${HELPERS})
 target_link_libraries(main_positions_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
 
-add_executable(main_properties_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_properties.cpp ${SOURCES2})
+add_executable(main_properties_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_properties.cpp ${HELPERS})
 target_link_libraries(main_properties_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
 
-add_executable(main_view_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_view.cpp ${SOURCES2})
+add_executable(main_view_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_view.cpp ${HELPERS})
 target_link_libraries(main_view_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
-endif (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/extra)
+endif ()

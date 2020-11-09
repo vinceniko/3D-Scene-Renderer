@@ -297,7 +297,7 @@ int main(void)
 
     ProgramCtx programs;
 
-    programs.push_back(Program{SHADER_PATH + "/phong_vert.glsl", {}, SHADER_PATH + "/phong_frag.glsl", "out_color"});
+    programs.push_back(Program{SHADER_PATH + "/phong_vert.glsl", {}, SHADER_PATH + "/flat_frag.glsl", "out_color"});
 
     std::string normal_geom_shader_path = SHADER_PATH + "/normal_geom.glsl";
     programs.push_back(Program(SHADER_PATH + "/normal_vert.glsl", Optional<std::string>{{normal_geom_shader_path}}, SHADER_PATH + "/normal_frag.glsl", "out_color"));
