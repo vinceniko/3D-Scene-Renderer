@@ -37,6 +37,12 @@ constexpr float HEIGHT = 480.f;
 
 const std::string SHADER_PATH = "../shaders";
 
+enum MeshList {
+    CUBE,
+    BUMPY,
+    BUNNY,
+};
+
 std::unique_ptr<GLContext> ctx;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -265,18 +271,6 @@ int main(void)
     printf("Supported OpenGL is %s\n", (const char*)glGetString(GL_VERSION));
     printf("Supported GLSL is %s\n", (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-    Program program(SHADER_PATH + "/phong_vert.glsl", {}, SHADER_PATH + "/phong_frag.glsl", "out_color");
-    program.bind();
-
-    std::string normal_geom_shader_path = SHADER_PATH + "/normal_geom.glsl";
-    Program program_normal(SHADER_PATH + "/normal_vert.glsl", Optional<std::string>{{normal_geom_shader_path}}, SHADER_PATH + "/normal_frag.glsl", "out_color");
-
-    #ifdef DEBUG
-        std::cout << "DEBUG ENABLED" << std::endl;
-    #endif
-    ctx = std::unique_ptr<GLContext>(new GLContext(program, GLCamera(program, WIDTH / HEIGHT)));
-    ctx->init_meshes(std::vector<Mesh>{ BunnyMesh{}, BumpyCubeMesh{}, UnitCube{}, });
-
     // Register the keyboard callback
     glfwSetKeyCallback(window, key_callback);
 
@@ -289,6 +283,22 @@ int main(void)
 
     // Update viewport
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    // program
+
+    #ifdef DEBUG
+        std::cout << "DEBUG ENABLED" << std::endl;
+    #endif
+
+    Program program(SHADER_PATH + "/phong_vert.glsl", {}, SHADER_PATH + "/flat_frag.glsl", "out_color");
+    program.bind();
+
+    std::string normal_geom_shader_path = SHADER_PATH + "/normal_geom.glsl";
+    Program program_normal(SHADER_PATH + "/normal_vert.glsl", Optional<std::string>{{normal_geom_shader_path}}, SHADER_PATH + "/normal_frag.glsl", "out_color");
+
+    ctx = std::unique_ptr<GLContext>(new GLContext(program, GLCamera(program, WIDTH / HEIGHT)));
+    ctx->init_meshes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{}, });
+
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))

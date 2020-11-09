@@ -22,12 +22,6 @@
 #include <optional>
 #include <functional>
 
-enum MeshList {
-    CUBE,
-    BUMPY,
-    BUNNY,
-};
-
 using Indexer = std::array<uint, TRI>;
 
 class MeshEntity;
