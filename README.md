@@ -3,7 +3,6 @@
 * mesh despawning
 * shading
   * flat-shading
-  * cube normals
 * aspect scaling
 
 ## Refactor

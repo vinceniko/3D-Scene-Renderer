@@ -95,46 +95,7 @@ public:
 
 class UnitCube : public Mesh {
 public:
-    UnitCube() : Mesh(
-        std::vector<glm::vec3>{
-            glm::vec3(0.5f,  0.5f, -0.5f),  // top right
-            glm::vec3(0.5f, -0.5f, -0.5f),  // bottom right
-            glm::vec3(-0.5f, -0.5f, -0.5f),  // bottom left
-            glm::vec3(-0.5f,  0.5f, -0.5f),   // top left
-
-            glm::vec3(0.5f,  0.5f, 0.5f),  // top right
-            glm::vec3(0.5f, -0.5f, 0.5f),  // bottom right
-            glm::vec3(-0.5f, -0.5f, 0.5f),  // bottom left
-            glm::vec3(-0.5f,  0.5f, 0.5f),   // top left
-        },
-        std::vector<Indexer>{  // note that we start from 0!
-            // front
-            Indexer{0, 1, 3},   // first triangle
-            Indexer{1, 2, 3},    // second triangle
-        
-            // back
-            Indexer{4, 5, 7},
-            Indexer{5, 6, 7},
-
-            // right
-            Indexer{3, 2, 7},
-            Indexer{2, 6, 7},
-
-            // left
-            Indexer{4, 5, 0},
-            Indexer{5, 1, 0},
-
-            // top
-            Indexer{0, 3, 4},
-            Indexer{3, 7, 4},
-
-            // bottom
-            Indexer{1, 2, 5},
-            Indexer{2, 6, 5},
-        }
-    ) {
-        init();
-    }
+    UnitCube() : Mesh("../data/cube.off") {}
 };
 
 struct GLMesh : public Mesh {
