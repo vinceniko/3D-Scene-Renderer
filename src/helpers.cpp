@@ -3,42 +3,6 @@
 #include <iostream>
 #include "utilities.cpp"
 
-void VertexArrayObject::init()
-{
-  glGenVertexArrays(1, &id);
-  check_gl_error();
-}
-
-void VertexArrayObject::bind()
-{
-  glBindVertexArray(id);
-  check_gl_error();
-}
-
-void VertexArrayObject::free()
-{
-  glDeleteVertexArrays(1, &id);
-  check_gl_error();
-}
-
-void VertexBufferObject::init()
-{
-  glGenBuffers(1,&id);
-  check_gl_error();
-}
-
-void VertexBufferObject::bind()
-{
-  glBindBuffer(GL_ARRAY_BUFFER,id);
-  check_gl_error();
-}
-
-void VertexBufferObject::free()
-{
-  glDeleteBuffers(1,&id);
-  check_gl_error();
-}
-
 Program::Program(const std::string &vertex_path,
 const Optional<std::string> geometry_path,
 const std::string &fragment_path,
@@ -114,25 +78,6 @@ GLint Program::attrib(const std::string &name) const
 GLint Program::uniform(const std::string &name) const
 {
   return glGetUniformLocation(program_shader, name.c_str());
-}
-
-GLint Program::bindVertexAttribArray(
-        const std::string &name, VertexBufferObject& VBO) const
-{
-  GLint id = attrib(name);
-  if (id < 0)
-    return id;
-  if (VBO.id == 0)
-  {
-    glDisableVertexAttribArray(id);
-    return id;
-  }
-  VBO.bind();
-  glEnableVertexAttribArray(id);
-  glVertexAttribPointer(id, VBO.rows, GL_FLOAT, GL_FALSE, 0, 0);
-  check_gl_error();
-
-  return id;
 }
 
 void Program::free()

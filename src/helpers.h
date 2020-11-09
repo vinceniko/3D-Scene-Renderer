@@ -46,65 +46,10 @@ void _check_gl_error(const char *file, int line);
 
 #include <definitions.h>
 
-class VertexArrayObject
-{
-public:
-    unsigned int id;
-
-    VertexArrayObject() : id(0) {}
-
-    // Create a new VAO
-    void init();
-
-    // Select this VAO for subsequent draw calls
-    void bind();
-
-    // Release the id
-    void free();
-};
-
-class VertexBufferObject
-{
-public:
-    typedef unsigned int GLuint;
-    typedef int GLint;
-
-    GLuint id;
-    GLuint rows;
-    GLuint cols;
-
-    VertexBufferObject() : id(0), rows(0), cols(0) {}
-
-    // Create a new empty VBO
-    void init();
-
-    // Updates the VBO
-    template<typename T>
-    void update(const std::vector<T>& array)
-    {
-      assert(id != 0);
-      assert(!array.empty()); 
-      glBindBuffer(GL_ARRAY_BUFFER, id);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(T) * array.size(), array.data(), GL_DYNAMIC_DRAW);
-      cols = array.size();
-      rows = array[0].length();
-      check_gl_error();
-    };
-
-    // Select this VBO for subsequent draw calls
-    void bind();
-
-    // Release the id
-    void free();
-};
-
 // This class wraps an OpenGL program composed of two shaders
 class Program
 {
 public:
-  typedef unsigned int GLuint;
-  typedef int GLint;
-
   GLuint vertex_shader;
   GLuint fragment_shader;
   GLuint geometry_shader;
@@ -133,9 +78,6 @@ public:
 
   // Return the OpenGL handle of a uniform attribute (-1 if it does not exist)
   GLint uniform(const std::string &name) const;
-
-  // Bind a per-vertex array attribute
-  GLint bindVertexAttribArray(const std::string &name, VertexBufferObject& VBO) const;
 
   GLuint create_shader_helper(GLint type, const std::string &shader_string);
 
