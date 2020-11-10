@@ -29,7 +29,6 @@
 #include "context.h"
 #include "camera.h"
 
-#include "program_data.h"
 #include "mesh_data.h"
 
 float WIDTH;
@@ -135,6 +134,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 // model
                 if (selected.has_value()) {
                     switch (key) {
+                        // despawn
+                        case GLFW_KEY_R:
+                            ctx->mesh_list.erase(ctx->mesh_list.begin() + ctx->mouse_ctx.get_selected());
+                            ctx->mouse_ctx.deselect();
+                            break;
                         // center to origin
                         case GLFW_KEY_O:
                             selected->get().set_to_origin();
@@ -268,13 +272,13 @@ int main(void)
         std::cout << "DEBUG ENABLED" << std::endl;
     #endif
 
-    ProgramCtx programs;    
-    programs.bind(ProgramList::PHONG);
+    std::unique_ptr<ProgramCtx> programs = std::unique_ptr<ProgramCtx>{new ProgramCtx};
+    programs->bind(ProgramList::PHONG);
     
     ctx = std::unique_ptr<GLContext>(
         new GLContext(
             std::move(programs), 
-            std::move(std::shared_ptr<TrackballCamera>{new TrackballCamera(WIDTH / HEIGHT)})
+            std::shared_ptr<TrackballCamera>{new TrackballCamera(WIDTH / HEIGHT)}
         )
     );
     ctx->init_meshes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{}, });
@@ -307,7 +311,7 @@ int main(void)
 
     // Deallocate opengl memory
     // TODO? Deallocate buffers
-    for (Program& program: ctx->programs) {
+    for (Program& program: *ctx->programs) {
         program.free();
     }
 

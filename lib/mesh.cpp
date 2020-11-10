@@ -151,16 +151,16 @@ const size_t MeshEntity::get_id() const {
     return id_;
 }
 
-MeshEntity::MeshEntity(GLMeshCtx& ctx, size_t id) : 
-ctx_(ctx), id_(id), model_uniform_(ctx.programs_, "model_trans", model_trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
+MeshEntity::MeshEntity(std::reference_wrapper<GLMeshCtx> ctx, size_t id) : 
+ctx_(ctx), id_(id), model_uniform_(ctx.get().programs_, "model_trans", model_trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
     // model_trans_ = glm::translate(model_trans_, glm::vec3(1.f, 1.f, -2.f));
     // scale_to_unit();
     set_to_origin();
 }
 
 void MeshEntity::set_to_origin() {
-    glm::mat4 scale = glm::scale(glm::mat4{1.f}, ctx_.get_meshes()[id_].get_scale());
-    glm::mat4 trans = glm::translate(glm::mat4{1.f}, -ctx_.get_meshes()[id_].get_centroid());
+    glm::mat4 scale = glm::scale(glm::mat4{1.f}, ctx_.get().get_meshes()[id_].get_scale());
+    glm::mat4 trans = glm::translate(glm::mat4{1.f}, -ctx_.get().get_meshes()[id_].get_centroid());
     model_trans_ = scale * trans;
 }
 
@@ -169,22 +169,22 @@ void MeshEntity::translate(glm::mat4 view_trans, glm::vec3 offset) {
     model_trans_ = glm::translate(model_trans_, offset);;
 }
 void MeshEntity::scale(glm::mat4 view_trans, ScaleDir dir, float offset) {
-    glm::mat4 trans = glm::translate(glm::mat4{1.f}, ctx_.get_meshes()[id_].get_centroid());
+    glm::mat4 trans = glm::translate(glm::mat4{1.f}, ctx_.get().get_meshes()[id_].get_centroid());
     trans = glm::scale(trans, glm::vec3(dir == In ? 1 + offset : 1 - offset));
-    trans = glm::translate(trans, -ctx_.get_meshes()[id_].get_centroid());
+    trans = glm::translate(trans, -ctx_.get().get_meshes()[id_].get_centroid());
     model_trans_ = model_trans_ * trans;
 }
 void MeshEntity::rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) {
     glm::vec3 view_axis = glm::vec3{glm::inverse(model_trans_) * glm::inverse(view_trans) * glm::vec4{axis, 0.0}};
 
-    glm::mat4 trans = glm::translate(glm::mat4{1.f}, ctx_.get_meshes()[id_].get_centroid());
+    glm::mat4 trans = glm::translate(glm::mat4{1.f}, ctx_.get().get_meshes()[id_].get_centroid());
     trans = glm::rotate(trans, glm::radians(degrees), view_axis);
-    trans = glm::translate(trans, -ctx_.get_meshes()[id_].get_centroid());
+    trans = glm::translate(trans, -ctx_.get().get_meshes()[id_].get_centroid());
     model_trans_ = model_trans_ * trans;
 }
 
 float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const {
-    const GLMesh& mesh = ctx_.get_meshes()[id_];
+    const GLMesh& mesh = ctx_.get().get_meshes()[id_];
 
     glm::vec3 model_ray_origin = glm::inverse(model_trans_) * glm::vec4(world_ray_origin, 1.f);
     glm::vec3 model_ray_dir = glm::inverse(model_trans_) * glm::vec4(world_ray_dir, 0.f);
@@ -208,13 +208,13 @@ float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 wo
 }
 
 void MeshEntity::draw() {
-    const GLMesh& mesh_ref = ctx_.get_meshes()[id_];
+    const GLMesh& mesh_ref = ctx_.get().get_meshes()[id_];
     
     glBindVertexArray(mesh_ref.VAO_);
 
     model_uniform_.buffer(model_trans_);
 
-    glUniform3f(ctx_.programs_.get_selected_program().uniform("triangle_color"), color_.r, color_.g, color_.b);
+    glUniform3f(ctx_.get().programs_->get_selected_program().uniform("triangle_color"), color_.r, color_.g, color_.b);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL );
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
@@ -226,13 +226,13 @@ void MeshEntity::draw() {
 }
 
 void MeshEntity::draw_wireframe() {
-    const GLMesh& mesh_ref = ctx_.get_meshes()[id_];
+    const GLMesh& mesh_ref = ctx_.get().get_meshes()[id_];
     
     glBindVertexArray(mesh_ref.VAO_);
 
     model_uniform_.buffer(model_trans_);
 
-    glUniform3f(ctx_.programs_.get_selected_program().uniform("triangle_color"), 0.f, 0.f, 0.f);
+    glUniform3f(ctx_.get().programs_->get_selected_program().uniform("triangle_color"), 0.f, 0.f, 0.f);
     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
     // // glLineWidth doesn't work, maybe an Apple driver bug 
     // glLineWidth(2.f);
@@ -308,7 +308,7 @@ const std::vector<GLMesh>& GLMeshCtx::get_meshes() const {
 }
 
 MeshEntity GLMeshCtx::get_mesh_entity(size_t i) {
-    return MeshEntity{*this, i};
+    return MeshEntity{std::reference_wrapper<GLMeshCtx>{*this}, i};
 }
 
 void MeshEntityList::draw() {

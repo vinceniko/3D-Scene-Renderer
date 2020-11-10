@@ -22,6 +22,7 @@
 
 #include <optional>
 #include <functional>
+#include <memory>
 
 using Indexer = std::array<uint, TRI>;
 
@@ -94,16 +95,16 @@ class GLMeshCtx;
 // a reference to a Mesh inside the GLMeshCtx
 // represents one entity being drawn
 class MeshEntity {
-    GLMeshCtx& ctx_;
+    std::reference_wrapper<GLMeshCtx> ctx_;
 
     // the index into the list of meshes in GLMeshCtx
-    const size_t id_;
+    size_t id_;
 
     glm::mat4 model_trans_{1.f};
     GLTransform model_uniform_;
     glm::vec3 color_;
 
-    MeshEntity(GLMeshCtx& ctx, size_t id);
+    MeshEntity(std::reference_wrapper<GLMeshCtx> ctx, size_t id);
 public:
     friend class GLMeshCtx;
 
@@ -143,14 +144,14 @@ public:
 // holds mesh prototypes
 // i.e. each GLMesh in meshes_ is unique
 class GLMeshCtx {
-    ProgramCtx& programs_;
+    std::shared_ptr<ProgramCtx> programs_;
 
     std::vector<GLMesh> meshes_;
 
 public:
     friend class MeshEntity;
 
-    GLMeshCtx(ProgramCtx& programs) : programs_(programs), meshes_() {}
+    GLMeshCtx(std::shared_ptr<ProgramCtx> programs) : programs_(programs), meshes_() {}
     
     MeshEntityList push(std::vector<Mesh> meshes);
 

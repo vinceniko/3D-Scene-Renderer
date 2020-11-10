@@ -1,7 +1,5 @@
 # TODO
 
-* mesh despawning
-
 ## Optional
 
 * better object selection

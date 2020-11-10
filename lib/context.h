@@ -58,15 +58,17 @@ public:
     DrawMode draw_mode = DrawMode::DEF;
     size_t shader_idx = 0;
 
-    ProgramCtx programs;
+    std::shared_ptr<ProgramCtx> programs;
     
     GLCamera camera;
-    GLMeshCtx mesh_ctx;
+    
     MouseContext mouse_ctx;
+
+    GLMeshCtx mesh_ctx;
     MeshEntityList mesh_list;
 
-    GLContext(ProgramCtx programs);
-    GLContext(ProgramCtx programs, std::shared_ptr<Camera> camera);
+    GLContext(std::unique_ptr<ProgramCtx> programs);
+    GLContext(std::unique_ptr<ProgramCtx> programs, std::shared_ptr<Camera> camera);
 
     int intersected_mesh(glm::vec3 world_ray_dir) const;
     void select(glm::vec3 world_ray_dir);
@@ -90,11 +92,11 @@ public:
     }
 
     void switch_program() {
-        programs.bind(shaders[(shader_idx += 1) %= shaders.size()]);
+        programs->bind(shaders[(shader_idx += 1) %= shaders.size()]);
     }
 
     void draw() {
-        programs.bind(programs.get_selected());
+        programs->bind(programs->get_selected());
         draw_surface();
         if (draw_mode == DrawMode::WIREFRAME) {
             draw_wireframe();
@@ -115,9 +117,9 @@ public:
         camera->zoom(Camera::ZoomDir::In, -min_zoom);
     }
     void draw_normals() {
-        ProgramList selected = programs.get_selected();
+        ProgramList selected = programs->get_selected();
         
-        programs.bind(ProgramList::NORMALS);;
+        programs->bind(ProgramList::NORMALS);;
         camera.buffer();
 
         for (auto& mesh : mesh_list) {
@@ -129,7 +131,7 @@ public:
 
         mesh_list.draw();
 
-        programs.bind(selected);
+        programs->bind(selected);
     }
 
     void update();

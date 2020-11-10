@@ -43,11 +43,11 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-GLContext::GLContext(ProgramCtx programs) : 
-    programs(programs), camera(this->programs, std::shared_ptr<Camera>{new Camera()}), mesh_ctx(this->programs) {}
+GLContext::GLContext(std::unique_ptr<ProgramCtx> programs) : 
+    programs(std::move(programs)), camera(this->programs, std::shared_ptr<Camera>{new Camera()}), mesh_ctx(this->programs) {}
 
-GLContext::GLContext(ProgramCtx programs, std::shared_ptr<Camera> new_cam) : 
-    programs(programs), camera(this->programs, new_cam), mesh_ctx(this->programs) {}
+GLContext::GLContext(std::unique_ptr<ProgramCtx> programs, std::shared_ptr<Camera> new_cam) : 
+    programs(std::move(programs)), camera(this->programs, new_cam), mesh_ctx(this->programs) {}
 
 int GLContext::intersected_mesh(glm::vec3 world_ray_dir) const {
     float min_dist = std::numeric_limits<float>::infinity();

@@ -79,7 +79,7 @@ public:
 class GLCamera {
     std::shared_ptr<Camera> camera_;
 
-    ProgramCtx& programs_;
+    std::shared_ptr<ProgramCtx> programs_;
 
     GLTransform view_uniform_;
     GLTransform projection_uniform_;
@@ -87,7 +87,7 @@ class GLCamera {
     void buffer_view_uniform();
     void buffer_projection_uniform();
 public:
-    GLCamera(ProgramCtx& programs, std::shared_ptr<Camera> camera);
+    GLCamera(std::shared_ptr<ProgramCtx> programs, std::shared_ptr<Camera> camera);
 
     Camera& get_camera();
     void set_camera(std::shared_ptr<Camera> camera);

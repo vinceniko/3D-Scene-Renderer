@@ -1,20 +1,22 @@
 #pragma once
 
+#include <memory>
+
 #include "program.h"
 #include "definitions.h"
 
 class GLTransform {
 public:
-  ProgramCtx& programs_;
+  std::shared_ptr<ProgramCtx> programs_;
   std::string name_;
 
-  GLTransform(ProgramCtx& programs, const std::string& name, const glm::mat4& mat) : GLTransform(programs, name) {
+  GLTransform(std::shared_ptr<ProgramCtx> programs, const std::string& name, const glm::mat4& mat) : GLTransform(programs, name) {
     buffer(mat);
   }
-  GLTransform(ProgramCtx& programs, const std::string& name) : programs_(programs), name_(name) {}
+  GLTransform(std::shared_ptr<ProgramCtx> programs, const std::string& name) : programs_(programs), name_(name) {}
 
   void buffer(const glm::mat4& mat) const {
-    GLint id = programs_.get_selected_program().uniform(name_);
+    GLint id = programs_->get_selected_program().uniform(name_);
     if (id < 0) {
         throw std::runtime_error("Error Getting ID of Uniform");
     }
