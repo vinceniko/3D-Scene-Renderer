@@ -32,8 +32,8 @@
 #include "program_data.h"
 #include "mesh_data.h"
 
-constexpr float WIDTH = 640.f;
-constexpr float HEIGHT = 480.f;
+float WIDTH;
+float HEIGHT;
 
 std::unique_ptr<GLContext> ctx;
 
@@ -226,6 +226,11 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
+    GLFWmonitor* primary = glfwGetPrimaryMonitor();
+    int xpos, ypos, width, height;
+    glfwGetMonitorWorkarea(primary, &xpos, &ypos, &width, &height);
+    WIDTH = static_cast<float>(width); HEIGHT = static_cast<float>(height);
+
     // Create a windowed mode window and its OpenGL context
     window = glfwCreateWindow(WIDTH, HEIGHT, "3D Scene Editor", NULL, NULL);
     if (!window)
@@ -265,6 +270,7 @@ int main(void)
 
     ProgramCtx programs;    
     programs.bind(ProgramList::PHONG);
+    
 
     ctx = std::unique_ptr<GLContext>(
         new GLContext(
