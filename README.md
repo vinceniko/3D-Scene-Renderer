@@ -4,6 +4,8 @@
 
 ## Optional
 
+* better object selection
+  * do not select if mouse moved, view changed
 * deallocate buffers upon program exit.
   * probably done by GLFW with terminate...
 
@@ -17,6 +19,8 @@
 * Combine into VP matrix instead of keeping them separate
 
 ## Bugs
+
+* write better fix for drifting
 
 ## For Writeup
 
