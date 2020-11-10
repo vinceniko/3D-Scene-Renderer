@@ -47,8 +47,8 @@ void Camera::ortho() {
 }
 
 TrackballCamera::TrackballCamera() : Camera() {
-        translate(glm::vec2(0.0));
-    }
+    translate(glm::vec2(0.0));
+}
 TrackballCamera::TrackballCamera(float aspect, float fov) : Camera(aspect, fov) {
     translate(glm::vec2(0.0));
 }
@@ -109,13 +109,17 @@ GLCamera::GLCamera(ProgramCtx& programs) :
 
 GLCamera::GLCamera(ProgramCtx& programs, float aspect, float fov) :
     programs_(programs),
+    TrackballCamera(aspect, fov),
     view_uniform_(programs, "view_trans", view_trans_), 
-    projection_uniform_(programs, "projection", projection_trans_),
-    TrackballCamera(aspect, fov) {}
+    projection_uniform_(programs, "projection", projection_trans_) {}
 
-void GLCamera::update_view_uniform() {
+void GLCamera::buffer_view_uniform() {
     view_uniform_.buffer(view_trans_);
 }
-void GLCamera::update_projection_uniform() {
+void GLCamera::buffer_projection_uniform() {
     projection_uniform_.buffer(projection_trans_);
+}
+void GLCamera::buffer() {
+    buffer_view_uniform();
+    buffer_projection_uniform();
 }

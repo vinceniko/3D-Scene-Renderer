@@ -59,6 +59,7 @@ bool Program::init(
   }
 
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_LINE_SMOOTH);
   
   check_gl_error();
   return true;

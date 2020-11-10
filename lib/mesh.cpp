@@ -209,6 +209,7 @@ float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 wo
 
 void MeshEntity::draw() {
     const GLMesh& mesh_ref = ctx_.get_meshes()[id_];
+    
     glBindVertexArray(mesh_ref.VAO_);
 
     model_uniform_.buffer(model_trans_);
@@ -217,14 +218,30 @@ void MeshEntity::draw() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL );
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
-    glUniform3f(ctx_.programs_.get_selected_program().uniform("triangle_color"), 1.f - color_.r, 1.f - color_.g, 1.f - color_.b);
+    glBindVertexArray(0);
+
+    #ifdef DEBUG
+    check_gl_error();
+    #endif
+}
+
+void MeshEntity::draw_wireframe() {
+    const GLMesh& mesh_ref = ctx_.get_meshes()[id_];
+    
+    glBindVertexArray(mesh_ref.VAO_);
+
+    model_uniform_.buffer(model_trans_);
+
+    glUniform3f(ctx_.programs_.get_selected_program().uniform("triangle_color"), 0.f, 0.f, 0.f);
     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    // // glLineWidth doesn't work, maybe an Apple driver bug 
+    // glLineWidth(2.f);
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
 
     #ifdef DEBUG
-        check_gl_error();
+    check_gl_error();
     #endif
 }
 
@@ -292,4 +309,15 @@ const std::vector<GLMesh>& GLMeshCtx::get_meshes() const {
 
 MeshEntity GLMeshCtx::get_mesh_entity(size_t i) {
     return MeshEntity{*this, i};
+}
+
+void MeshEntityList::draw() {
+    for (MeshEntity& mesh : *this) {
+        mesh.draw();
+    }
+}
+void MeshEntityList::draw_wireframe() {
+    for (MeshEntity& mesh : *this) {
+        mesh.draw_wireframe();
+    }
 }

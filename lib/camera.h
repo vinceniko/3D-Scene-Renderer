@@ -75,14 +75,11 @@ class GLCamera : public TrackballCamera {
     GLTransform view_uniform_;
     GLTransform projection_uniform_;
 
-    void update_view_uniform();
-    void update_projection_uniform();
+    void buffer_view_uniform();
+    void buffer_projection_uniform();
 public:
     GLCamera(ProgramCtx& programs);
     GLCamera(ProgramCtx& programs, float aspect, float fov = 50.f);
     
-    void update() {
-        update_view_uniform();
-        update_projection_uniform();
-    }
+    void buffer();
 };

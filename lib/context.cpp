@@ -90,15 +90,15 @@ Optional<MeshEntity> GLContext::get_selected() {
 }
 
 void GLContext::update() {
-    glm::vec2 old_point = mouse_ctx.get_prev_world_point();
-    glm::vec2 new_point = mouse_ctx.get_world_point();
-
     // #ifdef DEBUG
     // std::cout << "new_point: " << new_point[0] << ' ' << new_point[1] << ' ' << 
     // "old_point: " << old_point[0] << ' ' << old_point[1] << ' ' << std::endl;
     // #endif
 
+    // TODO: once per frame
     if (mouse_ctx.is_held()) {
+        glm::vec2 old_point = mouse_ctx.get_prev_world_point();
+        glm::vec2 new_point = mouse_ctx.get_world_point();
         camera.translate(new_point, old_point);
     }
 
@@ -108,5 +108,5 @@ void GLContext::update() {
     }
     #endif
     
-    camera.update();
+    camera.buffer();
 }

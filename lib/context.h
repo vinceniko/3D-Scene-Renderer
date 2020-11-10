@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include "glm/vec2.hpp"
 
 #include "helpers.h"
@@ -40,8 +42,21 @@ public:
 };
 
 class GLContext {
+    std::array<ProgramList, 2> shaders = { ProgramList::PHONG, ProgramList::FLAT };
+    
+    enum DrawMode {
+        DEF,
+        WIREFRAME,
+        NORMALS,
+
+        SIZE = 3,
+    };
+
 public:
     friend MeshEntity;
+
+    DrawMode draw_mode = DrawMode::DEF;
+    size_t shader_idx = 0;
 
     ProgramCtx programs;
     
@@ -53,9 +68,6 @@ public:
     GLContext(ProgramCtx programs);
     template <typename ...CameraArgs>
     GLContext(ProgramCtx programs, CameraArgs ...camera_args);
-
-    template <typename... Args>
-    void attach_camera(Args... args);
 
     int intersected_mesh(glm::vec3 world_ray_dir) const;
     void select(glm::vec3 world_ray_dir);
@@ -69,6 +81,56 @@ public:
         for (const auto& id : ids) {
             mesh_list.push_back(mesh_ctx.get_mesh_entity(id));
         }
+    }
+
+    void switch_draw_mode() {
+        draw_mode = static_cast<DrawMode>((static_cast<int>(draw_mode) + 1) % DrawMode::SIZE);
+        #ifdef DEBUG
+        std::cout << "draw_mode: " << draw_mode << std::endl;
+        #endif
+    }
+
+    void switch_program() {
+        programs.bind(shaders[(shader_idx += 1) %= shaders.size()]);
+    }
+
+    void draw() {
+        programs.bind(programs.get_selected());
+        draw_surface();
+        if (draw_mode == DrawMode::WIREFRAME) {
+            draw_wireframe();
+        } else if (draw_mode == DrawMode::NORMALS) {
+            draw_normals();
+        }
+    }
+    void draw_surface() {
+        update();
+        mesh_list.draw();
+    }
+    void draw_wireframe() {
+        float min_zoom = 1.f / 4096.f;  // to prevent z-fighting
+
+        camera.zoom(Camera::ZoomDir::In, min_zoom);
+        camera.buffer();
+        mesh_list.draw_wireframe();
+        camera.zoom(Camera::ZoomDir::In, -min_zoom);
+    }
+    void draw_normals() {
+        ProgramList selected = programs.get_selected();
+        
+        programs.bind(ProgramList::NORMALS);;
+        camera.buffer();
+
+        for (auto& mesh : mesh_list) {
+            auto temp = mesh.get_color();
+            mesh.set_color(glm::vec3(1.0, 0.0, 0.0));
+            mesh.draw();
+            mesh.set_color(temp);
+        }
+
+        mesh_list.draw();
+
+        programs.bind(selected);
     }
 
     void update();

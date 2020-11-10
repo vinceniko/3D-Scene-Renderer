@@ -1,11 +1,13 @@
 # TODO
 
 * mesh despawning
-* shading
-  * flat-shading
 * aspect scaling
 
-## Refactor
+## Optional
+
+* Transform model matrix relative to zoom
+
+### Refactor
 
 * Camera inheritance
 * Combine into VP matrix instead of keeping them separate

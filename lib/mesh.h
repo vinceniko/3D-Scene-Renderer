@@ -27,8 +27,6 @@ using Indexer = std::array<uint, TRI>;
 
 class MeshEntity;
 
-using MeshEntityList = std::vector<MeshEntity>;
-
 class Mesh {
     std::vector<glm::vec3> verts_;
     std::vector<Indexer> faces_;
@@ -76,21 +74,6 @@ public:
     // operations
     // TODO
     void gen_normals();
-};
-
-class BumpyCubeMesh : public Mesh {
-public:
-    BumpyCubeMesh() : Mesh("../data/bumpy_cube.off") {}
-};
-
-class BunnyMesh : public Mesh {
-public:
-    BunnyMesh() : Mesh("../data/bunny.off") {}
-};
-
-class UnitCube : public Mesh {
-public:
-    UnitCube() : Mesh("../data/cube.off") {}
 };
 
 struct GLMesh : public Mesh {
@@ -142,12 +125,19 @@ public:
     void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis);
 
     void draw();
+    void draw_wireframe();
 
     float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const;
 
     void set_to_origin();
 
     // TODO draw with model_trans_ and update model_trans_ on GL side
+};
+
+class MeshEntityList : public std::vector<MeshEntity> {
+public:
+    void draw();
+    void draw_wireframe();
 };
 
 // holds mesh prototypes

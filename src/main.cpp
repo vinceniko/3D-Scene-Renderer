@@ -32,21 +32,11 @@
 #include "context.h"
 #include "camera.h"
 
+#include "program_data.h"
+#include "mesh_data.h"
+
 constexpr float WIDTH = 640.f;
 constexpr float HEIGHT = 480.f;
-
-const std::string SHADER_PATH = "../shaders";
-
-enum MeshList {
-    CUBE,
-    BUMPY,
-    BUNNY,
-};
-
-enum ProgramList {
-    PHONG,
-    NORMAL,
-};
 
 std::unique_ptr<GLContext> ctx;
 
@@ -199,6 +189,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                     selected->get().rotate(ctx->camera.get_view(), -10.f, glm::vec3(0.f, 0.f, 1.f));
                 }
                 break;
+            // mode
+            case GLFW_KEY_M:
+                ctx->switch_draw_mode();
+                break;
+            // program
+            case GLFW_KEY_P:
+                ctx->switch_program();
+                break;
             // center to origin
             case GLFW_KEY_O:
                 if (selected.has_value()) {
@@ -276,6 +274,22 @@ int main(void)
     printf("Supported OpenGL is %s\n", (const char*)glGetString(GL_VERSION));
     printf("Supported GLSL is %s\n", (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
+    // program
+
+    #ifdef DEBUG
+        std::cout << "DEBUG ENABLED" << std::endl;
+    #endif
+
+    ProgramCtx programs;
+
+    std::string normal_geom_shader_path = SHADER_PATH + "/normal_geom.glsl";
+    programs.push_back(Program(SHADER_PATH + "/normal_vert.glsl", Optional<std::string>{{normal_geom_shader_path}}, SHADER_PATH + "/normal_frag.glsl", "out_color"));
+    
+    programs.bind(ProgramList::PHONG);
+
+    ctx = std::unique_ptr<GLContext>(new GLContext(std::move(programs), WIDTH / HEIGHT));
+    ctx->init_meshes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{}, });
+
     // Register the keyboard callback
     glfwSetKeyCallback(window, key_callback);
 
@@ -289,26 +303,6 @@ int main(void)
     // Update viewport
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // program
-
-    #ifdef DEBUG
-        std::cout << "DEBUG ENABLED" << std::endl;
-    #endif
-
-    ProgramCtx programs;
-
-    programs.push_back(Program{SHADER_PATH + "/phong_vert.glsl", {}, SHADER_PATH + "/flat_frag.glsl", "out_color"});
-
-    std::string normal_geom_shader_path = SHADER_PATH + "/normal_geom.glsl";
-    programs.push_back(Program(SHADER_PATH + "/normal_vert.glsl", Optional<std::string>{{normal_geom_shader_path}}, SHADER_PATH + "/normal_frag.glsl", "out_color"));
-    
-    programs.bind(ProgramList::PHONG);
-
-    // TODO: currently GLContext and GLCamera both want references to the ProgramCtx, but I want GLContext to own the single reference.
-    // This means that GLContext should construct the GLCamera itself
-    ctx = std::unique_ptr<GLContext>(new GLContext(std::move(programs), WIDTH / HEIGHT));
-    ctx->init_meshes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{}, });
-
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
@@ -321,27 +315,13 @@ int main(void)
         // std::cout << "camera: " << ctx->camera.get_position()[0] << ' ' << ctx->camera.get_position()[1] << ' ' << ctx->camera.get_position()[2] << std::endl;
 
         // Bind your program
-        ctx->programs.bind(ProgramList::PHONG);
+        // ctx->programs.bind(ProgramListExt::PHONG);
 
-        ctx->update();
 
-        for (auto& mesh : ctx->mesh_list) {
-            mesh.draw();
-        }
-
-        // draw normals
-        #ifdef DEBUG
-        ctx->programs.bind(ProgramList::NORMAL);;
-
-        ctx->update();
-
-        for (auto& mesh : ctx->mesh_list) {
-            auto temp = mesh.get_color();
-            mesh.set_color(glm::vec3(1.0, 0.0, 0.0));
-            mesh.draw();
-            mesh.set_color(temp);
-        }
-        #endif
+        // for (auto& mesh : ctx->mesh_list) {
+        //     mesh.draw();
+        // }
+        ctx->draw();
 
         // Swap front and back buffers
         glfwSwapBuffers(window);
