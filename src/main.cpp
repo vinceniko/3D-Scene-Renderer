@@ -271,7 +271,6 @@ int main(void)
     ProgramCtx programs;    
     programs.bind(ProgramList::PHONG);
     
-
     ctx = std::unique_ptr<GLContext>(
         new GLContext(
             std::move(programs), 

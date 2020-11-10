@@ -1,9 +1,16 @@
 # TODO
 
 * mesh despawning
-* aspect scaling
 
 ## Optional
+
+* deallocate buffers upon program exit.
+  * probably done by GLFW with terminate...
+
+### Future
+
+* control lights
+* multiple lights
 
 ### Refactor
 
