@@ -4,6 +4,8 @@
 #include <glm/mat4x4.hpp> // glm::mat4
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 
+#include <memory>
+
 #include "helpers.h"
 
 #include "definitions.h"
@@ -11,7 +13,9 @@
 #include "program.h"
 
 class Camera {
-    float fov_;
+    const float fov_init = 50.f;
+    
+    float fov_ = fov_init;
     float aspect_;
 
 public:
@@ -25,6 +29,8 @@ protected:
     float zoom_ = 1.f;
 
 public:
+    friend class GLCamera;
+
     // ortho projection
     Camera();
     // perspective projection
@@ -43,7 +49,7 @@ public:
     } 
 
     glm::mat4 get_projection() const {
-        return projection_mode_ == Projection::Perspective ? glm::perspective(glm::radians(fov_), aspect_, 0.1f, 100.f) : glm::ortho(-1.f, 1.f, -1.f, 1.f);
+        return projection_mode_ == Projection::Perspective ? glm::perspective(glm::radians(fov_), aspect_, 0.1f, 100.f) : glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -100.f, 100.f);
     }
     glm::mat4 get_view() const {
         return view_trans_;
@@ -70,8 +76,8 @@ public:
     void swivel();
 };
 
-class GLCamera : public TrackballCamera {
-    uint id_;
+class GLCamera {
+    std::shared_ptr<Camera> camera_;
 
     ProgramCtx& programs_;
 
@@ -81,8 +87,12 @@ class GLCamera : public TrackballCamera {
     void buffer_view_uniform();
     void buffer_projection_uniform();
 public:
-    GLCamera(ProgramCtx& programs);
-    GLCamera(ProgramCtx& programs, float aspect, float fov = 50.f);
+    GLCamera(ProgramCtx& programs, std::shared_ptr<Camera> camera);
+
+    Camera& get_camera();
+    void set_camera(std::shared_ptr<Camera> camera);
+    Camera* operator ->();
+    const Camera* operator ->() const;
     
     void buffer();
 };

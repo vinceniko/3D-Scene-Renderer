@@ -66,8 +66,7 @@ public:
     MeshEntityList mesh_list;
 
     GLContext(ProgramCtx programs);
-    template <typename ...CameraArgs>
-    GLContext(ProgramCtx programs, CameraArgs ...camera_args);
+    GLContext(ProgramCtx programs, std::shared_ptr<Camera> camera);
 
     int intersected_mesh(glm::vec3 world_ray_dir) const;
     void select(glm::vec3 world_ray_dir);
@@ -110,10 +109,10 @@ public:
     void draw_wireframe() {
         float min_zoom = 1.f / 4096.f;  // to prevent z-fighting
 
-        camera.zoom(Camera::ZoomDir::In, min_zoom);
+        camera->zoom(Camera::ZoomDir::In, min_zoom);
         camera.buffer();
         mesh_list.draw_wireframe();
-        camera.zoom(Camera::ZoomDir::In, -min_zoom);
+        camera->zoom(Camera::ZoomDir::In, -min_zoom);
     }
     void draw_normals() {
         ProgramList selected = programs.get_selected();

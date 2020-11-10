@@ -44,18 +44,16 @@ double MouseContext::get_scroll() const {
 }
 
 GLContext::GLContext(ProgramCtx programs) : 
-    programs(programs), camera(this->programs), mesh_ctx(this->programs) {}
+    programs(programs), camera(this->programs, std::shared_ptr<Camera>{new Camera()}), mesh_ctx(this->programs) {}
 
-template <typename ...CameraArgs>
-GLContext::GLContext(ProgramCtx programs, CameraArgs ...camera_args) : 
-    programs(programs), camera(this->programs, camera_args...), mesh_ctx(this->programs) {}
-template GLContext::GLContext(ProgramCtx programs, float aspect);
+GLContext::GLContext(ProgramCtx programs, std::shared_ptr<Camera> new_cam) : 
+    programs(programs), camera(this->programs, new_cam), mesh_ctx(this->programs) {}
 
 int GLContext::intersected_mesh(glm::vec3 world_ray_dir) const {
     float min_dist = std::numeric_limits<float>::infinity();
     int closest = -1;
     for (size_t i = 0; i < mesh_list.size(); i++) {
-        float distance = mesh_list[i].intersected_triangles(camera.get_position(), world_ray_dir);
+        float distance = mesh_list[i].intersected_triangles(camera->get_position(), world_ray_dir);
         if (distance >= 0) {
             if (min_dist > distance) {
                 min_dist = distance;
@@ -99,7 +97,7 @@ void GLContext::update() {
     if (mouse_ctx.is_held()) {
         glm::vec2 old_point = mouse_ctx.get_prev_world_point();
         glm::vec2 new_point = mouse_ctx.get_world_point();
-        camera.translate(new_point, old_point);
+        camera->translate(new_point, old_point);
     }
 
     #ifdef DEBUG
