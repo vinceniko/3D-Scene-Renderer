@@ -114,84 +114,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             case GLFW_KEY_3:
                 ctx->push_mesh_entity({ MeshList::BUNNY });
                 break;
-            // model
-            // translate
-            case GLFW_KEY_D:
-                if (selected.has_value()) {
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(window_size_factor, 0.0, 0.0));
-                }
-                break;
-            case GLFW_KEY_A:
-                if (selected.has_value()) {
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(-window_size_factor, 0.0, 0.0));
-                }
-                break;
-            case GLFW_KEY_W:
-                if (selected.has_value()) {
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, window_size_factor, 0.0));
-                }
-                break;
-            case GLFW_KEY_S:
-                if (selected.has_value()) {
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, -window_size_factor, 0.0));
-                }
-                break;
-            // z axis
-            case GLFW_KEY_EQUAL:
-                if (selected.has_value()) {
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, 0.0, -window_size_factor));
-                }
-                break;
-            case GLFW_KEY_MINUS:
-                if (selected.has_value()) {
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, 0.0, window_size_factor));
-                }
-                break;
-            // scale
-            case GLFW_KEY_K:
-                if (selected.has_value()) {
-                    selected->get().scale(ctx->camera->get_view(), MeshEntity::ScaleDir::In, window_size_factor);
-                }
-                break;
-            case GLFW_KEY_L:
-                if (selected.has_value()) {
-                    selected->get().scale(ctx->camera->get_view(), MeshEntity::ScaleDir::Out, window_size_factor);
-                }
-                break;
-            // rotate
-            // x
-            case GLFW_KEY_T:
-                if (selected.has_value()) {
-                    selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(1.f, 0.f, 0.f));
-                }
-                break;
-            case GLFW_KEY_Y:
-                if (selected.has_value()) {
-                    selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(1.f, 0.f, 0.f));
-                }
-                break;
-            // y
-            case GLFW_KEY_F:
-                if (selected.has_value()) {
-                    selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(0.f, 1.f, 0.f));
-                }
-                break;
-            case GLFW_KEY_G:
-                if (selected.has_value()) {
-                    selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(0.f, 1.f, 0.f));
-                }
-                break;
-            // z
-            case GLFW_KEY_H:
-                if (selected.has_value()) {
-                    selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(0.f, 0.f, 1.f));
-                }
-                break;
-            case GLFW_KEY_J:
-                if (selected.has_value()) {
-                    selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(0.f, 0.f, 1.f));
-                }
-                break;
             // mode
             case GLFW_KEY_M:
                 ctx->switch_draw_mode();
@@ -199,12 +121,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             // program
             case GLFW_KEY_P:
                 ctx->switch_program();
-                break;
-            // center to origin
-            case GLFW_KEY_O:
-                if (selected.has_value()) {
-                    selected->get().set_to_origin();
-                }
                 break;
             // // *TEST: switch camera
             // case GLFW_KEY_X:
@@ -214,6 +130,66 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             // projection
             case GLFW_KEY_C:
                 ctx->camera->switch_projection();
+                break;
+            default:
+                // model
+                if (selected.has_value()) {
+                    switch (key) {
+                        // center to origin
+                        case GLFW_KEY_O:
+                            selected->get().set_to_origin();
+                            break;
+                        // translate
+                        case GLFW_KEY_D:
+                            selected->get().translate(ctx->camera->get_view(), glm::vec3(window_size_factor, 0.0, 0.0));
+                            break;
+                        case GLFW_KEY_A:
+                            selected->get().translate(ctx->camera->get_view(), glm::vec3(-window_size_factor, 0.0, 0.0));
+                            break;
+                        case GLFW_KEY_W:
+                            selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, window_size_factor, 0.0));
+                            break;
+                        case GLFW_KEY_S:
+                            selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, -window_size_factor, 0.0));
+                            break;
+                        // z axis
+                        case GLFW_KEY_EQUAL:
+                            selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, 0.0, -window_size_factor));
+                            break;
+                        case GLFW_KEY_MINUS:
+                            selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, 0.0, window_size_factor));
+                            break;
+                        // scale
+                        case GLFW_KEY_K:
+                            selected->get().scale(ctx->camera->get_view(), MeshEntity::ScaleDir::In, window_size_factor);
+                            break;
+                        case GLFW_KEY_L:
+                            selected->get().scale(ctx->camera->get_view(), MeshEntity::ScaleDir::Out, window_size_factor);
+                            break;
+                        // rotate
+                        // x
+                        case GLFW_KEY_T:
+                            selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(1.f, 0.f, 0.f));
+                            break;
+                        case GLFW_KEY_Y:
+                            selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(1.f, 0.f, 0.f));
+                            break;
+                        // y
+                        case GLFW_KEY_F:
+                            selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(0.f, 1.f, 0.f));
+                            break;
+                        case GLFW_KEY_G:
+                            selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(0.f, 1.f, 0.f));
+                            break;
+                        // z
+                        case GLFW_KEY_H:
+                            selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(0.f, 0.f, 1.f));
+                            break;
+                        case GLFW_KEY_J:
+                            selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(0.f, 0.f, 1.f));
+                            break;
+                    }
+                }
                 break;
         }
     }
