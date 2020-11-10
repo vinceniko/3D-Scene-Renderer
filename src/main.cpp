@@ -42,18 +42,24 @@ std::unique_ptr<GLContext> ctx;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
+    // take into account aspect ratio
+    ctx->camera.set_aspect(static_cast<float>(width) / static_cast<float>(height));
     glViewport(0, 0, width, height);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
+    // Get the size of the window
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+
     // Get the position of the mouse in the window
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
 
     // Convert screen position to nds
-    float x_nds = (2.0f * xpos) / WIDTH - 1.0f;
-    float y_nds = 1.0f - (2.0f * ypos) / HEIGHT;
+    float x_nds = (2.0f * xpos) / width - 1.0f;
+    float y_nds = 1.0f - (2.0f * ypos) / height;
 
     glm::vec2 ray_nds = glm::vec2(x_nds, y_nds);
     glm::vec4 ray_clip = glm::vec4(ray_nds, -1.0, 1.0);
@@ -290,17 +296,11 @@ int main(void)
     ctx = std::unique_ptr<GLContext>(new GLContext(std::move(programs), WIDTH / HEIGHT));
     ctx->init_meshes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{}, });
 
-    // Register the keyboard callback
+    // callbacks
     glfwSetKeyCallback(window, key_callback);
-
-    // Register the mouse callback
     glfwSetMouseButtonCallback(window, mouse_button_callback);
-
     glfwSetCursorPosCallback(window, cursor_position_callback);
-
     glfwSetScrollCallback(window, scroll_callback);
-
-    // Update viewport
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Loop until the user closes the window
@@ -312,15 +312,7 @@ int main(void)
 
         // ctx->camera.swivel();
 
-        // std::cout << "camera: " << ctx->camera.get_position()[0] << ' ' << ctx->camera.get_position()[1] << ' ' << ctx->camera.get_position()[2] << std::endl;
-
         // Bind your program
-        // ctx->programs.bind(ProgramListExt::PHONG);
-
-
-        // for (auto& mesh : ctx->mesh_list) {
-        //     mesh.draw();
-        // }
         ctx->draw();
 
         // Swap front and back buffers

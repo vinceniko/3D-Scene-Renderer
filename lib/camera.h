@@ -18,6 +18,13 @@ public:
     enum Projection { Ortho, Perspective };
     enum ZoomDir { Out, In };
 
+protected:
+    glm::mat4 view_trans_{1.f};
+    Projection projection_mode_;
+
+    float zoom_ = 1.f;
+
+public:
     // ortho projection
     Camera();
     // perspective projection
@@ -29,11 +36,14 @@ public:
     virtual void zoom(ZoomDir zoom_dir, float percent = 0.2);
 
     void switch_projection();
-    void perspective();
-    void ortho();
+    void set_projection_mode(Projection projection);
+
+    void set_aspect(float aspect) {
+        aspect_ = aspect;
+    } 
 
     glm::mat4 get_projection() const {
-        return projection_trans_;
+        return projection_mode_ == Projection::Perspective ? glm::perspective(glm::radians(fov_), aspect_, 0.1f, 100.f) : glm::ortho(-1.f, 1.f, -1.f, 1.f);
     }
     glm::mat4 get_view() const {
         return view_trans_;
@@ -41,13 +51,6 @@ public:
     glm::vec3 get_position() const {
         return glm::vec3(glm::inverse(view_trans_)[3]);
     }
-
-protected:
-    glm::mat4 view_trans_{1.f};
-    glm::mat4 projection_trans_;
-    Projection projection_mode_;
-
-    float zoom_ = 1.f;
 };
 
 class TrackballCamera : public Camera {

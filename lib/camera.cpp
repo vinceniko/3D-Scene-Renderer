@@ -13,8 +13,8 @@
 
 #include "camera.h"
 
-Camera::Camera() :  projection_mode_(Ortho), projection_trans_(glm::ortho(-1.f, 1.f, -1.f, 1.f)) {}
-Camera::Camera(float aspect, float fov) : projection_mode_(Perspective), aspect_(aspect), fov_(fov), projection_trans_(glm::perspective(glm::radians(fov), aspect, 0.1f, 100.f)) {}
+Camera::Camera() :  projection_mode_(Ortho) {}
+Camera::Camera(float aspect, float fov) : projection_mode_(Perspective), aspect_(aspect), fov_(fov) {}
 
 void Camera::translate(glm::vec2 offset) {
     view_trans_ = glm::translate(view_trans_, glm::vec3(offset, 0.f));
@@ -31,19 +31,10 @@ void Camera::zoom(ZoomDir zoom_dir, float percent) {
 }
 
 void Camera::switch_projection() {
-    if (projection_mode_ == Ortho) {
-        perspective();
-    } else {
-        ortho();
-    }
+    set_projection_mode(projection_mode_ == Projection::Perspective ? Projection::Ortho : Projection::Perspective);
 }
-void Camera::perspective() {
-    projection_trans_ = glm::perspective(glm::radians(fov_), aspect_, 0.1f, 100.f);
-    projection_mode_ = Perspective;
-}
-void Camera::ortho() {
-    projection_trans_ = glm::ortho(-1.f, 1.f, -1.f, 1.f);
-    projection_mode_ = Ortho;
+void Camera::set_projection_mode(Camera::Projection projection) {
+    projection_mode_ = projection;
 }
 
 TrackballCamera::TrackballCamera() : Camera() {
@@ -105,19 +96,19 @@ void TrackballCamera::swivel() {
 GLCamera::GLCamera(ProgramCtx& programs) :
     programs_(programs),
     view_uniform_(programs, "view_trans", view_trans_), 
-    projection_uniform_(programs, "projection", projection_trans_) {}
+    projection_uniform_(programs, "projection", get_projection()) {}
 
 GLCamera::GLCamera(ProgramCtx& programs, float aspect, float fov) :
     programs_(programs),
     TrackballCamera(aspect, fov),
     view_uniform_(programs, "view_trans", view_trans_), 
-    projection_uniform_(programs, "projection", projection_trans_) {}
+    projection_uniform_(programs, "projection", get_projection()) {}
 
 void GLCamera::buffer_view_uniform() {
     view_uniform_.buffer(view_trans_);
 }
 void GLCamera::buffer_projection_uniform() {
-    projection_uniform_.buffer(projection_trans_);
+    projection_uniform_.buffer(get_projection());
 }
 void GLCamera::buffer() {
     buffer_view_uniform();
