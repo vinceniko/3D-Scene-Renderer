@@ -89,9 +89,8 @@ void TrackballCamera::translate(glm::vec2 offset) {
     view_trans_ = glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, up_, 0.0));
 }
 void TrackballCamera::translate(glm::vec2 new_point, glm::vec2 old_point) {
-    const float diff_min = 0.001;  // hacky bug fix: drifting due to the camera
-    auto diff = glm::vec2(new_point.x - old_point.x, -(new_point.y - old_point.y));
-    translate(glm::abs(diff.x) > diff_min || glm::abs(diff.y) > diff_min ? diff : glm::vec2(0.f));
+    auto diff = glm::vec2(new_point.x - old_point.x, -(new_point.y - old_point.y)) * 2.f;
+    translate(diff);
 }
 void TrackballCamera::swivel() {
     auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time_);

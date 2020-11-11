@@ -76,6 +76,7 @@ target_link_libraries(${PROJECT_NAME}_bin ${LIBRARIES} ${OPENGL_LIBRARIES} Lib)
 target_include_directories(${PROJECT_NAME}_bin PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
+  target_compile_definitions(Lib PUBLIC -DDEBUG)
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DDEBUG)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 

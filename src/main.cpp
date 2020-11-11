@@ -34,6 +34,23 @@ float HEIGHT;
 
 std::unique_ptr<Context> ctx;
 
+glm::vec2 get_ray_nds(GLFWwindow* window) {
+    // Get the size of the window
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+
+    // Convert screen position to nds
+    float x_nds = (2.0f * xpos) / width - 1.0f;
+    float y_nds = 1.0f - (2.0f * ypos) / height;
+
+    glm::vec2 ray_nds = glm::vec2(x_nds, y_nds);
+
+    return ray_nds;
+}
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // take into account aspect ratio
@@ -70,24 +87,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         ctx->mouse_ctx.release();
     }
-}
-
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
-    // Get the size of the window
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-
-    // Convert screen position to nds
-    float x_nds = (2.0f * xpos) / width - 1.0f;
-    float y_nds = 1.0f - (2.0f * ypos) / height;
-
-    glm::vec2 ray_nds = glm::vec2(x_nds, y_nds);
-
-    // #ifdef DEBUG
-    // std::cout << "Ray World: " << ray_world[0] << ' ' << ray_world[1] << ' ' << ray_world[2] << ' ' << std::endl;
-    // #endif
-
-    ctx->mouse_ctx.set_position(ray_nds);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -285,13 +284,15 @@ int main(void)
     // callbacks
     glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
+        // setting the position happens in main instead of in a callback because the callback didnt update frequently enough which caused drift
+        ctx->mouse_ctx.set_position(get_ray_nds(window));
+
         // Clear the framebuffer
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

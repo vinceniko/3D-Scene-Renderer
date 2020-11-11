@@ -97,6 +97,10 @@ void Context::update() {
     if (mouse_ctx.is_held()) {
         glm::vec2 old_point = mouse_ctx.get_prev_position();
         glm::vec2 new_point = mouse_ctx.get_position();
+#ifdef DEBUG
+        auto diff = new_point - old_point;
+        std::cout << "diff: " << diff[0] << ' ' << diff[1] << std::endl;
+#endif
         camera->translate(new_point, old_point);
     }
 
