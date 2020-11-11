@@ -1,5 +1,7 @@
 # TODO
 
+* fix: orthographic aspect stretching
+
 ## Optional
 
 * better object selection

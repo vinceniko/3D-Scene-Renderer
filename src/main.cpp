@@ -1,10 +1,8 @@
-// This example is heavily based on the tutorial at https://open.gl
-
-// OpenGL Helpers to reduce the clutter
 #include "helpers.h"
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
+
 // GLFW is necessary to handle the OpenGL context
 #include <GLFW/glfw3.h>
 #else
@@ -298,9 +296,12 @@ int main(void)
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // ctx->camera->swivel();
+        // // swivel animation
+        // auto camera = dynamic_cast<TrackballCamera*>(&ctx->camera.get_camera());
+        // if (camera != nullptr) {
+        //     camera->swivel();
+        // }
 
-        // Bind your program
         ctx->draw();
 
         // Swap front and back buffers

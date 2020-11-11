@@ -5,12 +5,17 @@
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 
 #include <memory>
+#include <chrono>
 
 #include "helpers.h"
 
 #include "definitions.h"
 #include "transform.h"
 #include "shader.h"
+
+#ifdef DEBUG
+#include <iostream>
+#endif
 
 class Camera {
     const float fov_init = 50.f;
@@ -57,6 +62,9 @@ class TrackballCamera : public Camera {
     float phi_ = glm::half_pi<float>();
 
     float up_ = 1.0;
+
+    // for swivel
+    std::chrono::steady_clock::time_point start_time_ = std::chrono::steady_clock::now();
     
 public:
     TrackballCamera();

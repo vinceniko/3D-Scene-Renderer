@@ -1,16 +1,3 @@
-#ifdef __APPLE__
-#define GL_SILENCE_DEPRECATION
-// GLFW is necessary to handle the OpenGL context
-#include <GLFW/glfw3.h>
-#else
-// GLFW is necessary to handle the OpenGL context
-#include <GLFW/glfw3.h>
-#endif
-
-#ifdef DEBUG
-#include <iostream>
-#endif
-
 #include "camera.h"
 
 Camera::Camera() : projection_mode_(Ortho) {
@@ -107,9 +94,11 @@ void TrackballCamera::translate(glm::vec2 new_point, glm::vec2 old_point) {
     translate(glm::abs(diff.x) > diff_min || glm::abs(diff.y) > diff_min ? diff : glm::vec2(0.f));
 }
 void TrackballCamera::swivel() {
-    float camY =  radius_ * sin(theta_ + glfwGetTime()) * cos(phi_);
-    float camZ =  radius_ * sin(theta_ + glfwGetTime()) * sin(phi_);
-    float camX =  radius_ * cos(theta_ + glfwGetTime());
+    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time_);
+    float dur_val = dur.count() / 1000.f;
+    float camY =  radius_ * sin(theta_ + dur_val) * cos(phi_);
+    float camZ =  radius_ * sin(theta_ + dur_val) * sin(phi_);
+    float camX =  radius_ * cos(theta_ + dur_val);
     view_trans_ = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 }
 

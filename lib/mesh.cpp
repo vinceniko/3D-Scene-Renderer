@@ -1,5 +1,7 @@
 #include "mesh.h"
 
+#include <cstring>
+
 Mesh::Mesh(std::string f_path) {
     std::ifstream f(f_path);
 
