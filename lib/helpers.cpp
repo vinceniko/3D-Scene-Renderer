@@ -3,10 +3,10 @@
 #include <iostream>
 #include "utilities.h"
 
-Program::Program(const std::string &vertex_path,
+ShaderProgram::ShaderProgram(const std::string &vertex_path,
 const Optional<std::string> geometry_path,
 const std::string &fragment_path,
-const std::string &fragment_data_name) : Program() {
+const std::string &fragment_data_name) : ShaderProgram() {
   std::string vertex_shader_string = get_file_str(vertex_path);
 
   std::string geometry_shader_string = "";
@@ -19,7 +19,7 @@ const std::string &fragment_data_name) : Program() {
   init(vertex_shader_string, geometry_shader_string, fragment_shader_string, fragment_data_name); 
 }
 
-bool Program::init(
+bool ShaderProgram::init(
   const std::string &vertex_shader_string,
   const std::string &geometry_shader_string,
   const std::string &fragment_shader_string,
@@ -65,23 +65,23 @@ bool Program::init(
   return true;
 }
 
-void Program::bind()
+void ShaderProgram::bind()
 {
   glUseProgram(program_shader);
   check_gl_error();
 }
 
-GLint Program::attrib(const std::string &name) const
+GLint ShaderProgram::attrib(const std::string &name) const
 {
   return glGetAttribLocation(program_shader, name.c_str());
 }
 
-GLint Program::uniform(const std::string &name) const
+GLint ShaderProgram::uniform(const std::string &name) const
 {
   return glGetUniformLocation(program_shader, name.c_str());
 }
 
-void Program::free()
+void ShaderProgram::free()
 {
   if (program_shader)
   {
@@ -101,7 +101,7 @@ void Program::free()
   check_gl_error();
 }
 
-GLuint Program::create_shader_helper(GLint type, const std::string &shader_string)
+GLuint ShaderProgram::create_shader_helper(GLint type, const std::string &shader_string)
 {
   using namespace std;
   if (shader_string.empty())

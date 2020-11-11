@@ -22,7 +22,7 @@
 #include <memory>
 
 #ifdef DEBUG
-    #include <iostream>
+#include <iostream>
 #endif
 
 #include "mesh.h"
@@ -34,7 +34,7 @@
 float WIDTH;
 float HEIGHT;
 
-std::unique_ptr<GLContext> ctx;
+std::unique_ptr<Context> ctx;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -68,7 +68,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         ctx->mouse_ctx.hold();
         ctx->select(glm::vec3(ray_world));
-    } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+    }
+    else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         ctx->mouse_ctx.release();
     }
 }
@@ -87,8 +88,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     // #ifdef DEBUG
     // std::cout << "Ray World: " << ray_world[0] << ' ' << ray_world[1] << ' ' << ray_world[2] << ' ' << std::endl;
     // #endif
-    
-    ctx->mouse_ctx.set_world_point(ray_nds);
+
+    ctx->mouse_ctx.set_position(ray_nds);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -104,97 +105,97 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         switch (key)
         {
             // spawn
-            case GLFW_KEY_1:
-                ctx->push_mesh_entity({ MeshList::CUBE });
-                break;
-            case GLFW_KEY_2:
-                ctx->push_mesh_entity({ MeshList::BUMPY });
-                break;
-            case GLFW_KEY_3:
-                ctx->push_mesh_entity({ MeshList::BUNNY });
-                break;
+        case GLFW_KEY_1:
+            ctx->push_mesh_entity({ MeshList::CUBE });
+            break;
+        case GLFW_KEY_2:
+            ctx->push_mesh_entity({ MeshList::BUMPY });
+            break;
+        case GLFW_KEY_3:
+            ctx->push_mesh_entity({ MeshList::BUNNY });
+            break;
             // mode
-            case GLFW_KEY_M:
-                ctx->switch_draw_mode();
-                break;
+        case GLFW_KEY_M:
+            ctx->switch_draw_mode();
+            break;
             // program
-            case GLFW_KEY_P:
-                ctx->switch_program();
-                break;
+        case GLFW_KEY_P:
+            ctx->switch_program();
+            break;
             // // *TEST: switch camera
             // case GLFW_KEY_X:
             //     ctx->camera.set_camera(std::shared_ptr<Camera>{new Camera(WIDTH / HEIGHT)});
             //     break;
-            
+
             // projection
-            case GLFW_KEY_C:
-                ctx->camera->switch_projection();
-                break;
-            default:
-                // model
-                if (selected.has_value()) {
-                    switch (key) {
-                        // despawn
-                        case GLFW_KEY_R:
-                            ctx->mesh_list.erase(ctx->mesh_list.begin() + ctx->mouse_ctx.get_selected());
-                            ctx->mouse_ctx.deselect();
-                            break;
-                        // center to origin
-                        case GLFW_KEY_O:
-                            selected->get().set_to_origin();
-                            break;
-                        // translate
-                        case GLFW_KEY_D:
-                            selected->get().translate(ctx->camera->get_view(), glm::vec3(window_size_factor, 0.0, 0.0));
-                            break;
-                        case GLFW_KEY_A:
-                            selected->get().translate(ctx->camera->get_view(), glm::vec3(-window_size_factor, 0.0, 0.0));
-                            break;
-                        case GLFW_KEY_W:
-                            selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, window_size_factor, 0.0));
-                            break;
-                        case GLFW_KEY_S:
-                            selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, -window_size_factor, 0.0));
-                            break;
-                        // z axis
-                        case GLFW_KEY_EQUAL:
-                            selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, 0.0, -window_size_factor));
-                            break;
-                        case GLFW_KEY_MINUS:
-                            selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, 0.0, window_size_factor));
-                            break;
-                        // scale
-                        case GLFW_KEY_K:
-                            selected->get().scale(ctx->camera->get_view(), MeshEntity::ScaleDir::In, window_size_factor);
-                            break;
-                        case GLFW_KEY_L:
-                            selected->get().scale(ctx->camera->get_view(), MeshEntity::ScaleDir::Out, window_size_factor);
-                            break;
-                        // rotate
-                        // x
-                        case GLFW_KEY_T:
-                            selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(1.f, 0.f, 0.f));
-                            break;
-                        case GLFW_KEY_Y:
-                            selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(1.f, 0.f, 0.f));
-                            break;
-                        // y
-                        case GLFW_KEY_F:
-                            selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(0.f, 1.f, 0.f));
-                            break;
-                        case GLFW_KEY_G:
-                            selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(0.f, 1.f, 0.f));
-                            break;
-                        // z
-                        case GLFW_KEY_H:
-                            selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(0.f, 0.f, 1.f));
-                            break;
-                        case GLFW_KEY_J:
-                            selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(0.f, 0.f, 1.f));
-                            break;
-                    }
+        case GLFW_KEY_C:
+            ctx->camera->switch_projection();
+            break;
+        default:
+            // model
+            if (selected.has_value()) {
+                switch (key) {
+                    // despawn
+                case GLFW_KEY_R:
+                    ctx->mesh_list.erase(ctx->mesh_list.begin() + ctx->mouse_ctx.get_selected());
+                    ctx->mouse_ctx.deselect();
+                    break;
+                    // center to origin
+                case GLFW_KEY_O:
+                    selected->get().set_to_origin();
+                    break;
+                    // translate
+                case GLFW_KEY_D:
+                    selected->get().translate(ctx->camera->get_view(), glm::vec3(window_size_factor, 0.0, 0.0));
+                    break;
+                case GLFW_KEY_A:
+                    selected->get().translate(ctx->camera->get_view(), glm::vec3(-window_size_factor, 0.0, 0.0));
+                    break;
+                case GLFW_KEY_W:
+                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, window_size_factor, 0.0));
+                    break;
+                case GLFW_KEY_S:
+                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, -window_size_factor, 0.0));
+                    break;
+                    // z axis
+                case GLFW_KEY_EQUAL:
+                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, 0.0, -window_size_factor));
+                    break;
+                case GLFW_KEY_MINUS:
+                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, 0.0, window_size_factor));
+                    break;
+                    // scale
+                case GLFW_KEY_K:
+                    selected->get().scale(ctx->camera->get_view(), MeshEntity::ScaleDir::In, window_size_factor);
+                    break;
+                case GLFW_KEY_L:
+                    selected->get().scale(ctx->camera->get_view(), MeshEntity::ScaleDir::Out, window_size_factor);
+                    break;
+                    // rotate
+                    // x
+                case GLFW_KEY_T:
+                    selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(1.f, 0.f, 0.f));
+                    break;
+                case GLFW_KEY_Y:
+                    selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(1.f, 0.f, 0.f));
+                    break;
+                    // y
+                case GLFW_KEY_F:
+                    selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(0.f, 1.f, 0.f));
+                    break;
+                case GLFW_KEY_G:
+                    selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(0.f, 1.f, 0.f));
+                    break;
+                    // z
+                case GLFW_KEY_H:
+                    selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(0.f, 0.f, 1.f));
+                    break;
+                case GLFW_KEY_J:
+                    selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(0.f, 0.f, 1.f));
+                    break;
                 }
-                break;
+            }
+            break;
         }
     }
 }
@@ -203,10 +204,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     ctx->mouse_ctx.set_scroll(yoffset);
     double scroll_diff = ctx->mouse_ctx.get_scroll() - ctx->mouse_ctx.get_prev_scroll();
 
-    #ifdef DEBUG
+#ifdef DEBUG
     std::cout << "scroll: " << ctx->mouse_ctx.get_scroll() << std::endl;
-    #endif
-    ctx->camera->zoom(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ZoomDir::In : Camera::ZoomDir::Out,  glm::abs(scroll_diff  / 20.f));
+#endif
+    ctx->camera->zoom(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ZoomDir::In : Camera::ZoomDir::Out, glm::abs(scroll_diff / 20.f));
 }
 
 int main(void)
@@ -246,17 +247,17 @@ int main(void)
     // Make the window's context current
     glfwMakeContextCurrent(window);
 
-    #ifndef __APPLE__
-      glewExperimental = true;
-      GLenum err = glewInit();
-      if(GLEW_OK != err)
-      {
+#ifndef __APPLE__
+    glewExperimental = true;
+    GLenum err = glewInit();
+    if (GLEW_OK != err)
+    {
         /* Problem: glewInit failed, something is seriously wrong. */
-       fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-      }
-      glGetError(); // pull and savely ignonre unhandled errors like GL_INVALID_ENUM
-      fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-    #endif
+        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+    }
+    glGetError(); // pull and savely ignonre unhandled errors like GL_INVALID_ENUM
+    fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+#endif
 
     int major, minor, rev;
     major = glfwGetWindowAttrib(window, GLFW_CONTEXT_VERSION_MAJOR);
@@ -268,20 +269,20 @@ int main(void)
 
     // program
 
-    #ifdef DEBUG
-        std::cout << "DEBUG ENABLED" << std::endl;
-    #endif
+#ifdef DEBUG
+    std::cout << "DEBUG ENABLED" << std::endl;
+#endif
 
-    std::unique_ptr<ProgramCtx> programs = std::unique_ptr<ProgramCtx>{new ProgramCtx};
-    programs->bind(ProgramList::PHONG);
-    
-    ctx = std::unique_ptr<GLContext>(
-        new GLContext(
-            std::move(programs), 
+    std::unique_ptr<ShaderProgramCtx> programs = std::unique_ptr<ShaderProgramCtx>{ new ShaderProgramCtx };
+    programs->bind(ShaderPrograms::PHONG);
+
+    ctx = std::unique_ptr<Context>(
+        new Context(
+            std::move(programs),
             std::shared_ptr<TrackballCamera>{new TrackballCamera(WIDTH / HEIGHT)}
-        )
-    );
-    ctx->init_meshes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{}, });
+    )
+        );
+    ctx->init_mesh_prototypes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{}, });
 
     // callbacks
     glfwSetKeyCallback(window, key_callback);
@@ -311,7 +312,7 @@ int main(void)
 
     // Deallocate opengl memory
     // TODO? Deallocate buffers
-    for (Program& program: *ctx->programs) {
+    for (ShaderProgram& program : *ctx->programs) {
         program.free();
     }
 

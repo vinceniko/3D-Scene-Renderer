@@ -11,7 +11,7 @@ Mesh::Mesh(std::string f_path) {
     // local scope to destroy `OFF` string
     {
         const int off_size = 3;
-        char optional_off[off_size+1]; optional_off[off_size] = '\0';
+        char optional_off[off_size + 1]; optional_off[off_size] = '\0';
         f.read(optional_off, off_size);
 
         // TODO: throw error
@@ -72,6 +72,22 @@ void Mesh::push_back(glm::vec3 vert, const Indexer& indexer) {
     faces_.push_back(indexer);
 }
 
+const std::vector<glm::vec3>& Mesh::get_verts() const {
+    return verts_;
+}
+const std::vector<glm::vec3>& Mesh::get_normals() const {
+    return normals_;
+}
+const std::vector<Indexer>& Mesh::get_faces() const {
+    return faces_;
+}
+const glm::vec3& Mesh::get_centroid() const {
+    return centroid_;
+}
+const glm::vec3& Mesh::get_scale() const {
+    return scale_;
+}
+
 #ifdef DEBUG
 void Mesh::print() const {
     std::cout << verts_.size() << ' ' << faces_.size() << ' ' << ' ' << 0 << std::endl;
@@ -89,9 +105,9 @@ void Mesh::print() const {
 #endif
 
 std::vector<glm::vec3> Mesh::calc_normals() const {
-    std::vector<glm::vec3> normals{verts_.size(), glm::vec3{0.0}};
+    std::vector<glm::vec3> normals{ verts_.size(), glm::vec3{0.0} };
     for (const Indexer& face : get_faces()) {
-        Triangle tri{get_verts()[face[0]], get_verts()[face[1]], get_verts()[face[2]]};
+        Triangle tri{ get_verts()[face[0]], get_verts()[face[1]], get_verts()[face[2]] };
 
         glm::vec3 normal = glm::cross(tri[1] - tri[0], tri[2] - tri[0]);
 
@@ -107,22 +123,22 @@ std::vector<glm::vec3> Mesh::calc_normals() const {
 }
 
 glm::vec3 Mesh::calc_centroid() const {
-    glm::vec3 mg{0.f};
+    glm::vec3 mg{ 0.f };
     float m = 0.f;
 
     for (Indexer face : get_faces()) {
-        Triangle tri{get_verts()[face[0]], get_verts()[face[1]], get_verts()[face[2]]};
+        Triangle tri{ get_verts()[face[0]], get_verts()[face[1]], get_verts()[face[2]] };
 
         float tri_area = area(tri);
         m += tri_area;
         mg += tri_area * centroid(tri);
     }
     glm::vec3 out = mg / m;
-    #ifdef DEBUG
-    std::cout << "m: " << m << ' ' 
-    << "mg: " << mg[0] << ' ' << mg[1] << ' ' << mg[2] << ' ' << std::endl
-    << "out: " << out[0] << ' ' << out[1] << ' ' << out[2] << ' ' << std::endl;
-    #endif
+#ifdef DEBUG
+    std::cout << "m: " << m << ' '
+        << "mg: " << mg[0] << ' ' << mg[1] << ' ' << mg[2] << ' ' << std::endl
+        << "out: " << out[0] << ' ' << out[1] << ' ' << out[2] << ' ' << std::endl;
+#endif
 
     return out;
 }
@@ -144,23 +160,23 @@ glm::vec3 Mesh::calc_scale() const {
         zmax = std::max(zmax, pos.z);
     }
 
-    return glm::vec3{1.f / (xmax - xmin), 1.f / (ymax - ymin), 1.f / (zmax - zmin)};
+    return glm::vec3{ 1.f / (xmax - xmin), 1.f / (ymax - ymin), 1.f / (zmax - zmin) };
 }
 
 const size_t MeshEntity::get_id() const {
     return id_;
 }
 
-MeshEntity::MeshEntity(std::reference_wrapper<GLMeshCtx> ctx, size_t id) : 
-ctx_(ctx), id_(id), model_uniform_(ctx.get().programs_, "model_trans", model_trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
+MeshEntity::MeshEntity(std::reference_wrapper<MeshFactory> ctx, size_t id) :
+    ctx_(ctx), id_(id), model_uniform_(ctx.get().programs_, "model_trans", model_trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
     // model_trans_ = glm::translate(model_trans_, glm::vec3(1.f, 1.f, -2.f));
     // scale_to_unit();
     set_to_origin();
 }
 
 void MeshEntity::set_to_origin() {
-    glm::mat4 scale = glm::scale(glm::mat4{1.f}, ctx_.get().get_meshes()[id_].get_scale());
-    glm::mat4 trans = glm::translate(glm::mat4{1.f}, -ctx_.get().get_meshes()[id_].get_centroid());
+    glm::mat4 scale = glm::scale(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_].get_scale());
+    glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, -ctx_.get().get_meshes()[id_].get_centroid());
     model_trans_ = scale * trans;
 }
 
@@ -169,18 +185,25 @@ void MeshEntity::translate(glm::mat4 view_trans, glm::vec3 offset) {
     model_trans_ = glm::translate(model_trans_, offset);;
 }
 void MeshEntity::scale(glm::mat4 view_trans, ScaleDir dir, float offset) {
-    glm::mat4 trans = glm::translate(glm::mat4{1.f}, ctx_.get().get_meshes()[id_].get_centroid());
+    glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_].get_centroid());
     trans = glm::scale(trans, glm::vec3(dir == In ? 1 + offset : 1 - offset));
     trans = glm::translate(trans, -ctx_.get().get_meshes()[id_].get_centroid());
     model_trans_ = model_trans_ * trans;
 }
 void MeshEntity::rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) {
-    glm::vec3 view_axis = glm::vec3{glm::inverse(model_trans_) * glm::inverse(view_trans) * glm::vec4{axis, 0.0}};
+    glm::vec3 view_axis = glm::vec3{ glm::inverse(model_trans_) * glm::inverse(view_trans) * glm::vec4{axis, 0.0} };
 
-    glm::mat4 trans = glm::translate(glm::mat4{1.f}, ctx_.get().get_meshes()[id_].get_centroid());
+    glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_].get_centroid());
     trans = glm::rotate(trans, glm::radians(degrees), view_axis);
     trans = glm::translate(trans, -ctx_.get().get_meshes()[id_].get_centroid());
     model_trans_ = model_trans_ * trans;
+}
+
+void MeshEntity::set_color(glm::vec3 new_color) {
+    color_ = new_color;
+}
+glm::vec3 MeshEntity::get_color() const {
+    return color_;
 }
 
 float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const {
@@ -191,7 +214,7 @@ float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 wo
 
     float min_dist = std::numeric_limits<float>::infinity();
     for (const Indexer& face : mesh.get_faces()) {
-        std::array<glm::vec3, TRI> tri{mesh.get_verts()[face[0]], mesh.get_verts()[face[1]], mesh.get_verts()[face[2]]};
+        std::array<glm::vec3, TRI> tri{ mesh.get_verts()[face[0]], mesh.get_verts()[face[1]], mesh.get_verts()[face[2]] };
 
         glm::vec2 bary_pos;
         float distance;
@@ -209,43 +232,43 @@ float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 wo
 
 void MeshEntity::draw() {
     const GLMesh& mesh_ref = ctx_.get().get_meshes()[id_];
-    
+
     glBindVertexArray(mesh_ref.VAO_);
 
     model_uniform_.buffer(model_trans_);
 
     glUniform3f(ctx_.get().programs_->get_selected_program().uniform("triangle_color"), color_.r, color_.g, color_.b);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL );
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
 
-    #ifdef DEBUG
+#ifdef DEBUG
     check_gl_error();
-    #endif
+#endif
 }
 
 void MeshEntity::draw_wireframe() {
     const GLMesh& mesh_ref = ctx_.get().get_meshes()[id_];
-    
+
     glBindVertexArray(mesh_ref.VAO_);
 
     model_uniform_.buffer(model_trans_);
 
     glUniform3f(ctx_.get().programs_->get_selected_program().uniform("triangle_color"), 0.f, 0.f, 0.f);
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     // // glLineWidth doesn't work, maybe an Apple driver bug 
     // glLineWidth(2.f);
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
 
-    #ifdef DEBUG
+#ifdef DEBUG
     check_gl_error();
-    #endif
+#endif
 }
 
-MeshEntityList GLMeshCtx::push(std::vector<Mesh> meshes) {
+MeshEntityList MeshFactory::push(std::vector<Mesh> meshes) {
     // gen gl objects
     std::vector<uint> VAOs(meshes.size()), VBOs(meshes.size()), EBOs(meshes.size());
     glGenVertexArrays(meshes.size(), VAOs.data());
@@ -258,7 +281,7 @@ MeshEntityList GLMeshCtx::push(std::vector<Mesh> meshes) {
 
     for (uint i = 0; i < meshes.size(); i++) {
         // assign gl objects and commit to mesh list
-        meshes_.push_back(GLMesh{VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i])});
+        meshes_.push_back(GLMesh{ VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i]) });
         const GLMesh& inserted_mesh = meshes_[meshes_.size() - 1];
 
         // bind to VAO
@@ -273,7 +296,7 @@ MeshEntityList GLMeshCtx::push(std::vector<Mesh> meshes) {
         // buffer data to EBO
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[i]);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * TRI * inserted_mesh.get_faces().size(), inserted_mesh.get_faces().data(), GL_STATIC_DRAW);
-        
+
         // vertex positions
         GLint position_id = 0;
         glEnableVertexAttribArray(position_id);
@@ -286,16 +309,16 @@ MeshEntityList GLMeshCtx::push(std::vector<Mesh> meshes) {
         if (normal_id < 0) {
             throw std::runtime_error("gl vertex attribute not found");
         }
-       
+
         glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
         glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)(size_verts));
 
         // unbind VAO
         glBindVertexArray(0);
 
-        #ifdef DEBUG
-            check_gl_error();
-        #endif
+#ifdef DEBUG
+        check_gl_error();
+#endif
 
         out.push_back(get_mesh_entity(meshes_.size() - 1));
     }
@@ -303,12 +326,12 @@ MeshEntityList GLMeshCtx::push(std::vector<Mesh> meshes) {
     return out;
 };
 
-const std::vector<GLMesh>& GLMeshCtx::get_meshes() const {
+const std::vector<GLMesh>& MeshFactory::get_meshes() const {
     return meshes_;
 }
 
-MeshEntity GLMeshCtx::get_mesh_entity(size_t i) {
-    return MeshEntity{std::reference_wrapper<GLMeshCtx>{*this}, i};
+MeshEntity MeshFactory::get_mesh_entity(size_t i) {
+    return MeshEntity{ std::reference_wrapper<MeshFactory>{*this}, i };
 }
 
 void MeshEntityList::draw() {

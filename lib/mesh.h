@@ -18,16 +18,18 @@
 #include "definitions.h"
 #include "transform.h"
 #include "triangle.h"
-#include "program.h"
+#include "shader.h"
 
 #include <optional>
 #include <functional>
 #include <memory>
 
+// indexes into a primitive of a mesh
 using Indexer = std::array<uint, TRI>;
 
 class MeshEntity;
 
+// vertex and mesh computations
 class Mesh {
     std::vector<glm::vec3> verts_;
     std::vector<Indexer> faces_;
@@ -48,35 +50,27 @@ public:
     Mesh(std::vector<glm::vec3> verts, std::vector<Indexer> faces) : verts_(verts), faces_(faces) {}
     // file path constructor
     Mesh(std::string f_path);
-    
+
     // accessors
+
     void push_back(glm::vec3 vert, const Indexer& indexer);
-    const std::vector<glm::vec3>& get_verts() const {
-        return verts_;
-    }
-    const std::vector<glm::vec3>& get_normals() const {
-        return normals_;
-    }
-    const std::vector<Indexer>& get_faces() const {
-        return faces_;
-    }
-    const glm::vec3& get_centroid() const {
-        return centroid_;
-    }
-    const glm::vec3& get_scale() const {
-        return scale_;
-    }
+    const std::vector<glm::vec3>& get_verts() const;
+    const std::vector<glm::vec3>& get_normals() const;
+    const std::vector<Indexer>& get_faces() const;
+    const glm::vec3& get_centroid() const;
+    const glm::vec3& get_scale() const;
 
     // * DEBUG
-    #ifdef DEBUG
-    void print() const ;
-    #endif
+#ifdef DEBUG
+    void print() const;
+#endif
 
     // operations
     // TODO
     void gen_normals();
 };
 
+// holds mesh and GL vertex info
 struct GLMesh : public Mesh {
     uint VAO_, VBO_, EBO_;
 
@@ -90,23 +84,23 @@ public:
     // }
 };
 
-class GLMeshCtx;
+class MeshFactory;
 
-// a reference to a Mesh inside the GLMeshCtx
-// represents one entity being drawn
+// a reference to a Mesh inside the GLMeshFactory; represents one model being drawn;
 class MeshEntity {
-    std::reference_wrapper<GLMeshCtx> ctx_;
+    std::reference_wrapper<MeshFactory> ctx_;
 
     // the index into the list of meshes in GLMeshCtx
     size_t id_;
 
-    glm::mat4 model_trans_{1.f};
+    glm::mat4 model_trans_{ 1.f };
     GLTransform model_uniform_;
     glm::vec3 color_;
 
-    MeshEntity(std::reference_wrapper<GLMeshCtx> ctx, size_t id);
+    MeshEntity(std::reference_wrapper<MeshFactory> ctx, size_t id);
+
 public:
-    friend class GLMeshCtx;
+    friend class MeshFactory;
 
     enum ScaleDir {
         In,
@@ -114,12 +108,8 @@ public:
     };
 
     const size_t get_id() const;
-    void set_color(glm::vec3 new_color) {
-        color_ = new_color;
-    }
-    glm::vec3 get_color() const {
-        return color_;
-    }
+    void set_color(glm::vec3 new_color);
+    glm::vec3 get_color() const;
 
     void translate(glm::mat4 view_trans, glm::vec3 offset);
     void scale(glm::mat4 view_trans, ScaleDir dir, float offset);
@@ -130,29 +120,32 @@ public:
 
     float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const;
 
+    // translate, scale, and rotate back to origin, fitting into a unit cube
     void set_to_origin();
 
     // TODO draw with model_trans_ and update model_trans_ on GL side
 };
 
+// a list of MeshEntity, i.e. references to Meshes inside the GLMeshFactory; whats actually drawn
 class MeshEntityList : public std::vector<MeshEntity> {
 public:
     void draw();
     void draw_wireframe();
 };
 
-// holds mesh prototypes
+// holds mesh prototypes from which to generate MeshEntities
 // i.e. each GLMesh in meshes_ is unique
-class GLMeshCtx {
-    std::shared_ptr<ProgramCtx> programs_;
+// all meshes used by the program get loaded in here once and may be drawn multiple times depending on how many MeshEntities are created
+class MeshFactory {
+    std::shared_ptr<ShaderProgramCtx> programs_;
 
     std::vector<GLMesh> meshes_;
 
 public:
     friend class MeshEntity;
 
-    GLMeshCtx(std::shared_ptr<ProgramCtx> programs) : programs_(programs), meshes_() {}
-    
+    MeshFactory(std::shared_ptr<ShaderProgramCtx> programs) : programs_(programs), meshes_() {}
+
     MeshEntityList push(std::vector<Mesh> meshes);
 
     const std::vector<GLMesh>& get_meshes() const;

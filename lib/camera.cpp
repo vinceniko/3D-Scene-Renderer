@@ -43,6 +43,20 @@ void Camera::set_projection_mode(Camera::Projection projection) {
     projection_mode_ = projection;
 }
 
+void Camera::set_aspect(float aspect) {
+    aspect_ = aspect;
+} 
+
+glm::mat4 Camera::get_projection() const {
+    return projection_mode_ == Projection::Perspective ? glm::perspective(glm::radians(fov_), aspect_, 0.1f, 100.f) : glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -100.f, 100.f);
+}
+glm::mat4 Camera::get_view() const {
+    return view_trans_;
+}
+glm::vec3 Camera::get_position() const {
+    return glm::vec3(glm::inverse(view_trans_)[3]);
+}
+
 TrackballCamera::TrackballCamera() : Camera() {
     translate(glm::vec2(0.0));
 }
@@ -99,7 +113,7 @@ void TrackballCamera::swivel() {
     view_trans_ = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 }
 
-GLCamera::GLCamera(std::shared_ptr<ProgramCtx> programs, std::shared_ptr<Camera> camera) :
+GLCamera::GLCamera(std::shared_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> camera) :
     camera_(camera),
     programs_(programs),
     view_uniform_(programs, "view_trans", camera->get_view()), 

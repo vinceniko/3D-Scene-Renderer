@@ -10,7 +10,7 @@
 
 #include "definitions.h"
 #include "transform.h"
-#include "program.h"
+#include "shader.h"
 
 class Camera {
     const float fov_init = 50.f;
@@ -44,19 +44,11 @@ public:
     void switch_projection();
     void set_projection_mode(Projection projection);
 
-    void set_aspect(float aspect) {
-        aspect_ = aspect;
-    } 
+    void set_aspect(float aspect);
 
-    glm::mat4 get_projection() const {
-        return projection_mode_ == Projection::Perspective ? glm::perspective(glm::radians(fov_), aspect_, 0.1f, 100.f) : glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -100.f, 100.f);
-    }
-    glm::mat4 get_view() const {
-        return view_trans_;
-    }
-    glm::vec3 get_position() const {
-        return glm::vec3(glm::inverse(view_trans_)[3]);
-    }
+    glm::mat4 get_projection() const;
+    glm::mat4 get_view() const;
+    glm::vec3 get_position() const;
 };
 
 class TrackballCamera : public Camera {
@@ -76,10 +68,11 @@ public:
     void swivel();
 };
 
+// stores a Camera or descendent type and necessary gl info to bind to the appropriate uniforms such as the view and projection matrix transforms
 class GLCamera {
     std::shared_ptr<Camera> camera_;
 
-    std::shared_ptr<ProgramCtx> programs_;
+    std::shared_ptr<ShaderProgramCtx> programs_;
 
     GLTransform view_uniform_;
     GLTransform projection_uniform_;
@@ -87,12 +80,13 @@ class GLCamera {
     void buffer_view_uniform();
     void buffer_projection_uniform();
 public:
-    GLCamera(std::shared_ptr<ProgramCtx> programs, std::shared_ptr<Camera> camera);
+    GLCamera(std::shared_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> camera);
 
     Camera& get_camera();
     void set_camera(std::shared_ptr<Camera> camera);
     Camera* operator ->();
     const Camera* operator ->() const;
     
+    // buffers the data. used to update gl state after mutating program state
     void buffer();
 };

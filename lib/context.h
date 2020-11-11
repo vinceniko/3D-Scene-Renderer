@@ -8,42 +8,54 @@
 
 #include "camera.h"
 #include "mesh.h"
-#include "program.h"
+#include "shader.h"
 
 #ifdef DEBUG
 #include <iostream>
 #endif
 
+// state of the mouse
 class MouseContext {
     int selected_ = -1;
     bool held_ = false;
 
-    glm::vec2 world_point_{0.f};
-    glm::vec2 prev_world_point_{1.f};
+    glm::vec2 pos_{ 0.f };
+    glm::vec2 prev_world_point_{ 1.f };
 
-    double prev_scroll_{0.f};
-    double scroll_{0.f};
+    double prev_scroll_{ 0.f };
+    double scroll_{ 0.f };
 
 public:
+    // hold without selecting
     void hold();
-    void hold(size_t i);
+    // release a hold
     void release();
+    // hold and select
+    void hold_select(size_t i);
+    // deselect only
     void deselect();
+
     int get_selected() const;
     bool is_selected() const;
     bool is_held() const;
-    
-    void set_world_point(glm::vec2 world_point);
-    glm::vec2 get_world_point() const;
-    glm::vec2 get_prev_world_point() const;
+
+    void set_position(glm::vec2 world_point);
+    glm::vec2 get_position() const;
+    glm::vec2 get_prev_position() const;
+
     void set_scroll(double scroll);
-    double get_prev_scroll() const;
     double get_scroll() const;
+    double get_prev_scroll() const;
 };
 
-class GLContext {
-    std::array<ProgramList, 2> shaders = { ProgramList::PHONG, ProgramList::FLAT };
-    
+// general context, holds all other state
+class Context {
+    // the shaders that the program will use
+    std::array<ShaderPrograms, 2> shaders = { ShaderPrograms::PHONG, ShaderPrograms::FLAT };
+    // an index into the list of program shaders
+    size_t shader_idx = 0;
+
+    // extra modes for drawing. mostly for debug purposes, such as wireframe.
     enum DrawMode {
         DEF,
         WIREFRAME,
@@ -53,86 +65,48 @@ class GLContext {
     };
 
 public:
-    friend MeshEntity;
-
     DrawMode draw_mode = DrawMode::DEF;
-    size_t shader_idx = 0;
 
-    std::shared_ptr<ProgramCtx> programs;
-    
+    std::shared_ptr<ShaderProgramCtx> programs;
+
     GLCamera camera;
-    
+
     MouseContext mouse_ctx;
 
-    GLMeshCtx mesh_ctx;
+    MeshFactory mesh_factory;
     MeshEntityList mesh_list;
 
-    GLContext(std::unique_ptr<ProgramCtx> programs);
-    GLContext(std::unique_ptr<ProgramCtx> programs, std::shared_ptr<Camera> camera);
+    Context(std::unique_ptr<ShaderProgramCtx> programs);
+    Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> camera);
 
+    // tests whether a ray in world space intersected with a mesh stored in mesh_list
     int intersected_mesh(glm::vec3 world_ray_dir) const;
+    // mutates mouse state in mouse_ctx if a mesh is intersected with a world space ray
     void select(glm::vec3 world_ray_dir);
+    // mutates mouse state in mouse_ctx to deselect a selected mesh
     void deselect();
+    // returns an optional selected mesh
     Optional<MeshEntity> get_selected();
 
-    void init_meshes(std::vector<Mesh> meshes) {
-        mesh_ctx.push(meshes);
-    }
-    void push_mesh_entity(std::vector<size_t> ids) {
-        for (const auto& id : ids) {
-            mesh_list.push_back(mesh_ctx.get_mesh_entity(id));
-        }
-    }
+    // loads in mesh prototypes into the mesh_factory
+    void init_mesh_prototypes(std::vector<Mesh> meshes);
+    // adds a mesh entity to mesh_list. these are references to the prototypes in mesh_factory
+    void push_mesh_entity(std::vector<size_t> ids);
 
-    void switch_draw_mode() {
-        draw_mode = static_cast<DrawMode>((static_cast<int>(draw_mode) + 1) % DrawMode::SIZE);
-        #ifdef DEBUG
-        std::cout << "draw_mode: " << draw_mode << std::endl;
-        #endif
-    }
+    // cycles through the available draw modes enumerated in GLContext::DrawMode
+    void switch_draw_mode();
+    // cycles through the available shader programs enumerated in ProgramList
+    void switch_program();
 
-    void switch_program() {
-        programs->bind(shaders[(shader_idx += 1) %= shaders.size()]);
-    }
+    // draws the models using the user bound shader program and the selected draw mode
+    void draw();
+    // draws the models using the user bound shader program
+    void draw_surface();
+    // draws a wireframe above the mesh
+    void draw_wireframe();
+    // draws the mesh normals
+    void draw_normals();
 
-    void draw() {
-        programs->bind(programs->get_selected());
-        draw_surface();
-        if (draw_mode == DrawMode::WIREFRAME) {
-            draw_wireframe();
-        } else if (draw_mode == DrawMode::NORMALS) {
-            draw_normals();
-        }
-    }
-    void draw_surface() {
-        update();
-        mesh_list.draw();
-    }
-    void draw_wireframe() {
-        float min_zoom = 1.f / 4096.f;  // to prevent z-fighting
-
-        camera->zoom(Camera::ZoomDir::In, min_zoom);
-        camera.buffer();
-        mesh_list.draw_wireframe();
-        camera->zoom(Camera::ZoomDir::In, -min_zoom);
-    }
-    void draw_normals() {
-        ProgramList selected = programs->get_selected();
-        
-        programs->bind(ProgramList::NORMALS);;
-        camera.buffer();
-
-        for (auto& mesh : mesh_list) {
-            auto temp = mesh.get_color();
-            mesh.set_color(glm::vec3(1.0, 0.0, 0.0));
-            mesh.draw();
-            mesh.set_color(temp);
-        }
-
-        mesh_list.draw();
-
-        programs->bind(selected);
-    }
-
+    // frame by frame updates. call prior to drawing
     void update();
 };

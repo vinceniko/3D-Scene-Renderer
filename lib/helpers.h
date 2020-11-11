@@ -47,7 +47,7 @@ void _check_gl_error(const char *file, int line);
 #include "definitions.h"
 
 // This class wraps an OpenGL program composed of two shaders
-class Program
+class ShaderProgram
 {
 public:
   GLuint vertex_shader;
@@ -55,8 +55,8 @@ public:
   GLuint geometry_shader;
   GLuint program_shader;
 
-  Program() : vertex_shader(0), fragment_shader(0), geometry_shader(0), program_shader(0) { }
-  Program(const std::string &vertex_path,
+  ShaderProgram() : vertex_shader(0), fragment_shader(0), geometry_shader(0), program_shader(0) { }
+  ShaderProgram(const std::string &vertex_path,
   const Optional<std::string> geometry_path,
   const std::string &fragment_path,
   const std::string &fragment_data_name);
@@ -80,5 +80,4 @@ public:
   GLint uniform(const std::string &name) const;
 
   GLuint create_shader_helper(GLint type, const std::string &shader_string);
-
 };
