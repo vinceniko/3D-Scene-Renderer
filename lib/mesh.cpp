@@ -175,8 +175,8 @@ MeshEntity::MeshEntity(std::reference_wrapper<MeshFactory> ctx, size_t id) :
 }
 
 void MeshEntity::set_to_origin() {
-    glm::mat4 scale = glm::scale(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_].get_scale());
-    glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, -ctx_.get().get_meshes()[id_].get_centroid());
+    glm::mat4 scale = glm::scale(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_]->get_scale());
+    glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, -ctx_.get().get_meshes()[id_]->get_centroid());
     model_trans_ = scale * trans;
 }
 
@@ -185,17 +185,17 @@ void MeshEntity::translate(glm::mat4 view_trans, glm::vec3 offset) {
     model_trans_ = glm::translate(model_trans_, offset);;
 }
 void MeshEntity::scale(glm::mat4 view_trans, ScaleDir dir, float offset) {
-    glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_].get_centroid());
+    glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_]->get_centroid());
     trans = glm::scale(trans, glm::vec3(dir == In ? 1 + offset : 1 - offset));
-    trans = glm::translate(trans, -ctx_.get().get_meshes()[id_].get_centroid());
+    trans = glm::translate(trans, -ctx_.get().get_meshes()[id_]->get_centroid());
     model_trans_ = model_trans_ * trans;
 }
 void MeshEntity::rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) {
     glm::vec3 view_axis = glm::vec3{ glm::inverse(model_trans_) * glm::inverse(view_trans) * glm::vec4{axis, 0.0} };
 
-    glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_].get_centroid());
+    glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_]->get_centroid());
     trans = glm::rotate(trans, glm::radians(degrees), view_axis);
-    trans = glm::translate(trans, -ctx_.get().get_meshes()[id_].get_centroid());
+    trans = glm::translate(trans, -ctx_.get().get_meshes()[id_]->get_centroid());
     model_trans_ = model_trans_ * trans;
 }
 
@@ -207,7 +207,7 @@ glm::vec3 MeshEntity::get_color() const {
 }
 
 float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const {
-    const GLMesh& mesh = ctx_.get().get_meshes()[id_];
+    const GLMesh& mesh = *ctx_.get().get_meshes()[id_];
 
     glm::vec3 model_ray_origin = glm::inverse(model_trans_) * glm::vec4(world_ray_origin, 1.f);
     glm::vec3 model_ray_dir = glm::inverse(model_trans_) * glm::vec4(world_ray_dir, 0.f);
@@ -231,7 +231,7 @@ float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 wo
 }
 
 void MeshEntity::draw() {
-    const GLMesh& mesh_ref = ctx_.get().get_meshes()[id_];
+    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
 
     glBindVertexArray(mesh_ref.VAO_);
 
@@ -249,7 +249,7 @@ void MeshEntity::draw() {
 }
 
 void MeshEntity::draw_wireframe() {
-    const GLMesh& mesh_ref = ctx_.get().get_meshes()[id_];
+    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
 
     glBindVertexArray(mesh_ref.VAO_);
 
@@ -281,8 +281,8 @@ MeshEntityList MeshFactory::push(std::vector<Mesh> meshes) {
 
     for (uint i = 0; i < meshes.size(); i++) {
         // assign gl objects and commit to mesh list
-        meshes_.push_back(GLMesh{ VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i]) });
-        const GLMesh& inserted_mesh = meshes_[meshes_.size() - 1];
+        meshes_.push_back(std::unique_ptr<GLMesh>{ new GLMesh{ VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i]) } });
+        const GLMesh& inserted_mesh = *meshes_[meshes_.size() - 1];
 
         // bind to VAO
         glBindVertexArray(VAOs[i]);
@@ -326,7 +326,7 @@ MeshEntityList MeshFactory::push(std::vector<Mesh> meshes) {
     return out;
 };
 
-const std::vector<GLMesh>& MeshFactory::get_meshes() const {
+const std::vector<std::unique_ptr<GLMesh>>& MeshFactory::get_meshes() const {
     return meshes_;
 }
 

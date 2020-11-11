@@ -4,9 +4,7 @@
 
 * better object selection
   * do not select if mouse moved, view changed
-* deallocate buffers upon program exit.
-  * probably done by GLFW with terminate...
-
+  
 ### Future
 
 * control lights

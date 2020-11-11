@@ -75,13 +75,16 @@ struct GLMesh : public Mesh {
     uint VAO_, VBO_, EBO_;
 
 public:
-    GLMesh(uint VAO, uint VBO, uint EBO, Mesh mesh) : VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(mesh) {}
+    GLMesh(uint VAO, uint VBO, uint EBO, Mesh&& mesh) : VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(mesh) {}
     // // TODO, cannot use emplace due to vector resizing deleting mem, put freeing into ctx
-    // ~GLMesh() {
-    //     glDeleteVertexArrays(1, &VAO_);
-    //     glDeleteBuffers(1, &VBO_);
-    //     glDeleteBuffers(1, &EBO_);
-    // }
+    ~GLMesh() {
+#ifdef DEBUG
+        std::cout << "Deallocating GLMesh Mem" << std::endl;
+#endif
+        glDeleteVertexArrays(1, &VAO_);
+        glDeleteBuffers(1, &VBO_);
+        glDeleteBuffers(1, &EBO_);
+    }
 };
 
 class MeshFactory;
@@ -139,7 +142,8 @@ public:
 class MeshFactory {
     std::shared_ptr<ShaderProgramCtx> programs_;
 
-    std::vector<GLMesh> meshes_;
+    // store meshes as unique pointers to avoid copy operations and so that mem gets deallocated at the end of the program
+    std::vector<std::unique_ptr<GLMesh>> meshes_;
 
 public:
     friend class MeshEntity;
@@ -148,6 +152,6 @@ public:
 
     MeshEntityList push(std::vector<Mesh> meshes);
 
-    const std::vector<GLMesh>& get_meshes() const;
+    const std::vector<std::unique_ptr<GLMesh>>& get_meshes() const;
     MeshEntity get_mesh_entity(size_t i);
 };
