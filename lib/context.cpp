@@ -44,16 +44,16 @@ double MouseContext::get_scroll() const {
 }
 
 Context::Context(std::unique_ptr<ShaderProgramCtx> programs) :
-    programs(std::move(programs)), camera(this->programs, std::shared_ptr<Camera>{new Camera()}), mesh_factory(this->programs) {}
+    programs(std::move(programs)), camera(this->programs, std::make_shared<DefCamera>(DefCamera())), mesh_factory(this->programs) {}
 
 Context::Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> new_cam) :
     programs(std::move(programs)), camera(this->programs, new_cam), mesh_factory(this->programs) {}
 
-int Context::intersected_mesh(glm::vec3 world_ray_dir) const {
+int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
     float min_dist = std::numeric_limits<float>::infinity();
     int closest = -1;
     for (size_t i = 0; i < mesh_list.size(); i++) {
-        float distance = mesh_list[i].intersected_triangles(camera->get_position(), world_ray_dir);
+        float distance = mesh_list[i].intersected_triangles(camera->get_position(), world_ray);
         if (distance >= 0) {
             if (min_dist > distance) {
                 min_dist = distance;
@@ -63,8 +63,42 @@ int Context::intersected_mesh(glm::vec3 world_ray_dir) const {
     }
     return closest;
 }
-void Context::select(glm::vec3 world_ray_dir) {
-    int found = intersected_mesh(world_ray_dir);
+int Context::intersected_mesh_ortho(glm::vec3 world_pos) const {
+    float min_dist = std::numeric_limits<float>::infinity();
+    int closest = -1;
+    for (size_t i = 0; i < mesh_list.size(); i++) {
+        float distance = mesh_list[i].intersected_triangles(world_pos, glm::inverse(camera->get_view()) * glm::vec4(0.0, 0.0, -1.f, 0.f));
+        if (distance >= 0) {
+            if (min_dist > distance) {
+                min_dist = distance;
+                closest = i;
+            }
+        }
+    }
+    return closest;
+}
+void Context::select(glm::vec2 cursor_pos, float width, float height) {
+    if (camera->get_projection_mode() == Camera::Projection::Ortho) {
+        glm::vec3 pos_world = camera->get_pos_world(cursor_pos, width, height);
+        select_ortho(pos_world);
+    } else {
+        glm::vec3 ray_world = camera->get_ray_world(cursor_pos, width, height);
+        select_perspective(ray_world);
+    }
+}
+void Context::select_perspective(glm::vec3 world_ray) {
+    int found = intersected_mesh_perspective(world_ray);
+    if (found >= 0 && found != mouse_ctx.get_selected()) {
+        deselect();
+        mouse_ctx.hold_select(found);
+        mesh_list[found].set_color(glm::vec3(1.f) - mesh_list[found].get_color());
+    }
+    else if (found >= 0) {
+        deselect();
+    }
+}
+void Context::select_ortho(glm::vec3 world_pos) {
+    int found = intersected_mesh_ortho(world_pos);
     if (found >= 0 && found != mouse_ctx.get_selected()) {
         deselect();
         mouse_ctx.hold_select(found);
@@ -101,7 +135,7 @@ void Context::update() {
         auto diff = new_point - old_point;
         std::cout << "diff: " << diff[0] << ' ' << diff[1] << std::endl;
 #endif
-        camera->translate(new_point, old_point);
+        camera->translate(glm::vec3(new_point, 0.f), glm::vec3(old_point, 0.f));
     }
 
 #ifdef DEBUG
@@ -150,10 +184,10 @@ void Context::draw_surface() {
 void Context::draw_wireframe() {
     float min_zoom = 1.f / 4096.f;  // to prevent z-fighting
 
-    camera->zoom(Camera::ZoomDir::In, min_zoom);
+    camera->zoom_protected(Camera::ZoomDir::In, min_zoom);
     camera.buffer();
     mesh_list.draw_wireframe();
-    camera->zoom(Camera::ZoomDir::In, -min_zoom);
+    camera->zoom_protected(Camera::ZoomDir::In, -min_zoom);
 }
 void Context::draw_normals() {
     ShaderPrograms selected = programs->get_selected();

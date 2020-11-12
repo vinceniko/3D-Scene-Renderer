@@ -4,6 +4,7 @@
 
 ## Optional
 
+* debug info: coordinate space arrows
 * better object selection
   * do not select if mouse moved, view changed
   

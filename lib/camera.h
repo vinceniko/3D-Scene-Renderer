@@ -18,20 +18,21 @@
 #endif
 
 class Camera {
-    const float fov_init = 50.f;
-    
-    float fov_ = fov_init;
-    float aspect_;
 
 public:
     enum Projection { Ortho, Perspective };
     enum ZoomDir { Out, In };
 
 protected:
-    glm::mat4 view_trans_{1.f};
+    const float fov_init = 50.f;
+
+    float fov_ = fov_init;
+    float aspect_;
+
+    glm::mat4 view_trans_{ 1.f };
     Projection projection_mode_;
 
-    float zoom_ = 1.f;
+    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2);
 
 public:
     friend class GLCamera;
@@ -41,19 +42,36 @@ public:
     // perspective projection
     Camera(float aspect, float fov = 50.f);
 
-    virtual void translate(glm::vec2 offset);
-    virtual void translate(glm::vec2 new_point, glm::vec2 old_point);
+    virtual void translate(glm::vec3 offset) = 0;
+    virtual void translate(glm::vec3 new_point, glm::vec3 old_point) = 0;
 
-    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2);
+    // prevents zooming in orthographic mode
+    void zoom_protected(ZoomDir zoom_dir, float percent = 0.2);
 
-    void switch_projection();
-    void set_projection_mode(Projection projection);
+    virtual void switch_projection();
+    virtual void set_projection_mode(Projection projection);
 
-    void set_aspect(float aspect);
+    virtual void set_aspect(float aspect);
 
-    glm::mat4 get_projection() const;
-    glm::mat4 get_view() const;
-    glm::vec3 get_position() const;
+    virtual glm::mat4 get_projection() const;
+    virtual Projection get_projection_mode() const;
+    virtual glm::mat4 get_view() const;
+    virtual glm::vec3 get_position() const;
+
+    // gets the world ray direction of the nds coords
+    glm::vec3 get_ray_world(glm::vec2 nds_pos, float width, float height) const;
+
+    // gets the world position of the nds coords
+    glm::vec3 get_pos_world(glm::vec2 nds_pos, float width, float height) const;
+};
+
+class DefCamera : public Camera {
+    using Camera::Camera;
+
+    float zoom_ = 1.f;
+
+    virtual void translate(glm::vec3 offset) override;
+    virtual void translate(glm::vec3 new_point, glm::vec3 old_point) override;
 };
 
 class TrackballCamera : public Camera {
@@ -65,15 +83,15 @@ class TrackballCamera : public Camera {
 
     // for swivel
     std::chrono::steady_clock::time_point start_time_ = std::chrono::steady_clock::now();
-    
+
 public:
     TrackballCamera();
     TrackballCamera(float aspect, float fov = 50.f);
 
-    void zoom(ZoomDir zoom_dir, float percent = 0.2) override;
-    void translate(glm::vec2 offset) override;
-    void translate(glm::vec2 new_point, glm::vec2 old_point) override;
-    void swivel();
+    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2) override;
+    virtual void translate(glm::vec3 offset) override;
+    virtual void translate(glm::vec3 new_point, glm::vec3 old_point) override;
+    virtual void swivel();
 };
 
 // stores a Camera or descendent type and necessary gl info to bind to the appropriate uniforms such as the view and projection matrix transforms
@@ -94,7 +112,7 @@ public:
     void set_camera(std::shared_ptr<Camera> camera);
     Camera* operator ->();
     const Camera* operator ->() const;
-    
+
     // buffers the data. used to update gl state after mutating program state
     void buffer();
 };

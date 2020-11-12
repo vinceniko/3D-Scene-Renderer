@@ -80,9 +80,15 @@ public:
     Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> camera);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
-    int intersected_mesh(glm::vec3 world_ray_dir) const;
+    int intersected_mesh_perspective(glm::vec3 world_ray) const;
+    // tests whether a ray in world space intersected with a mesh stored in mesh_list
+    int intersected_mesh_ortho(glm::vec3 world_pos) const;
+    // mutates mouse state in mouse_ctx if a mesh is intersected
+    void select(glm::vec2 cursor_pos, float width, float height);
     // mutates mouse state in mouse_ctx if a mesh is intersected with a world space ray
-    void select(glm::vec3 world_ray_dir);
+    void select_perspective(glm::vec3 world_ray);
+    // mutates mouse state in mouse_ctx if a mesh is intersected with a world space pos
+    void select_ortho(glm::vec3 world_pos);
     // mutates mouse state in mouse_ctx to deselect a selected mesh
     void deselect();
     // returns an optional selected mesh

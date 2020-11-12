@@ -34,8 +34,7 @@ float HEIGHT;
 
 std::unique_ptr<Context> ctx;
 
-glm::vec2 get_ray_nds(GLFWwindow* window) {
-    // Get the size of the window
+glm::vec2 get_cursor_pos(GLFWwindow* window) {
     int width, height;
     glfwGetWindowSize(window, &width, &height);
 
@@ -72,17 +71,16 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     float x_nds = (2.0f * xpos) / width - 1.0f;
     float y_nds = 1.0f - (2.0f * ypos) / height;
 
-    glm::vec2 ray_nds = glm::vec2(x_nds, y_nds);
-    glm::vec4 ray_clip = glm::vec4(ray_nds, -1.0, 1.0);
-    glm::vec4 ray_eye = glm::inverse(ctx->camera->get_projection()) * ray_clip;
-    ray_eye = glm::vec4(glm::vec2(ray_eye), -1.0, 0.0);
-    glm::vec3 ray_world = glm::vec3(inverse(ctx->camera->get_view()) * ray_eye);
-    ray_world = glm::normalize(ray_world);
 
     // Update the position of the first vertex if the left button is pressed
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         ctx->mouse_ctx.hold();
-        ctx->select(glm::vec3(ray_world));
+
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+
+        glm::vec2 cursor_pos = get_cursor_pos(window);
+        ctx->select(cursor_pos, width, height);
     }
     else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         ctx->mouse_ctx.release();
@@ -204,7 +202,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 #ifdef DEBUG
     std::cout << "scroll: " << ctx->mouse_ctx.get_scroll() << std::endl;
 #endif
-    ctx->camera->zoom(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ZoomDir::In : Camera::ZoomDir::Out, glm::abs(scroll_diff / 20.f));
+    ctx->camera->zoom_protected(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ZoomDir::In : Camera::ZoomDir::Out, glm::abs(scroll_diff / 20.f));
 }
 
 int main(void)
@@ -276,9 +274,10 @@ int main(void)
     ctx = std::unique_ptr<Context>(
         new Context(
             std::move(programs),
-            std::shared_ptr<TrackballCamera>{new TrackballCamera(WIDTH / HEIGHT)}
-    )
-        );
+            std::make_shared<TrackballCamera>(TrackballCamera{ WIDTH / HEIGHT })
+            // std::make_shared<DefCamera>(DefCamera{ WIDTH / HEIGHT })
+        )
+    );
     ctx->init_mesh_prototypes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{}, });
 
     // callbacks
@@ -291,7 +290,7 @@ int main(void)
     while (!glfwWindowShouldClose(window))
     {
         // setting the position happens in main instead of in a callback because the callback didnt update frequently enough which caused drift
-        ctx->mouse_ctx.set_position(get_ray_nds(window));
+        ctx->mouse_ctx.set_position(get_cursor_pos(window));
 
         // Clear the framebuffer
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
