@@ -24,15 +24,17 @@ public:
     enum ZoomDir { Out, In };
 
 protected:
-    const float fov_init = 50.f;
+    const float fov_init_ = 50.f;
 
-    float fov_ = fov_init;
+    float fov_ = fov_init_;
+
+    const float intensity_init_ = 2.f;
+    float intensity_scale_ = intensity_init_;
+    
     float aspect_;
 
     glm::mat4 view_trans_{ 1.f };
     Projection projection_mode_;
-
-    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2);
 
 public:
     friend class GLCamera;
@@ -45,6 +47,8 @@ public:
     virtual void translate(glm::vec3 offset) = 0;
     virtual void translate(glm::vec3 new_point, glm::vec3 old_point) = 0;
 
+    virtual void scale_view(ZoomDir zoom_dir, float percent = 0.2);
+    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2) =0;
     // prevents zooming in orthographic mode
     void zoom_protected(ZoomDir zoom_dir, float percent = 0.2);
 
@@ -56,6 +60,7 @@ public:
     virtual glm::mat4 get_projection() const;
     virtual Projection get_projection_mode() const;
     virtual glm::mat4 get_view() const;
+    virtual void set_view(glm::mat4 view);
     virtual glm::vec3 get_position() const;
 
     // gets the world ray direction of the nds coords
@@ -65,10 +70,23 @@ public:
     glm::vec3 get_pos_world(glm::vec2 nds_pos, float width, float height) const;
 };
 
-class DefCamera : public Camera {
+class TwoDCamera : public Camera {
     using Camera::Camera;
 
     float zoom_ = 1.f;
+
+public:
+    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2) override;
+    virtual void translate(glm::vec3 offset) override;
+    virtual void translate(glm::vec3 new_point, glm::vec3 old_point) override;
+};
+
+class FreeCamera : public TwoDCamera {
+protected:
+    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2) override;
+
+public:    
+    using TwoDCamera::TwoDCamera;
 
     virtual void translate(glm::vec3 offset) override;
     virtual void translate(glm::vec3 new_point, glm::vec3 old_point) override;
@@ -109,7 +127,9 @@ public:
     GLCamera(std::shared_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> camera);
 
     Camera& get_camera();
+    std::shared_ptr<Camera> get_camera_ptr();
     void set_camera(std::shared_ptr<Camera> camera);
+    void set_camera(std::shared_ptr<Camera>&& camera);
     Camera* operator ->();
     const Camera* operator ->() const;
 

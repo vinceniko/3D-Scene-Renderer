@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "context.h"
 
 void MouseContext::hold() {
@@ -44,7 +46,7 @@ double MouseContext::get_scroll() const {
 }
 
 Context::Context(std::unique_ptr<ShaderProgramCtx> programs) :
-    programs(std::move(programs)), camera(this->programs, std::make_shared<DefCamera>(DefCamera())), mesh_factory(this->programs) {}
+    programs(std::move(programs)), camera(this->programs, std::make_shared<TwoDCamera>(TwoDCamera())), mesh_factory(this->programs) {}
 
 Context::Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> new_cam) :
     programs(std::move(programs)), camera(this->programs, new_cam), mesh_factory(this->programs) {}
@@ -163,12 +165,9 @@ void Context::switch_draw_mode() {
 #endif
 }
 
-void Context::switch_program() {
-    programs->bind(shaders[(shader_idx += 1) %= shaders.size()]);
-}
-
 void Context::draw() {
     programs->bind(programs->get_selected());
+    update();
     draw_surface();
     if (draw_mode == DrawMode::WIREFRAME) {
         draw_wireframe();
@@ -178,16 +177,23 @@ void Context::draw() {
     }
 }
 void Context::draw_surface() {
-    update();
     mesh_list.draw();
 }
 void Context::draw_wireframe() {
-    float min_zoom = 1.f / 4096.f;  // to prevent z-fighting
+    ShaderPrograms selected = programs->get_selected();
 
-    camera->zoom_protected(Camera::ZoomDir::In, min_zoom);
+    programs->bind(ShaderPrograms::DEF);
+
+    float min_zoom = 1.f / std::pow(2, 10);  // to prevent z-fighting
+
+    auto temp = camera->get_view();
+    // minimally scale the view to draw on top
+    camera->scale_view(Camera::ZoomDir::Out, min_zoom);
     camera.buffer();
     mesh_list.draw_wireframe();
-    camera->zoom_protected(Camera::ZoomDir::In, -min_zoom);
+    camera->set_view(temp);
+    
+    programs->bind(selected);
 }
 void Context::draw_normals() {
     ShaderPrograms selected = programs->get_selected();

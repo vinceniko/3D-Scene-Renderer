@@ -24,7 +24,7 @@
 #endif
 
 #include "mesh.h"
-#include "context.h"
+#include "my_context.h"
 #include "camera.h"
 
 #include "mesh_data.h"
@@ -32,7 +32,7 @@
 float WIDTH;
 float HEIGHT;
 
-std::unique_ptr<Context> ctx;
+std::unique_ptr<MyContext> ctx;
 
 glm::vec2 get_cursor_pos(GLFWwindow* window) {
     int width, height;
@@ -117,10 +117,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_P:
             ctx->switch_program();
             break;
-            // // *TEST: switch camera
-            // case GLFW_KEY_X:
-            //     ctx->camera.set_camera(std::shared_ptr<Camera>{new Camera(WIDTH / HEIGHT)});
-            //     break;
+        // switch camera
+        case GLFW_KEY_X:
+            ctx->switch_camera();
+            break;
 
             // projection
         case GLFW_KEY_C:
@@ -271,14 +271,14 @@ int main(void)
     std::unique_ptr<ShaderProgramCtx> programs = std::unique_ptr<ShaderProgramCtx>{ new ShaderProgramCtx };
     programs->bind(ShaderPrograms::PHONG);
 
-    ctx = std::unique_ptr<Context>(
-        new Context(
+    ctx = std::make_unique<MyContext>(
+        MyContext(
             std::move(programs),
-            std::make_shared<TrackballCamera>(TrackballCamera{ WIDTH / HEIGHT })
-            // std::make_shared<DefCamera>(DefCamera{ WIDTH / HEIGHT })
+            width, 
+            height
         )
     );
-    ctx->init_mesh_prototypes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{}, });
+    ctx->init_mesh_prototypes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{} });
 
     // callbacks
     glfwSetKeyCallback(window, key_callback);
@@ -312,7 +312,7 @@ int main(void)
     }
 
     // Deallocate opengl memory
-    // TODO? Deallocate buffers
+    // TODO: move into ~Program
     for (ShaderProgram& program : *ctx->programs) {
         program.free();
     }

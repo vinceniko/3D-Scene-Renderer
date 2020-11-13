@@ -1,7 +1,5 @@
 # TODO
 
-* fix: orthographic aspect stretching
-
 ## Optional
 
 * debug info: coordinate space arrows

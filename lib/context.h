@@ -50,11 +50,6 @@ public:
 
 // general context, holds all other state
 class Context {
-    // the shaders that the program will use
-    std::array<ShaderPrograms, 2> shaders = { ShaderPrograms::PHONG, ShaderPrograms::FLAT };
-    // an index into the list of program shaders
-    size_t shader_idx = 0;
-
     // extra modes for drawing. mostly for debug purposes, such as wireframe.
     enum DrawMode {
         DEF,
@@ -101,8 +96,6 @@ public:
 
     // cycles through the available draw modes enumerated in GLContext::DrawMode
     void switch_draw_mode();
-    // cycles through the available shader programs enumerated in ProgramList
-    void switch_program();
 
     // draws the models using the user bound shader program and the selected draw mode
     void draw();
