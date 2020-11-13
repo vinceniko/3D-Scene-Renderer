@@ -62,7 +62,7 @@ class Context {
 public:
     DrawMode draw_mode = DrawMode::DEF;
 
-    std::shared_ptr<ShaderProgramCtx> programs;
+    std::unique_ptr<ShaderProgramCtx> programs;
 
     GLCamera camera;
 

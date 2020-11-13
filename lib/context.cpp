@@ -46,10 +46,10 @@ double MouseContext::get_scroll() const {
 }
 
 Context::Context(std::unique_ptr<ShaderProgramCtx> programs) :
-    programs(std::move(programs)), camera(this->programs, std::make_shared<TwoDCamera>(TwoDCamera())), mesh_factory(this->programs) {}
+    programs(std::move(programs)), camera(*this->programs.get(), std::make_shared<TwoDCamera>(TwoDCamera())), mesh_factory(*this->programs.get()) {}
 
 Context::Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> new_cam) :
-    programs(std::move(programs)), camera(this->programs, new_cam), mesh_factory(this->programs) {}
+    programs(std::move(programs)), camera(*this->programs.get(), new_cam), mesh_factory(*this->programs.get()) {}
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
     float min_dist = std::numeric_limits<float>::infinity();

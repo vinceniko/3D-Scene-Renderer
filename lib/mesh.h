@@ -22,7 +22,6 @@
 
 #include <optional>
 #include <functional>
-#include <memory>
 
 // indexes into a primitive of a mesh
 using Indexer = std::array<uint, TRI>;
@@ -100,7 +99,7 @@ class MeshEntity {
     GLTransform model_uniform_;
     glm::vec3 color_;
 
-    MeshEntity(std::reference_wrapper<MeshFactory> ctx, size_t id);
+    MeshEntity(MeshFactory& ctx, size_t id);
 
 public:
     friend class MeshFactory;
@@ -140,7 +139,7 @@ public:
 // i.e. each GLMesh in meshes_ is unique
 // all meshes used by the program get loaded in here once and may be drawn multiple times depending on how many MeshEntities are created
 class MeshFactory {
-    std::shared_ptr<ShaderProgramCtx> programs_;
+    std::reference_wrapper<ShaderProgramCtx> programs_;
 
     // store meshes as unique pointers to avoid copy operations and so that mem gets deallocated at the end of the program
     std::vector<std::unique_ptr<GLMesh>> meshes_;
@@ -148,7 +147,7 @@ class MeshFactory {
 public:
     friend class MeshEntity;
 
-    MeshFactory(std::shared_ptr<ShaderProgramCtx> programs) : programs_(programs), meshes_() {}
+    MeshFactory(ShaderProgramCtx& programs) : programs_(programs), meshes_() {}
 
     MeshEntityList push(std::vector<Mesh> meshes);
 

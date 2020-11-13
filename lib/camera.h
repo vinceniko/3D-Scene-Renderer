@@ -116,7 +116,7 @@ public:
 class GLCamera {
     std::shared_ptr<Camera> camera_;
 
-    std::shared_ptr<ShaderProgramCtx> programs_;
+    std::reference_wrapper<ShaderProgramCtx> programs_;
 
     GLTransform view_uniform_;
     GLTransform projection_uniform_;
@@ -124,7 +124,7 @@ class GLCamera {
     void buffer_view_uniform();
     void buffer_projection_uniform();
 public:
-    GLCamera(std::shared_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> camera);
+    GLCamera(ShaderProgramCtx& programs, std::shared_ptr<Camera> camera);
 
     Camera& get_camera();
     std::shared_ptr<Camera> get_camera_ptr();
