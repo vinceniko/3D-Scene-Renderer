@@ -9,8 +9,8 @@ void ShaderProgramCtx::set_selected_idx(int n) {
 
 ShaderProgramCtx::ShaderProgramCtx() {
     push_back(ShaderProgram{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "def_frag.glsl", "out_color" });
-    push_back(ShaderProgram{ SHADER_PATH + "phong_vert.glsl", {}, SHADER_PATH + "flat_frag.glsl", "out_color" });
-    push_back(ShaderProgram{ SHADER_PATH + "phong_vert.glsl", {}, SHADER_PATH + "phong_frag.glsl", "out_color" });
+    push_back(ShaderProgram{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "flat_frag.glsl", "out_color" });
+    push_back(ShaderProgram{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "phong_frag.glsl", "out_color" });
     std::string normal_geom = std::string(SHADER_PATH + "normal_geom.glsl");
     push_back(ShaderProgram{ SHADER_PATH + "normal_vert.glsl", { normal_geom }, SHADER_PATH + "normal_frag.glsl", "out_color" });
 }

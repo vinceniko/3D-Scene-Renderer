@@ -1,6 +1,7 @@
 #include "my_context.h"
 
 MyContext::MyContext(std::unique_ptr<ShaderProgramCtx> programs, float width, float height) :
+// the issue with creating the camera first is, due to inheritance, Context is initialized firstpo
 Context(std::move(programs), std::make_shared<TrackballCamera>(TrackballCamera{ width / height })),
 cameras{
     camera.get_camera_ptr(),

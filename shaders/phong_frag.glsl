@@ -2,7 +2,7 @@
 in vec3 frag_pos;
 in vec3 normal;
 
-uniform vec3 triangle_color;
+uniform vec3 object_color;
 
 uniform mat4 model_trans;
 uniform mat4 view_trans;
@@ -14,7 +14,7 @@ const vec3 light_color = vec3(0.5);
 
 const float ambient_strength = 0.5;
 
-const float specular_strength = 1.0;
+const float specular_strength = 0.5;
 
 const float shininess = 128;
 
@@ -38,6 +38,6 @@ void main()
     float spec = pow(max(dot(halfDir, norm), 0.0), shininess);
     vec3 specular = specular_strength * spec * light_color;
 
-    vec3 result = (ambient + diffuse + specular) * triangle_color;
+    vec3 result = (ambient + diffuse + specular) * object_color;
     out_color = vec4(result, 1.0);
 }
