@@ -54,9 +54,10 @@ class Context {
     enum DrawMode {
         DEF,
         WIREFRAME,
+        WIREFRAME_ONLY,
         NORMALS,
 
-        SIZE = 3,
+        SIZE = 4,
     };
 
 public:

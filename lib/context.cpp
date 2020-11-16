@@ -168,8 +168,10 @@ void Context::switch_draw_mode() {
 void Context::draw() {
     programs->bind(programs->get_selected());
     update();
-    draw_surface();
-    if (draw_mode == DrawMode::WIREFRAME) {
+    if (draw_mode != DrawMode::WIREFRAME_ONLY) {
+        draw_surface();
+    }
+    if (draw_mode == DrawMode::WIREFRAME || draw_mode == DrawMode::WIREFRAME_ONLY) {
         draw_wireframe();
     }
     else if (draw_mode == DrawMode::NORMALS) {
