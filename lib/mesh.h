@@ -1,6 +1,7 @@
 #pragma once
 
 #include "helpers.h"
+#include "spatial.h"
 
 #include <fstream>
 #include <vector>
@@ -89,13 +90,12 @@ public:
 class MeshFactory;
 
 // a reference to a Mesh inside the GLMeshFactory; represents one model being drawn;
-class MeshEntity {
+class MeshEntity : public Spatial {    
     std::reference_wrapper<MeshFactory> ctx_;
 
     // the index into the list of meshes in GLMeshCtx
     size_t id_;
 
-    glm::mat4 model_trans_{ 1.f };
     GLTransform model_uniform_;
     glm::vec3 color_;
 
@@ -104,18 +104,13 @@ class MeshEntity {
 public:
     friend class MeshFactory;
 
-    enum ScaleDir {
-        In,
-        Out,
-    };
-
     const size_t get_id() const;
     void set_color(glm::vec3 new_color);
     glm::vec3 get_color() const;
 
-    void translate(glm::mat4 view_trans, glm::vec3 offset);
-    void scale(glm::mat4 view_trans, ScaleDir dir, float offset);
-    void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis);
+    void translate(glm::mat4 view_trans, glm::vec3 offset) override;
+    void scale(glm::mat4 view_trans, ScaleDir dir, float offset) override;
+    void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) override;
 
     void draw();
     void draw_wireframe();
