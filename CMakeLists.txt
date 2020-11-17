@@ -3,6 +3,8 @@ project(3DSceneEditor)
 
 set ( CMAKE_CXX_STANDARD 17 )
 
+set(EXT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../ext/")
+
 find_package(OpenGL REQUIRED)
 find_package(GLU REQUIRED)
 
@@ -31,22 +33,22 @@ set(INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
 set(LIBRARIES ${OPENGL_LIBRARIES})
 
 ### Include glm for linear algebra
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../ext/glm")
+include_directories("${EXT_DIR}/glm")
 
 ### Compile GLFW3 statically
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL " " FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL " " FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL " " FORCE)
 set(GLFW_BUILD_INSTALL OFF CACHE BOOL " " FORCE)
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../ext/glfw" "glfw")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../ext/glfw/include")
+add_subdirectory("${EXT_DIR}/glfw" "glfw")
+include_directories("${EXT_DIR}/glfw/include")
 set(LIBRARIES "glfw" ${GLFW_LIBRARIES})
 
 ### On windows, you also need glew
 if((UNIX AND NOT APPLE) OR WIN32)
   set(GLEW_INSTALL OFF CACHE BOOL " " FORCE)
-  add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../ext/glew" "glew")
-  include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../ext/glew/include")
+  add_subdirectory("${EXT_DIR}/glew" "glew")
+  include_directories("${EXT_DIR}/glew/include")
   list(APPEND LIBRARIES "glew")
 endif()
 
