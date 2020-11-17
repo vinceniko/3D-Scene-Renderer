@@ -27,13 +27,15 @@ A 3D Scene Editor that can:
 
 ## Installation
 
+This project uses gitmodules for dependency management. After cloning the repo, run `git submodule update --init --recursive` to download the necessary dependencies.
+
 This project uses CMake for building. A brief getting started guide for creating a build with CMake follows:
 
 1. Make a new directory for storing the build
 2. `cd` into the directory
 3. Run `cmake ..`
 4. Run `make`
-5. Run the `3DSceneEditor_bin` executable
+5. Finally, run the `3DSceneEditor_bin` executable
 
 Refer to `CMakeLists.txt` for the build configuration and necessary dependencies.
 

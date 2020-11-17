@@ -3,7 +3,7 @@ project(3DSceneEditor)
 
 set ( CMAKE_CXX_STANDARD 17 )
 
-set(EXT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../ext/")
+set(EXT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ext/")
 
 find_package(OpenGL REQUIRED)
 find_package(GLU REQUIRED)
