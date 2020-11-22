@@ -12,9 +12,9 @@ const std::string SHADER_PATH = "../shaders/";
 // default available programs. enumerations use negative values so that user extensions can be 0 based
 // these enumerations represent indices
 enum ShaderPrograms {
-    SIZE = 4,
+    NUM_SHADERS = 4,
 
-    DEF = -ShaderPrograms::SIZE,
+    DEF = -ShaderPrograms::NUM_SHADERS,
     FLAT,
     PHONG,
     NORMALS,

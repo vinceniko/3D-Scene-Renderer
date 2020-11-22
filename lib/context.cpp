@@ -159,7 +159,7 @@ void Context::push_mesh_entity(std::vector<size_t> ids) {
 }
 
 void Context::switch_draw_mode() {
-    draw_mode = static_cast<DrawMode>((static_cast<int>(draw_mode) + 1) % DrawMode::SIZE);
+    draw_mode = static_cast<DrawMode>((static_cast<int>(draw_mode) + 1) % DrawMode::NUM_DRAWMODES);
 #ifdef DEBUG
     std::cout << "draw_mode: " << draw_mode << std::endl;
 #endif

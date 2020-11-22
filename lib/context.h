@@ -57,7 +57,7 @@ class Context {
         WIREFRAME_ONLY,
         NORMALS,
 
-        SIZE = 4,
+        NUM_DRAWMODES = 4,
     };
 
 public:
