@@ -22,6 +22,7 @@
 #include "shader.h"
 
 #include <optional>
+#include <memory>
 #include <functional>
 
 // indexes into a primitive of a mesh

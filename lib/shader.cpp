@@ -19,7 +19,7 @@ void ShaderProgramCtx::bind(ShaderPrograms n) {
     // std::cout << "n1: " << n << std::endl;
     // #endif
 
-    selected_ = static_cast<int>(n) + static_cast<int>(ShaderPrograms::SIZE);
+    selected_ = static_cast<int>(n) + static_cast<int>(ShaderPrograms::NUM_SHADERS);
 
     // #ifdef DEBUG
     // std::cout << "n2: " << n << std::endl;
@@ -31,5 +31,5 @@ ShaderProgram& ShaderProgramCtx::get_selected_program() {
     return (*this)[selected_];
 }
 ShaderPrograms ShaderProgramCtx::get_selected() {
-    return static_cast<ShaderPrograms>(selected_ - +static_cast<int>(ShaderPrograms::SIZE));
+    return static_cast<ShaderPrograms>(selected_ - +static_cast<int>(ShaderPrograms::NUM_SHADERS));
 }
