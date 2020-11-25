@@ -1,22 +1,116 @@
 #include "helpers.h"
 
 #include <iostream>
-#include "utilities.h"
 
-ShaderProgram::ShaderProgram(const std::string& vertex_path,
+ShaderProgramFile::ShaderProgramFile(const std::string& vertex_path,
     const Optional<std::string> geometry_path,
     const std::string& fragment_path,
-    const std::string& fragment_data_name) : ShaderProgram() {
+    const std::string& fragment_data_name) :
+    ShaderProgram(),
+    vert_path_(vertex_path),
+    frag_path_(fragment_path) {
+    init(vertex_path, geometry_path, fragment_path, fragment_data_name);
+}
+
+ShaderProgramFile::ShaderProgramFile(const std::string& vertex_path,
+    const Optional<std::string> geometry_path,
+    const std::string& fragment_path,
+    const std::string& fragment_data_name,
+    FileWatcher& file_watcher) : 
+    ShaderProgramFile(vertex_path, geometry_path, fragment_path, fragment_data_name) {
+    file_watcher.add_path(get_vert_path(), {});
+    if (get_geom_path().size() > 0) file_watcher.add_path(get_geom_path(), {});
+    file_watcher.add_path(get_frag_path(), {});
+}
+
+bool ShaderProgramFile::init(const std::string& vertex_path,
+    const Optional<std::string> geometry_path,
+    const std::string& fragment_path,
+    const std::string& fragment_data_name) {
     std::string vertex_shader_string = get_file_str(vertex_path);
 
     std::string geometry_shader_string = "";
     if (geometry_path.has_value()) {
+        geom_path_ = geometry_path->get();
         geometry_shader_string = get_file_str(geometry_path->get());
     }
 
     std::string fragment_shader_string = get_file_str(fragment_path);
 
-    init(vertex_shader_string, geometry_shader_string, fragment_shader_string, fragment_data_name);
+    return ShaderProgram::init(vertex_shader_string, geometry_shader_string, fragment_shader_string, fragment_data_name);
+}
+
+void ShaderProgramFile::attach_link(GLuint shader_id) {
+    glAttachShader(program_shader, shader_id);
+    glLinkProgram(program_shader);
+
+    GLint status;
+    glGetProgramiv(program_shader, GL_LINK_STATUS, &status);
+
+    if (status != GL_TRUE)
+    {
+        char buffer[512];
+        glGetProgramInfoLog(program_shader, 512, NULL, buffer);
+        throw std::runtime_error("Linker error");
+        // std::cerr << "Linker error: " << std::endl << buffer << std::endl;
+        program_shader = 0;
+    }
+
+    if (check_gl_error()) throw std::runtime_error("Error in Source");
+}
+
+void ShaderProgramFile::reload_vert() {
+    free_vert();
+
+    std::string vert_str = get_file_str(get_vert_path());
+#ifdef DEBUG
+    std::cout << "true vert" << std::endl;
+#endif
+    vertex_shader = create_shader_helper(GL_VERTEX_SHADER, vert_str);
+
+    attach_link(vertex_shader);
+}
+
+void ShaderProgramFile::reload_vert(const std::string& f_path) {
+    vert_path_ = f_path;
+
+    reload_vert();
+}
+
+void ShaderProgramFile::reload_geom() {
+    free_geom();
+
+    std::string geom_str = get_file_str(get_geom_path());
+#ifdef DEBUG
+    std::cout << "true geom" << std::endl;
+#endif
+    geometry_shader = create_shader_helper(GL_GEOMETRY_SHADER, geom_str);
+
+    attach_link(geometry_shader);
+}
+
+void ShaderProgramFile::reload_geom(const std::string& f_path) {
+    geom_path_ = f_path;
+
+    reload_geom();
+}
+
+void ShaderProgramFile::reload_frag() {
+    free_frag();
+
+    std::string frag_str = get_file_str(get_frag_path());
+#ifdef DEBUG
+    std::cout << "true" << std::endl;
+#endif
+    fragment_shader = create_shader_helper(GL_FRAGMENT_SHADER, frag_str);
+
+    attach_link(fragment_shader);
+}
+
+void ShaderProgramFile::reload_frag(const std::string& f_path) {
+    frag_path_ = f_path;
+
+    reload_frag();
 }
 
 bool ShaderProgram::init(
@@ -32,7 +126,7 @@ bool ShaderProgram::init(
         geometry_shader = create_shader_helper(GL_GEOMETRY_SHADER, geometry_shader_string);
     }
 
-    if (!vertex_shader || !fragment_shader || (geometry_shader_string.size() > 1 && !geometry_shader))
+    if (!vertex_shader || !fragment_shader || (geometry_shader_string.size() > 0 && !geometry_shader))
         return false;
 
     program_shader = glCreateProgram();
@@ -86,23 +180,33 @@ GLint ShaderProgram::uniform(const std::string& name) const
     return glGetUniformLocation(program_shader, name.c_str());
 }
 
-void ShaderProgram::free()
-{
-    if (program_shader)
-    {
-        glDeleteProgram(program_shader);
-        program_shader = 0;
-    }
-    if (vertex_shader)
-    {
+void ShaderProgram::free_vert() {
+    if (vertex_shader) {
+        glDetachShader(program_shader, vertex_shader);
         glDeleteShader(vertex_shader);
         vertex_shader = 0;
     }
-    if (fragment_shader)
-    {
+}
+void ShaderProgram::free_geom() {
+    if (geometry_shader) {
+        glDetachShader(program_shader, geometry_shader);
+        glDeleteShader(geometry_shader);
+        geometry_shader = 0;
+    }
+}
+void ShaderProgram::free_frag() {
+    if (fragment_shader) {
+        glDetachShader(program_shader, fragment_shader);
         glDeleteShader(fragment_shader);
         fragment_shader = 0;
     }
+}
+
+void ShaderProgram::free()
+{
+    free_vert();
+    free_geom();
+    free_frag();
 #ifdef DEBUG
     check_gl_error();
 #endif
@@ -143,10 +247,11 @@ GLuint ShaderProgram::create_shader_helper(GLint type, const std::string& shader
     return id;
 }
 
-void _check_gl_error(const char* file, int line)
+bool _check_gl_error(const char* file, int line)
 {
     GLenum err(glGetError());
 
+    bool err_ = false;
     while (err != GL_NO_ERROR)
     {
         std::string error;
@@ -162,7 +267,9 @@ void _check_gl_error(const char* file, int line)
 
         std::cerr << "GL_" << error.c_str() << " - " << file << ":" << line << std::endl;
         err = glGetError();
+        err_ = true;
     }
+    return err_;
 }
 
 

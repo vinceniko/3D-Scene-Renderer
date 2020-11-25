@@ -98,15 +98,15 @@ public:
     // cycles through the available draw modes enumerated in GLContext::DrawMode
     void switch_draw_mode();
 
-    // draws the models using the user bound shader program and the selected draw mode
-    void draw();
+
+    // frame by frame updates. call prior to drawing
+    void update();
+    // updates and draws the models using the user bound shader program and the selected draw mode
+    void update_draw();
     // draws the models using the user bound shader program
     void draw_surface();
     // draws a wireframe above the mesh
     void draw_wireframe();
     // draws the mesh normals
     void draw_normals();
-
-    // frame by frame updates. call prior to drawing
-    void update();
 };

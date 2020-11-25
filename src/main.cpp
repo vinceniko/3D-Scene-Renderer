@@ -302,7 +302,7 @@ int main(void)
         //     camera->swivel();
         // }
 
-        ctx->draw();
+        ctx->update_draw();
 
         // Swap front and back buffers
         glfwSwapBuffers(window);
@@ -313,8 +313,8 @@ int main(void)
 
     // Deallocate opengl memory
     // TODO: move into ~Program
-    for (ShaderProgram& program : *ctx->programs) {
-        program.free();
+    for (auto& program : *ctx->programs) {
+        program->free();
     }
 
     // Deallocate glfw internals

@@ -24,6 +24,8 @@ A 3D Scene Editor that can:
 * Draw debug info
   * Wireframe
   * Mesh normals
+* Hot-reload shaders
+  * Watched shader files are polled from another thread and reloaded automatically
 
 ## Installation
 

@@ -165,8 +165,9 @@ void Context::switch_draw_mode() {
 #endif
 }
 
-void Context::draw() {
+void Context::update_draw() {
     programs->bind(programs->get_selected());
+    programs->reload();
     update();
     if (draw_mode != DrawMode::WIREFRAME_ONLY) {
         draw_surface();
