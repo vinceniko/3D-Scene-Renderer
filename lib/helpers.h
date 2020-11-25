@@ -33,7 +33,7 @@
 #endif
 
 // From: https://blog.nobel-joergensen.com/2013/01/29/debugging-opengl-using-glgeterror/
-void _check_gl_error(const char *file, int line);
+void _check_gl_error(const char* file, int line);
 
 ///
 /// Usage
@@ -50,34 +50,34 @@ void _check_gl_error(const char *file, int line);
 class ShaderProgram
 {
 public:
-  GLuint vertex_shader;
-  GLuint fragment_shader;
-  GLuint geometry_shader;
-  GLuint program_shader;
+    GLuint vertex_shader;
+    GLuint fragment_shader;
+    GLuint geometry_shader;
+    GLuint program_shader;
 
-  ShaderProgram() : vertex_shader(0), fragment_shader(0), geometry_shader(0), program_shader(0) { }
-  ShaderProgram(const std::string &vertex_path,
-  const Optional<std::string> geometry_path,
-  const std::string &fragment_path,
-  const std::string &fragment_data_name);
+    ShaderProgram() : vertex_shader(0), fragment_shader(0), geometry_shader(0), program_shader(0) { }
+    ShaderProgram(const std::string& vertex_path,
+        const Optional<std::string> geometry_path,
+        const std::string& fragment_path,
+        const std::string& fragment_data_name);
 
-  // Create a new shader from the specified source strings
-  bool init(const std::string &vertex_shader_string,
-  const std::string &geometry_shader_string,
-  const std::string &fragment_shader_string,
-  const std::string &fragment_data_name);
+    // Create a new shader from the specified source strings
+    bool init(const std::string& vertex_shader_string,
+        const std::string& geometry_shader_string,
+        const std::string& fragment_shader_string,
+        const std::string& fragment_data_name);
 
-  // Select this shader for subsequent draw calls
-  void bind();
+    // Select this shader for subsequent draw calls
+    void bind();
 
-  // Release all OpenGL objects
-  void free();
+    // Release all OpenGL objects
+    void free();
 
-  // Return the OpenGL handle of a named shader attribute (-1 if it does not exist)
-  GLint attrib(const std::string &name) const;
+    // Return the OpenGL handle of a named shader attribute (-1 if it does not exist)
+    GLint attrib(const std::string& name) const;
 
-  // Return the OpenGL handle of a uniform attribute (-1 if it does not exist)
-  GLint uniform(const std::string &name) const;
+    // Return the OpenGL handle of a uniform attribute (-1 if it does not exist)
+    GLint uniform(const std::string& name) const;
 
-  GLuint create_shader_helper(GLint type, const std::string &shader_string);
+    GLuint create_shader_helper(GLint type, const std::string& shader_string);
 };
