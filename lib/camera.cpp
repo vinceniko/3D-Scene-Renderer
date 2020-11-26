@@ -1,10 +1,10 @@
 #include "camera.h"
 
 Camera::Camera() : projection_mode_(Ortho) {
-    view_trans_ = glm::translate(view_trans_, glm::vec3(0.0f, 0.f, -2.f));
+    trans_ = glm::translate(trans_, glm::vec3(0.0f, 0.f, -2.f));
 }
 Camera::Camera(float aspect, float fov) : projection_mode_(Perspective), aspect_(aspect), fov_(fov) {
-    view_trans_ = glm::translate(view_trans_, glm::vec3(0.0f, 0.0f, -2.f));
+    trans_ = glm::translate(trans_, glm::vec3(0.0f, 0.0f, -2.f));
 }
 
 void Camera::switch_projection() {
@@ -23,10 +23,10 @@ glm::mat4 Camera::get_projection() const {
     return projection_mode_ == Projection::Perspective ? glm::perspective(glm::radians(fov_), aspect_, 0.1f, 100.f) : glm::ortho(-aspect_, aspect_, -1.f, 1.f, 0.1f, 100.f);
 }
 glm::mat4 Camera::get_view() const {
-    return view_trans_;
+    return trans_;
 }
 glm::vec3 Camera::get_position() const {
-    return glm::vec3(glm::inverse(view_trans_)[3]);
+    return glm::vec3(glm::inverse(trans_)[3]);
 }
 Camera::Projection Camera::get_projection_mode() const {
     return projection_mode_;
@@ -51,18 +51,18 @@ glm::vec3 Camera::get_pos_world(glm::vec2 nds_pos, float width, float height) co
 }
 
 void Camera::set_view(glm::mat4 view) {
-    view_trans_ = view;
+    trans_ = view;
 }
 
 
-void Camera::zoom_protected(ZoomDir zoom_dir, float percent) {
+void Camera::zoom_protected(ScaleDir zoom_dir, float percent) {
     // if (projection_mode_ == Projection::Ortho) return;
 
     this->zoom(zoom_dir, percent);
 }
 
-void Camera::scale_view(ZoomDir zoom_dir, float percent) {
-    glm::vec3 view_origin = glm::inverse(view_trans_) * glm::vec4(glm::vec3(0.0, 0.0, 0.0), 1.0);
+void Camera::scale_view(ScaleDir zoom_dir, float percent) {
+    glm::vec3 view_origin = glm::inverse(trans_) * glm::vec4(glm::vec3(0.0, 0.0, 0.0), 1.0);
 
     glm::mat4 clone = glm::translate(glm::mat4(1.0f), view_origin);
     
@@ -71,15 +71,15 @@ void Camera::scale_view(ZoomDir zoom_dir, float percent) {
     clone = glm::scale(clone, glm::vec3(zoom_perc, zoom_perc, zoom_perc));
     clone = glm::translate(clone, -view_origin);
     
-    view_trans_ *= clone;
+    trans_ *= clone;
 }
 
-void TwoDCamera::zoom(ZoomDir zoom_dir, float percent) {
+void TwoDCamera::zoom(ScaleDir zoom_dir, float percent) {
     scale_view(zoom_dir, percent);
 }
 
 void TwoDCamera::translate(glm::vec3 offset) {
-    view_trans_ = glm::translate(view_trans_, glm::vec3(offset) * intensity_scale_);
+    trans_ = glm::translate(trans_, glm::vec3(offset) * intensity_scale_);
 }
 void TwoDCamera::translate(glm::vec3 new_point, glm::vec3 old_point) {
     translate(new_point - old_point);
@@ -87,12 +87,12 @@ void TwoDCamera::translate(glm::vec3 new_point, glm::vec3 old_point) {
 
 void FreeCamera::translate(glm::vec3 offset) {
     TwoDCamera::translate(offset);
-    view_trans_ = glm::lookAt(get_position(), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    trans_ = glm::lookAt(get_position(), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 }
 void FreeCamera::translate(glm::vec3 new_point, glm::vec3 old_point) {
     translate(new_point - old_point);
 }
-void FreeCamera::zoom(ZoomDir zoom_dir, float percent) {
+void FreeCamera::zoom(ScaleDir zoom_dir, float percent) {
     float zoom_offset = static_cast<bool>(zoom_dir) ? percent : -percent;
     
     translate(glm::vec3(0.f, 0.f, zoom_offset));
@@ -105,7 +105,7 @@ TrackballCamera::TrackballCamera(float aspect, float fov) : Camera(aspect, fov) 
     translate(glm::vec3(0.0));
 }
 
-void TrackballCamera::zoom(ZoomDir zoom_dir, float percent) {
+void TrackballCamera::zoom(ScaleDir zoom_dir, float percent) {
     // TODO: limit zoom in
 
     if (projection_mode_ == Projection::Perspective) {
@@ -146,8 +146,8 @@ void TrackballCamera::translate(glm::vec3 offset) {
     float camX = radius_ * glm::sin(phi_) * glm::cos(theta_);
     float camY = radius_ * glm::cos(phi_);
     float camZ = radius_ * glm::sin(phi_) * glm::sin(theta_);
-    glm::vec3 view_scale = glm::vec3(glm::length(view_trans_[0]), glm::length(view_trans_[1]), glm::length(view_trans_[2]));
-    view_trans_ = glm::scale(glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, up_, 0.0)), view_scale);
+    glm::vec3 view_scale = glm::vec3(glm::length(trans_[0]), glm::length(trans_[1]), glm::length(trans_[2]));
+    trans_ = glm::scale(glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, up_, 0.0)), view_scale);
 }
 void TrackballCamera::translate(glm::vec3 new_point, glm::vec3 old_point) {
     auto diff = glm::vec3(new_point.x - old_point.x, -(new_point.y - old_point.y), 0.f) * 2.f;
@@ -159,7 +159,7 @@ void TrackballCamera::swivel() {
     float camY = radius_ * sin(theta_ + dur_val) * cos(phi_);
     float camZ = radius_ * sin(theta_ + dur_val) * sin(phi_);
     float camX = radius_ * cos(theta_ + dur_val);
-    view_trans_ = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+    trans_ = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 }
 
 GLCamera::GLCamera(ShaderProgramCtx& programs, std::shared_ptr<Camera> camera) :

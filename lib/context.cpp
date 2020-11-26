@@ -191,7 +191,7 @@ void Context::draw_wireframe() {
 
     auto temp = camera->get_view();
     // minimally scale the view to draw on top
-    camera->scale_view(Camera::ZoomDir::Out, min_zoom);
+    camera->scale_view(Camera::ScaleDir::Out, min_zoom);
     camera.buffer();
     mesh_list.draw_wireframe();
     camera->set_view(temp);

@@ -12,16 +12,16 @@
 #include "definitions.h"
 #include "transform.h"
 #include "shader.h"
+#include "spatial.h"
 
 #ifdef DEBUG
 #include <iostream>
 #endif
 
-class Camera {
+class Camera : public Spatial {
 
 public:
     enum Projection { Ortho, Perspective };
-    enum ZoomDir { Out, In };
 
 protected:
     const float fov_init_ = 50.f;
@@ -33,7 +33,6 @@ protected:
     
     float aspect_;
 
-    glm::mat4 view_trans_{ 1.f };
     Projection projection_mode_;
 
 public:
@@ -47,10 +46,10 @@ public:
     virtual void translate(glm::vec3 offset) = 0;
     virtual void translate(glm::vec3 new_point, glm::vec3 old_point) = 0;
 
-    virtual void scale_view(ZoomDir zoom_dir, float percent = 0.2);
-    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2) =0;
+    virtual void scale_view(ScaleDir zoom_dir, float percent = 0.2);
+    virtual void zoom(ScaleDir zoom_dir, float percent = 0.2) =0;
     // prevents zooming in orthographic mode
-    void zoom_protected(ZoomDir zoom_dir, float percent = 0.2);
+    void zoom_protected(ScaleDir zoom_dir, float percent = 0.2);
 
     virtual void switch_projection();
     virtual void set_projection_mode(Projection projection);
@@ -76,14 +75,14 @@ class TwoDCamera : public Camera {
     float zoom_ = 1.f;
 
 public:
-    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2) override;
+    virtual void zoom(ScaleDir zoom_dir, float percent = 0.2) override;
     virtual void translate(glm::vec3 offset) override;
     virtual void translate(glm::vec3 new_point, glm::vec3 old_point) override;
 };
 
 class FreeCamera : public TwoDCamera {
 protected:
-    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2) override;
+    virtual void zoom(ScaleDir zoom_dir, float percent = 0.2) override;
 
 public:    
     using TwoDCamera::TwoDCamera;
@@ -106,7 +105,7 @@ public:
     TrackballCamera();
     TrackballCamera(float aspect, float fov = 50.f);
 
-    virtual void zoom(ZoomDir zoom_dir, float percent = 0.2) override;
+    virtual void zoom(ScaleDir zoom_dir, float percent = 0.2) override;
     virtual void translate(glm::vec3 offset) override;
     virtual void translate(glm::vec3 new_point, glm::vec3 old_point) override;
     virtual void swivel();

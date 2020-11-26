@@ -170,7 +170,7 @@ const size_t MeshEntity::get_id() const {
 }
 
 MeshEntity::MeshEntity(MeshFactory& ctx, size_t id) :
-    ctx_(ctx), id_(id), model_uniform_(ctx_.get().programs_, "model_trans", model_trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
+    ctx_(ctx), id_(id), model_uniform_(ctx_.get().programs_, "model_trans", trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
     // model_trans_ = glm::translate(model_trans_, glm::vec3(1.f, 1.f, -2.f));
     // scale_to_unit();
     set_to_origin();
@@ -179,26 +179,26 @@ MeshEntity::MeshEntity(MeshFactory& ctx, size_t id) :
 void MeshEntity::set_to_origin() {
     glm::mat4 scale = glm::scale(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_]->get_scale());
     glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, -ctx_.get().get_meshes()[id_]->get_centroid());
-    model_trans_ = scale * trans;
+    trans_ = scale * trans;
 }
 
 void MeshEntity::translate(glm::mat4 view_trans, glm::vec3 offset) {
-    offset = glm::inverse(model_trans_) * glm::inverse(view_trans) * glm::vec4(offset, 0.0);
-    model_trans_ = glm::translate(model_trans_, offset);;
+    offset = glm::inverse(trans_) * glm::inverse(view_trans) * glm::vec4(offset, 0.0);
+    trans_ = glm::translate(trans_, offset);;
 }
 void MeshEntity::scale(glm::mat4 view_trans, ScaleDir dir, float offset) {
     glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_]->get_centroid());
     trans = glm::scale(trans, glm::vec3(dir == In ? 1 + offset : 1 - offset));
     trans = glm::translate(trans, -ctx_.get().get_meshes()[id_]->get_centroid());
-    model_trans_ = model_trans_ * trans;
+    trans_ = trans_ * trans;
 }
 void MeshEntity::rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) {
-    glm::vec3 view_axis = glm::vec3{ glm::inverse(model_trans_) * glm::inverse(view_trans) * glm::vec4{axis, 0.0} };
+    glm::vec3 view_axis = glm::vec3{ glm::inverse(trans_) * glm::inverse(view_trans) * glm::vec4{axis, 0.0} };
 
     glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_]->get_centroid());
     trans = glm::rotate(trans, glm::radians(degrees), view_axis);
     trans = glm::translate(trans, -ctx_.get().get_meshes()[id_]->get_centroid());
-    model_trans_ = model_trans_ * trans;
+    trans_ = trans_ * trans;
 }
 
 void MeshEntity::set_color(glm::vec3 new_color) {
@@ -211,8 +211,8 @@ glm::vec3 MeshEntity::get_color() const {
 float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const {
     const GLMesh& mesh = *ctx_.get().get_meshes()[id_];
 
-    glm::vec3 model_ray_origin = glm::inverse(model_trans_) * glm::vec4(world_ray_origin, 1.f);
-    glm::vec3 model_ray_dir = glm::inverse(model_trans_) * glm::vec4(world_ray_dir, 0.f);
+    glm::vec3 model_ray_origin = glm::inverse(trans_) * glm::vec4(world_ray_origin, 1.f);
+    glm::vec3 model_ray_dir = glm::inverse(trans_) * glm::vec4(world_ray_dir, 0.f);
 
     float min_dist = std::numeric_limits<float>::infinity();
     for (const Indexer& face : mesh.get_faces()) {
@@ -237,7 +237,7 @@ void MeshEntity::draw() {
 
     glBindVertexArray(mesh_ref.VAO_);
 
-    model_uniform_.buffer(model_trans_);
+    model_uniform_.buffer(trans_);
 
     glUniform3f(ctx_.get().programs_.get().get_selected_program().uniform("object_color"), color_.r, color_.g, color_.b);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -255,7 +255,7 @@ void MeshEntity::draw_wireframe() {
 
     glBindVertexArray(mesh_ref.VAO_);
 
-    model_uniform_.buffer(model_trans_);
+    model_uniform_.buffer(trans_);
 
     glUniform3f(ctx_.get().programs_.get().get_selected_program().uniform("object_color"), 0.f, 0.f, 0.f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
