@@ -8,13 +8,13 @@ in VS_OUT {
 
 const float MAGNITUDE = 0.1;
 
-uniform mat4 projection;
+uniform mat4 u_projection;
 
 void GenerateLine(int index)
 {
-    gl_Position = projection * gl_in[index].gl_Position;
+    gl_Position = u_projection * gl_in[index].gl_Position;
     EmitVertex();
-    gl_Position = projection * (gl_in[index].gl_Position + 
+    gl_Position = u_projection * (gl_in[index].gl_Position + 
                                 vec4(gs_in[index].normal, 0.0) * MAGNITUDE);
     EmitVertex();
     EndPrimitive();

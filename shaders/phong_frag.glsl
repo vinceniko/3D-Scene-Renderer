@@ -2,10 +2,10 @@
 in vec3 frag_pos;
 in vec3 normal;
 
-uniform vec3 object_color;
+uniform vec3 u_object_color;
 
-uniform mat4 model_trans;
-uniform mat4 view_trans;
+uniform mat4 u_model_trans;
+uniform mat4 u_view_trans;
 
 out vec4 out_color;
 
@@ -27,7 +27,7 @@ void main()
     float diff = max(dot(norm, light_dir), 0.0);
     vec3 diffuse = diff * light_color;
 
-    vec3 view_dir = normalize(vec3(inverse(view_trans)[3]) - frag_pos);
+    vec3 view_dir = normalize(vec3(inverse(u_view_trans)[3]) - frag_pos);
 
     // // phong
     // vec3 reflect_dir = reflect(-light_dir, norm);
@@ -38,6 +38,6 @@ void main()
     float spec = pow(max(dot(halfDir, norm), 0.0), shininess);
     vec3 specular = specular_strength * spec * light_color;
 
-    vec3 result = (ambient + diffuse + specular) * object_color;
+    vec3 result = (ambient + diffuse + specular) * u_object_color;
     out_color = vec4(result, 1.0);
 }

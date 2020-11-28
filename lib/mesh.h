@@ -121,7 +121,7 @@ public:
     // translate, scale, and rotate back to origin, fitting into a unit cube
     void set_to_origin();
 
-    // TODO draw with model_trans_ and update model_trans_ on GL side
+    // TODO draw with u_model_trans_ and update u_model_trans_ on GL side
 };
 
 // a list of MeshEntity, i.e. references to Meshes inside the GLMeshFactory; whats actually drawn

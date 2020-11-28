@@ -165,8 +165,8 @@ void TrackballCamera::swivel() {
 GLCamera::GLCamera(ShaderProgramCtx& programs, std::shared_ptr<Camera> camera) :
     camera_(camera),
     programs_(programs),
-    view_uniform_(programs, "view_trans", camera->get_view()),
-    projection_uniform_(programs, "projection", camera_->get_projection()) {}
+    view_uniform_(programs, "u_view_trans", camera->get_view()),
+    projection_uniform_(programs, "u_projection", camera_->get_projection()) {}
 
 void GLCamera::buffer_view_uniform() {
     view_uniform_.buffer(camera_->get_view());

@@ -170,8 +170,8 @@ const size_t MeshEntity::get_id() const {
 }
 
 MeshEntity::MeshEntity(MeshFactory& ctx, size_t id) :
-    ctx_(ctx), id_(id), model_uniform_(ctx_.get().programs_, "model_trans", trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
-    // model_trans_ = glm::translate(model_trans_, glm::vec3(1.f, 1.f, -2.f));
+    ctx_(ctx), id_(id), model_uniform_(ctx_.get().programs_, "u_model_trans", trans_), color_(glm::vec3(0.0, 0.0, 1.0)) {
+    // u_model_trans_ = glm::translate(u_model_trans_, glm::vec3(1.f, 1.f, -2.f));
     // scale_to_unit();
     set_to_origin();
 }
@@ -239,7 +239,7 @@ void MeshEntity::draw() {
 
     model_uniform_.buffer(trans_);
 
-    glUniform3f(ctx_.get().programs_.get().get_selected_program().uniform("object_color"), color_.r, color_.g, color_.b);
+    glUniform3f(ctx_.get().programs_.get().get_selected_program().uniform("u_object_color"), color_.r, color_.g, color_.b);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
@@ -257,7 +257,7 @@ void MeshEntity::draw_wireframe() {
 
     model_uniform_.buffer(trans_);
 
-    glUniform3f(ctx_.get().programs_.get().get_selected_program().uniform("object_color"), 0.f, 0.f, 0.f);
+    glUniform3f(ctx_.get().programs_.get().get_selected_program().uniform("u_object_color"), 0.f, 0.f, 0.f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     // // glLineWidth doesn't work, maybe an Apple driver bug 
     // glLineWidth(2.f);
