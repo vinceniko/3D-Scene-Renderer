@@ -40,11 +40,11 @@ bool ShaderProgramFile::init(const std::string& vertex_path,
     return ShaderProgram::init(vertex_shader_string, geometry_shader_string, fragment_shader_string, fragment_data_name);
 }
 
-void ShaderProgramFile::attach_link(GLuint shader_id) {
+void ShaderProgramFile::attach_link(uint32_t shader_id) {
     glAttachShader(program_shader, shader_id);
     glLinkProgram(program_shader);
 
-    GLint status;
+    int32_t status;
     glGetProgramiv(program_shader, GL_LINK_STATUS, &status);
 
     if (status != GL_TRUE)
@@ -140,7 +140,7 @@ bool ShaderProgram::init(
     glBindFragDataLocation(program_shader, 0, fragment_data_name.c_str());
     glLinkProgram(program_shader);
 
-    GLint status;
+    int32_t status;
     glGetProgramiv(program_shader, GL_LINK_STATUS, &status);
 
     if (status != GL_TRUE)
@@ -170,12 +170,12 @@ void ShaderProgram::bind()
 #endif
 }
 
-GLint ShaderProgram::attrib(const std::string& name) const
+int32_t ShaderProgram::attrib(const std::string& name) const
 {
     return glGetAttribLocation(program_shader, name.c_str());
 }
 
-GLint ShaderProgram::uniform(const std::string& name) const
+int32_t ShaderProgram::uniform(const std::string& name) const
 {
     return glGetUniformLocation(program_shader, name.c_str());
 }
@@ -212,18 +212,18 @@ void ShaderProgram::free()
 #endif
 }
 
-GLuint ShaderProgram::create_shader_helper(GLint type, const std::string& shader_string)
+uint32_t ShaderProgram::create_shader_helper(int32_t type, const std::string& shader_string)
 {
     using namespace std;
     if (shader_string.empty())
-        return (GLuint)0;
+        return (uint32_t)0;
 
-    GLuint id = glCreateShader(type);
+    uint32_t id = glCreateShader(type);
     const char* shader_string_const = shader_string.c_str();
     glShaderSource(id, 1, &shader_string_const, NULL);
     glCompileShader(id);
 
-    GLint status;
+    int32_t status;
     glGetShaderiv(id, GL_COMPILE_STATUS, &status);
 
     if (status != GL_TRUE)
@@ -238,7 +238,7 @@ GLuint ShaderProgram::create_shader_helper(GLint type, const std::string& shader
         cerr << shader_string << endl << endl;
         glGetShaderInfoLog(id, 512, NULL, buffer);
         cerr << "Error: " << endl << buffer << endl;
-        return (GLuint)0;
+        return (uint32_t)0;
     }
 #ifdef DEBUG
     check_gl_error();

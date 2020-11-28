@@ -59,10 +59,10 @@ enum ShaderType {
 class ShaderProgram
 {
 public:
-    GLuint vertex_shader;
-    GLuint fragment_shader;
-    GLuint geometry_shader;
-    GLuint program_shader;
+    uint32_t vertex_shader;
+    uint32_t fragment_shader;
+    uint32_t geometry_shader;
+    uint32_t program_shader;
 
     ShaderProgram() : vertex_shader(0), fragment_shader(0), geometry_shader(0), program_shader(0) { }
 
@@ -83,12 +83,12 @@ public:
     void free();
 
     // Return the OpenGL handle of a named shader attribute (-1 if it does not exist)
-    GLint attrib(const std::string& name) const;
+    int32_t attrib(const std::string& name) const;
 
     // Return the OpenGL handle of a uniform attribute (-1 if it does not exist)
-    GLint uniform(const std::string& name) const;
+    int32_t uniform(const std::string& name) const;
 
-    GLuint create_shader_helper(GLint type, const std::string& shader_string);
+    uint32_t create_shader_helper(int32_t type, const std::string& shader_string);
 };
 
 // represents Shader source code saved on the filesystem
@@ -125,7 +125,7 @@ public:
         return frag_path_;
     }
 
-    void attach_link(GLuint shader_id);
+    void attach_link(uint32_t shader_id);
 
     // reload vert shader
     void reload_vert();
