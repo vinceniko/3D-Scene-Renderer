@@ -1,6 +1,6 @@
 #version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
+in vec3 a_pos;
+in vec3 a_normal;
 
 out VS_OUT {
     vec3 normal;
@@ -13,7 +13,7 @@ uniform mat4 model_trans;
 void main()
 {
     projection;
-    gl_Position = view_trans * model_trans * vec4(aPos, 1.0); 
+    gl_Position = view_trans * model_trans * vec4(a_pos, 1.0); 
     mat3 normalMatrix = mat3(transpose(inverse(view_trans * model_trans)));
-    vs_out.normal = normalize(vec3(vec4(normalMatrix * aNormal, 0.0)));
+    vs_out.normal = normalize(vec3(vec4(normalMatrix * a_normal, 0.0)));
 }

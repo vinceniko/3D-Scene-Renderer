@@ -300,17 +300,17 @@ MeshEntityList MeshFactory::push(std::vector<Mesh> meshes) {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * TRI * inserted_mesh.get_faces().size(), inserted_mesh.get_faces().data(), GL_STATIC_DRAW);
 
         // vertex positions
-        GLint position_id = 0;
-        glEnableVertexAttribArray(position_id);
+        int32_t position_id = programs_.get().get_selected_program().attrib("a_pos");
         if (position_id < 0) {
             throw std::runtime_error("gl vertex attribute not found");
         }
+        glEnableVertexAttribArray(position_id);
 
-        GLint normal_id = 1;
-        glEnableVertexAttribArray(normal_id);
+        int32_t normal_id = programs_.get().get_selected_program().attrib("a_normal");
         if (normal_id < 0) {
             throw std::runtime_error("gl vertex attribute not found");
         }
+        glEnableVertexAttribArray(normal_id);
 
         glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
         glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)(size_verts));
