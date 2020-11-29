@@ -13,8 +13,6 @@ void GLCubeMap::load(const std::string& dir_path) {
         int width, height, n_chan;
         unsigned char* data = stbi_load(tex_path.path().c_str(), &width, &height, &n_chan, 0);
         if (data) {
-            std::cout << data[0] << ' ' << data[1] << ' ' << data[2] << ' ' << std::endl;
-
             glTexImage2D(
                 get_face(tex_path.path()),
                 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data

@@ -75,8 +75,6 @@ public:
 
         std::string face_str = path_name.substr(ext_idx - face_size, face_size);
 
-        std::cout << "face_str " << face_str << std::endl; 
-
         return decode_face(face_str);
     }
 
