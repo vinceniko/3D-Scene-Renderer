@@ -68,24 +68,19 @@ file(GLOB LIB
   "${CMAKE_CURRENT_SOURCE_DIR}/lib/*"
 )
 
-add_library(Lib ${LIB})
-
 ### Compile all the cpp files in src
 file(GLOB SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*"
 )
 
-target_precompile_headers(Lib PUBLIC ${STB})
-target_include_directories(Lib PUBLIC "${EXT_DIR}/stb")
-
 add_executable(${PROJECT_NAME}_bin ${SOURCES} ${LIB})
+target_precompile_headers(${PROJECT_NAME}_bin PUBLIC ${STB})
 if (CMAKE_BUILD_TYPE MATCHES Debug)
-  target_compile_definitions(Lib PUBLIC -DDEBUG)
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DDEBUG)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
-target_include_directories(${PROJECT_NAME}_bin PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/src")
-target_link_libraries(${PROJECT_NAME}_bin ${DEPENDENCIES} Lib)
+target_include_directories(${PROJECT_NAME}_bin PUBLIC "${EXT_DIR}/stb" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(${PROJECT_NAME}_bin ${DEPENDENCIES})
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/extra)
   ### Compile all the cpp files in src
