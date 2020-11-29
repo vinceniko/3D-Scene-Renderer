@@ -11,10 +11,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
       STRING "Choose the type of build." FORCE)
 endif()
 
-set(EXT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ext/")
+set(EXT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ext")
 
 find_package(OpenGL REQUIRED)
-find_package(GLU REQUIRED)
 
 # Suppress warnings of the deprecation of glut functions on macOS.
 if(APPLE)
@@ -33,12 +32,8 @@ if(MSVC)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR} )
 endif()
 
-### Add src to the include directories
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
-
 ### Add OpenGL
-set(INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
-set(LIBRARIES ${OPENGL_LIBRARIES})
+include_directories(${OPENGL_INCLUDE_DIR})
 
 ### Include glm for linear algebra
 include_directories("${EXT_DIR}/glm")
@@ -50,24 +45,23 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL " " FORCE)
 set(GLFW_BUILD_INSTALL OFF CACHE BOOL " " FORCE)
 add_subdirectory("${EXT_DIR}/glfw" "glfw")
 include_directories("${EXT_DIR}/glfw/include")
-set(LIBRARIES "glfw" ${GLFW_LIBRARIES})
+set(DEPENDENCIES "glfw" ${GLFW_LIBRARIES})
 
 ### On windows, you also need glew
 if((UNIX AND NOT APPLE) OR WIN32)
   set(GLEW_INSTALL OFF CACHE BOOL " " FORCE)
   add_subdirectory("${EXT_DIR}/glew" "glew")
   include_directories("${EXT_DIR}/glew/include")
-  list(APPEND LIBRARIES "glew")
+  list(APPEND DEPENDENCIES "glew")
 endif()
 
 if(APPLE)
-  list(APPEND LIBRARIES "-framework OpenGL")
+  list(APPEND DEPENDENCIES "-framework OpenGL")
 endif()
 
-### Compile all the cpp files in src
-file(GLOB HELPERS
-  "${CMAKE_CURRENT_SOURCE_DIR}/extra/Helpers.*"
-)
+### add stb
+### image loading
+set(STB "${EXT_DIR}/stb/stb_image.h")
 
 ### Compile all the cpp files in lib
 file(GLOB LIB
@@ -81,31 +75,39 @@ file(GLOB SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*"
 )
 
-add_executable(${PROJECT_NAME}_bin ${SOURCES})
-target_link_libraries(${PROJECT_NAME}_bin ${LIBRARIES} ${OPENGL_LIBRARIES} Lib)
-target_include_directories(${PROJECT_NAME}_bin PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+target_precompile_headers(Lib PUBLIC ${STB})
+target_include_directories(Lib PUBLIC "${EXT_DIR}/stb")
 
+add_executable(${PROJECT_NAME}_bin ${SOURCES} ${LIB})
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   target_compile_definitions(Lib PUBLIC -DDEBUG)
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DDEBUG)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
+target_include_directories(${PROJECT_NAME}_bin PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(${PROJECT_NAME}_bin ${DEPENDENCIES} Lib)
+
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/extra)
-add_executable(main_blending_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_blending.cpp ${HELPERS})
-target_link_libraries(main_blending_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
+  ### Compile all the cpp files in src
+  file(GLOB HELPERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/extra/Helpers.*"
+  )
+  
+  add_executable(main_blending_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_blending.cpp ${HELPERS})
+  target_link_libraries(main_blending_bin ${DEPENDENCIES})
 
-add_executable(main_border_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_border.cpp ${HELPERS})
-target_link_libraries(main_border_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
+  add_executable(main_border_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_border.cpp ${HELPERS})
+  target_link_libraries(main_border_bin ${DEPENDENCIES})
 
-add_executable(main_depth_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_depth.cpp ${HELPERS})
-target_link_libraries(main_depth_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
+  add_executable(main_depth_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_depth.cpp ${HELPERS})
+  target_link_libraries(main_depth_bin ${DEPENDENCIES})
 
-add_executable(main_positions_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_positions.cpp ${HELPERS})
-target_link_libraries(main_positions_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
+  add_executable(main_positions_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_positions.cpp ${HELPERS})
+  target_link_libraries(main_positions_bin ${DEPENDENCIES})
 
-add_executable(main_properties_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_properties.cpp ${HELPERS})
-target_link_libraries(main_properties_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
+  add_executable(main_properties_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_properties.cpp ${HELPERS})
+  target_link_libraries(main_properties_bin ${DEPENDENCIES})
 
-add_executable(main_view_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_view.cpp ${HELPERS})
-target_link_libraries(main_view_bin ${LIBRARIES} ${OPENGL_LIBRARIES})
+  add_executable(main_view_bin ${CMAKE_CURRENT_SOURCE_DIR}/extra/main_view.cpp ${HELPERS})
+  target_link_libraries(main_view_bin ${DEPENDENCIES})
 endif ()

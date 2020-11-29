@@ -24,12 +24,9 @@ public:
     enum Projection { Ortho, Perspective };
 
 protected:
-    const float fov_init_ = 50.f;
+    float fov_ = 50.f;
 
-    float fov_ = fov_init_;
-
-    const float intensity_init_ = 2.f;
-    float intensity_scale_ = intensity_init_;
+    float intensity_scale_ = 2.f;
     
     float aspect_;
 
@@ -38,10 +35,9 @@ protected:
 public:
     friend class GLCamera;
 
-    // ortho projection
-    Camera();
-    // perspective projection
-    Camera(float aspect, float fov = 50.f);
+    // defaults to perspective projection
+    Camera(float aspect);
+    Camera(float aspect, float fov);
 
     virtual void translate(glm::vec3 offset) = 0;
     virtual void translate(glm::vec3 new_point, glm::vec3 old_point) = 0;
@@ -55,7 +51,14 @@ public:
     virtual void set_projection_mode(Projection projection);
 
     virtual void set_aspect(float aspect);
+    virtual void set_fov(float fov);
 
+    virtual float get_aspect_() {
+        return aspect_;
+    }
+    virtual float get_fov() {
+        return fov_;
+    }
     virtual glm::mat4 get_projection() const;
     virtual Projection get_projection_mode() const;
     virtual glm::mat4 get_view() const;
@@ -102,8 +105,8 @@ class TrackballCamera : public Camera {
     std::chrono::steady_clock::time_point start_time_ = std::chrono::steady_clock::now();
 
 public:
-    TrackballCamera();
-    TrackballCamera(float aspect, float fov = 50.f);
+    TrackballCamera(float aspect);
+    TrackballCamera(float aspect, float fov);
 
     virtual void zoom(ScaleDir zoom_dir, float percent = 0.2) override;
     virtual void translate(glm::vec3 offset) override;

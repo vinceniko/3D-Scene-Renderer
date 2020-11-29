@@ -32,7 +32,7 @@
 float WIDTH;
 float HEIGHT;
 
-std::unique_ptr<MyContext> ctx;
+MyContext* ctx;
 
 glm::vec2 get_cursor_pos(GLFWwindow* window) {
     int width, height;
@@ -53,7 +53,7 @@ glm::vec2 get_cursor_pos(GLFWwindow* window) {
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // take into account aspect ratio
-    ctx->camera->set_aspect(static_cast<float>(width) / static_cast<float>(height));
+    ctx->env.camera->set_aspect(static_cast<float>(width) / static_cast<float>(height));
     glViewport(0, 0, width, height);
 }
 
@@ -101,7 +101,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         {
             // spawn
         case GLFW_KEY_1:
-            ctx->push_mesh_entity({ MeshList::CUBE });
+            ctx->push_mesh_entity({ DefMeshList::CUBE });
             break;
         case GLFW_KEY_2:
             ctx->push_mesh_entity({ MeshList::BUMPY });
@@ -124,7 +124,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
             // projection
         case GLFW_KEY_C:
-            ctx->camera->switch_projection();
+            ctx->env.camera->switch_projection();
             break;
         default:
             // model
@@ -141,52 +141,52 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                     break;
                     // translate
                 case GLFW_KEY_D:
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(window_size_factor, 0.0, 0.0));
+                    selected->get().translate(ctx->env.camera->get_view(), glm::vec3(window_size_factor, 0.0, 0.0));
                     break;
                 case GLFW_KEY_A:
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(-window_size_factor, 0.0, 0.0));
+                    selected->get().translate(ctx->env.camera->get_view(), glm::vec3(-window_size_factor, 0.0, 0.0));
                     break;
                 case GLFW_KEY_W:
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, window_size_factor, 0.0));
+                    selected->get().translate(ctx->env.camera->get_view(), glm::vec3(0.0, window_size_factor, 0.0));
                     break;
                 case GLFW_KEY_S:
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, -window_size_factor, 0.0));
+                    selected->get().translate(ctx->env.camera->get_view(), glm::vec3(0.0, -window_size_factor, 0.0));
                     break;
                     // z axis
                 case GLFW_KEY_EQUAL:
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, 0.0, -window_size_factor));
+                    selected->get().translate(ctx->env.camera->get_view(), glm::vec3(0.0, 0.0, -window_size_factor));
                     break;
                 case GLFW_KEY_MINUS:
-                    selected->get().translate(ctx->camera->get_view(), glm::vec3(0.0, 0.0, window_size_factor));
+                    selected->get().translate(ctx->env.camera->get_view(), glm::vec3(0.0, 0.0, window_size_factor));
                     break;
                     // scale
                 case GLFW_KEY_K:
-                    selected->get().scale(ctx->camera->get_view(), MeshEntity::ScaleDir::In, window_size_factor);
+                    selected->get().scale(ctx->env.camera->get_view(), MeshEntity::ScaleDir::In, window_size_factor);
                     break;
                 case GLFW_KEY_L:
-                    selected->get().scale(ctx->camera->get_view(), MeshEntity::ScaleDir::Out, window_size_factor);
+                    selected->get().scale(ctx->env.camera->get_view(), MeshEntity::ScaleDir::Out, window_size_factor);
                     break;
                     // rotate
                     // x
                 case GLFW_KEY_T:
-                    selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(1.f, 0.f, 0.f));
+                    selected->get().rotate(ctx->env.camera->get_view(), -10.f, glm::vec3(1.f, 0.f, 0.f));
                     break;
                 case GLFW_KEY_Y:
-                    selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(1.f, 0.f, 0.f));
+                    selected->get().rotate(ctx->env.camera->get_view(), 10.f, glm::vec3(1.f, 0.f, 0.f));
                     break;
                     // y
                 case GLFW_KEY_F:
-                    selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(0.f, 1.f, 0.f));
+                    selected->get().rotate(ctx->env.camera->get_view(), -10.f, glm::vec3(0.f, 1.f, 0.f));
                     break;
                 case GLFW_KEY_G:
-                    selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(0.f, 1.f, 0.f));
+                    selected->get().rotate(ctx->env.camera->get_view(), 10.f, glm::vec3(0.f, 1.f, 0.f));
                     break;
                     // z
                 case GLFW_KEY_H:
-                    selected->get().rotate(ctx->camera->get_view(), 10.f, glm::vec3(0.f, 0.f, 1.f));
+                    selected->get().rotate(ctx->env.camera->get_view(), 10.f, glm::vec3(0.f, 0.f, 1.f));
                     break;
                 case GLFW_KEY_J:
-                    selected->get().rotate(ctx->camera->get_view(), -10.f, glm::vec3(0.f, 0.f, 1.f));
+                    selected->get().rotate(ctx->env.camera->get_view(), -10.f, glm::vec3(0.f, 0.f, 1.f));
                     break;
                 }
             }
@@ -202,7 +202,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 #ifdef DEBUG
     std::cout << "scroll: " << ctx->mouse_ctx.get_scroll() << std::endl;
 #endif
-    ctx->camera->zoom_protected(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ScaleDir::In : Camera::ScaleDir::Out, glm::abs(scroll_diff / 20.f));
+    ctx->env.camera->zoom_protected(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ScaleDir::In : Camera::ScaleDir::Out, glm::abs(scroll_diff / 20.f));
 }
 
 int main(void)
@@ -271,14 +271,12 @@ int main(void)
     std::unique_ptr<ShaderProgramCtx> programs = std::unique_ptr<ShaderProgramCtx>{ new ShaderProgramCtx };
     programs->bind(ShaderPrograms::PHONG);
 
-    ctx = std::make_unique<MyContext>(
-        MyContext(
+    ctx = new MyContext(
             std::move(programs),
             width, 
             height
-        )
-    );
-    ctx->init_mesh_prototypes(std::vector<Mesh>{ UnitCube{}, BumpyCubeMesh{}, BunnyMesh{} });
+        );
+    ctx->init_mesh_prototypes(std::vector<Mesh>{ BumpyCubeMesh{}, BunnyMesh{} });
 
     // callbacks
     glfwSetKeyCallback(window, key_callback);
@@ -297,7 +295,7 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // // swivel animation
-        // auto camera = dynamic_cast<TrackballCamera*>(&ctx->camera.get_camera());
+        // auto camera = dynamic_cast<TrackballCamera*>(&ctx->env.camera.get_camera());
         // if (camera != nullptr) {
         //     camera->swivel();
         // }
@@ -316,6 +314,8 @@ int main(void)
     for (auto& program : *ctx->programs) {
         program->free();
     }
+
+    delete ctx;
 
     // Deallocate glfw internals
     glfwTerminate();

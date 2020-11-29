@@ -9,6 +9,7 @@
 #include "camera.h"
 #include "mesh.h"
 #include "shader.h"
+#include "environment.h"
 
 #ifdef DEBUG
 #include <iostream>
@@ -65,14 +66,13 @@ public:
 
     std::unique_ptr<ShaderProgramCtx> programs;
 
-    GLCamera camera;
-
-    MouseContext mouse_ctx;
-
     MeshFactory mesh_factory;
     MeshEntityList mesh_list;
 
-    Context(std::unique_ptr<ShaderProgramCtx> programs);
+    Environment env;
+
+    MouseContext mouse_ctx;
+
     Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> camera);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
@@ -97,7 +97,6 @@ public:
 
     // cycles through the available draw modes enumerated in GLContext::DrawMode
     void switch_draw_mode();
-
 
     // frame by frame updates. call prior to drawing
     void update();

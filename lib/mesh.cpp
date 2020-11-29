@@ -165,6 +165,40 @@ glm::vec3 Mesh::calc_scale() const {
     return glm::vec3{ 1.f / (xmax - xmin), 1.f / (ymax - ymin), 1.f / (zmax - zmin) };
 }
 
+void GLMesh::init(int VAO, uint32_t VBO, uint32_t EBO) {
+    // bind to VAO
+    glBindVertexArray(VAO);
+    // buffer data to VBO
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    size_t size_verts = sizeof(glm::vec3) * get_verts().size();
+    size_t size_normals = sizeof(glm::vec3) * get_verts().size();
+    glBufferData(GL_ARRAY_BUFFER, size_verts + size_normals, 0, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, size_verts, get_verts().data());
+    glBufferSubData(GL_ARRAY_BUFFER, size_verts, size_normals, get_normals().data());
+    // buffer data to EBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * TRI * get_faces().size(), get_faces().data(), GL_STATIC_DRAW);
+
+    // vertex positions
+    int32_t position_id = programs_.get().get_selected_program().attrib("a_pos");
+    if (position_id < 0) {
+        throw std::runtime_error("gl vertex attribute not found");
+    }
+    glEnableVertexAttribArray(position_id);
+
+    int32_t normal_id = programs_.get().get_selected_program().attrib("a_normal");
+    if (normal_id < 0) {
+        throw std::runtime_error("gl vertex attribute not found");
+    }
+    glEnableVertexAttribArray(normal_id);
+
+    glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)(size_verts));
+
+    // unbind VAO
+    glBindVertexArray(0);
+}
+
 const size_t MeshEntity::get_id() const {
     return id_;
 }
@@ -250,6 +284,22 @@ void MeshEntity::draw() {
 #endif
 }
 
+void MeshEntity::draw_no_color() {
+    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
+
+    glBindVertexArray(mesh_ref.VAO_);
+
+    model_uniform_.buffer(trans_);
+
+    glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
+
+#ifdef DEBUG
+    check_gl_error();
+#endif
+}
+
 void MeshEntity::draw_wireframe() {
     const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
 
@@ -262,7 +312,7 @@ void MeshEntity::draw_wireframe() {
     // // glLineWidth doesn't work, maybe an Apple driver bug 
     // glLineWidth(2.f);
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
-
+    
     glBindVertexArray(0);
 
 #ifdef DEBUG
@@ -283,40 +333,7 @@ MeshEntityList MeshFactory::push(std::vector<Mesh> meshes) {
 
     for (uint i = 0; i < meshes.size(); i++) {
         // assign gl objects and commit to mesh list
-        meshes_.push_back(std::unique_ptr<GLMesh>{ new GLMesh{ VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i]) } });
-        const GLMesh& inserted_mesh = *meshes_[meshes_.size() - 1];
-
-        // bind to VAO
-        glBindVertexArray(VAOs[i]);
-        // buffer data to VBO
-        glBindBuffer(GL_ARRAY_BUFFER, VBOs[i]);
-        size_t size_verts = sizeof(glm::vec3) * inserted_mesh.get_verts().size();
-        size_t size_normals = sizeof(glm::vec3) * inserted_mesh.get_verts().size();
-        glBufferData(GL_ARRAY_BUFFER, size_verts + size_normals, 0, GL_STATIC_DRAW);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, size_verts, inserted_mesh.get_verts().data());
-        glBufferSubData(GL_ARRAY_BUFFER, size_verts, size_normals, inserted_mesh.get_normals().data());
-        // buffer data to EBO
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[i]);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * TRI * inserted_mesh.get_faces().size(), inserted_mesh.get_faces().data(), GL_STATIC_DRAW);
-
-        // vertex positions
-        int32_t position_id = programs_.get().get_selected_program().attrib("a_pos");
-        if (position_id < 0) {
-            throw std::runtime_error("gl vertex attribute not found");
-        }
-        glEnableVertexAttribArray(position_id);
-
-        int32_t normal_id = programs_.get().get_selected_program().attrib("a_normal");
-        if (normal_id < 0) {
-            throw std::runtime_error("gl vertex attribute not found");
-        }
-        glEnableVertexAttribArray(normal_id);
-
-        glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-        glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)(size_verts));
-
-        // unbind VAO
-        glBindVertexArray(0);
+        meshes_.push_back(std::unique_ptr<GLMesh>{ new GLMesh{ programs_, VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i]) } });
 
 #ifdef DEBUG
         check_gl_error();
@@ -333,7 +350,7 @@ const std::vector<std::unique_ptr<GLMesh>>& MeshFactory::get_meshes() const {
 }
 
 MeshEntity MeshFactory::get_mesh_entity(size_t i) {
-    return MeshEntity{ std::ref<MeshFactory>(*this), i };
+    return MeshEntity{ *this, i };
 }
 
 void MeshEntityList::draw() {
@@ -345,4 +362,8 @@ void MeshEntityList::draw_wireframe() {
     for (MeshEntity& mesh : *this) {
         mesh.draw_wireframe();
     }
+}
+
+const GLMesh& MeshEntity::get_mesh() {
+    return *ctx_.get().get_meshes()[id_];
 }

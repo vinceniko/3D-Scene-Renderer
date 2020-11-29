@@ -1,6 +1,6 @@
 #include "camera.h"
 
-Camera::Camera() : projection_mode_(Ortho) {
+Camera::Camera(float aspect) : projection_mode_(Perspective), aspect_(aspect) {
     trans_ = glm::translate(trans_, glm::vec3(0.0f, 0.f, -2.f));
 }
 Camera::Camera(float aspect, float fov) : projection_mode_(Perspective), aspect_(aspect), fov_(fov) {
@@ -16,6 +16,9 @@ void Camera::set_projection_mode(Camera::Projection projection) {
 
 void Camera::set_aspect(float aspect) {
     aspect_ = aspect;
+}
+void Camera::set_fov(float fov) {
+    fov_ = fov;
 }
 
 glm::mat4 Camera::get_projection() const {
@@ -98,12 +101,13 @@ void FreeCamera::zoom(ScaleDir zoom_dir, float percent) {
     translate(glm::vec3(0.f, 0.f, zoom_offset));
 }
 
-TrackballCamera::TrackballCamera() : Camera() {
+TrackballCamera::TrackballCamera(float aspect) : Camera(aspect) {
     translate(glm::vec3(0.0));
 }
 TrackballCamera::TrackballCamera(float aspect, float fov) : Camera(aspect, fov) {
     translate(glm::vec3(0.0));
 }
+
 
 void TrackballCamera::zoom(ScaleDir zoom_dir, float percent) {
     // TODO: limit zoom in

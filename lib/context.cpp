@@ -45,17 +45,14 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(std::unique_ptr<ShaderProgramCtx> programs) :
-    programs(std::move(programs)), camera(*this->programs.get(), std::make_shared<TwoDCamera>(TwoDCamera())), mesh_factory(*this->programs.get()) {}
-
 Context::Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> new_cam) :
-    programs(std::move(programs)), camera(*this->programs.get(), new_cam), mesh_factory(*this->programs.get()) {}
+    programs(std::move(programs)), mesh_factory(*this->programs), env(*this->programs, this->mesh_factory, new_cam) {}
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
     float min_dist = std::numeric_limits<float>::infinity();
     int closest = -1;
     for (size_t i = 0; i < mesh_list.size(); i++) {
-        float distance = mesh_list[i].intersected_triangles(camera->get_position(), world_ray);
+        float distance = mesh_list[i].intersected_triangles(env.camera->get_position(), world_ray);
         if (distance >= 0) {
             if (min_dist > distance) {
                 min_dist = distance;
@@ -69,7 +66,7 @@ int Context::intersected_mesh_ortho(glm::vec3 world_pos) const {
     float min_dist = std::numeric_limits<float>::infinity();
     int closest = -1;
     for (size_t i = 0; i < mesh_list.size(); i++) {
-        float distance = mesh_list[i].intersected_triangles(world_pos, glm::inverse(camera->get_view()) * glm::vec4(0.0, 0.0, -1.f, 0.f));
+        float distance = mesh_list[i].intersected_triangles(world_pos, glm::inverse(env.camera->get_view()) * glm::vec4(0.0, 0.0, -1.f, 0.f));
         if (distance >= 0) {
             if (min_dist > distance) {
                 min_dist = distance;
@@ -80,11 +77,11 @@ int Context::intersected_mesh_ortho(glm::vec3 world_pos) const {
     return closest;
 }
 void Context::select(glm::vec2 cursor_pos, float width, float height) {
-    if (camera->get_projection_mode() == Camera::Projection::Ortho) {
-        glm::vec3 pos_world = camera->get_pos_world(cursor_pos, width, height);
+    if (env.camera->get_projection_mode() == Camera::Projection::Ortho) {
+        glm::vec3 pos_world = env.camera->get_pos_world(cursor_pos, width, height);
         select_ortho(pos_world);
     } else {
-        glm::vec3 ray_world = camera->get_ray_world(cursor_pos, width, height);
+        glm::vec3 ray_world = env.camera->get_ray_world(cursor_pos, width, height);
         select_perspective(ray_world);
     }
 }
@@ -137,7 +134,7 @@ void Context::update() {
         auto diff = new_point - old_point;
         std::cout << "diff: " << diff[0] << ' ' << diff[1] << std::endl;
 #endif
-        camera->translate(glm::vec3(new_point, 0.f), glm::vec3(old_point, 0.f));
+        env.camera->translate(glm::vec3(new_point, 0.f), glm::vec3(old_point, 0.f));
     }
 
 #ifdef DEBUG
@@ -146,7 +143,7 @@ void Context::update() {
     }
 #endif
 
-    camera.buffer();
+    env.camera.buffer();
 }
 
 void Context::init_mesh_prototypes(std::vector<Mesh> meshes) {
@@ -166,6 +163,7 @@ void Context::switch_draw_mode() {
 }
 
 void Context::update_draw() {
+    env.draw();
     programs->bind(programs->get_selected());
     programs->reload();
     update();
@@ -189,12 +187,12 @@ void Context::draw_wireframe() {
 
     float min_zoom = 1.f / std::pow(2, 10);  // to prevent z-fighting
 
-    auto temp = camera->get_view();
+    auto temp = env.camera->get_view();
     // minimally scale the view to draw on top
-    camera->scale_view(Camera::ScaleDir::Out, min_zoom);
-    camera.buffer();
+    env.camera->scale_view(Camera::ScaleDir::Out, min_zoom);
+    env.camera.buffer();
     mesh_list.draw_wireframe();
-    camera->set_view(temp);
+    env.camera->set_view(temp);
     
     programs->bind(selected);
 }
@@ -202,7 +200,7 @@ void Context::draw_normals() {
     ShaderPrograms selected = programs->get_selected();
 
     programs->bind(ShaderPrograms::NORMALS);;
-    camera.buffer();
+    env.camera.buffer();
 
     for (auto& mesh : mesh_list) {
         auto temp = mesh.get_color();

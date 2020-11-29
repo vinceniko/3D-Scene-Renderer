@@ -25,8 +25,15 @@
 #include <memory>
 #include <functional>
 
+enum DefMeshList {
+    NUM_DEF_MESHES = 1,
+    CUBE = 0,
+};
+
+const std::string DEF_MESH_DIR = "../data/";
+
 // indexes into a primitive of a mesh
-using Indexer = std::array<uint, TRI>;
+using Indexer = std::array<uint32_t, TRI>;
 
 class MeshEntity;
 
@@ -71,12 +78,40 @@ public:
     void gen_normals();
 };
 
+class UnitCube : public Mesh {
+public:
+    UnitCube() : Mesh(DEF_MESH_DIR + "cube.off") {}
+};
+
 // holds mesh and GL vertex info
 struct GLMesh : public Mesh {
-    uint VAO_, VBO_, EBO_;
+    std::reference_wrapper<ShaderProgramCtx> programs_;
+
+    uint32_t VAO_, VBO_, EBO_;
+
+    void init(int VAO, uint32_t VBO, uint32_t EBO);
 
 public:
-    GLMesh(uint VAO, uint VBO, uint EBO, Mesh&& mesh) : VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(mesh) {}
+    GLMesh(ShaderProgramCtx& programs, Mesh&& mesh) : programs_(programs), Mesh(std::move(mesh)) {
+        glGenVertexArrays(1, &VAO_);
+        glGenBuffers(1, &VBO_);
+        glGenBuffers(1, &EBO_);
+
+        init(VAO_, VBO_, EBO_);
+    }
+    GLMesh(ShaderProgramCtx& programs, uint32_t VAO, uint32_t VBO, uint32_t EBO, Mesh&& mesh) : programs_(programs), VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(std::move(mesh)) {
+        init(VAO_, VBO_, EBO_);
+    }
+
+    uint32_t get_VAO() const {
+        return VAO_;
+    }
+    uint32_t get_VBO() const {
+        return VBO_;
+    }
+    uint32_t get_EBO() const {
+        return EBO_;
+    }
     // // TODO, cannot use emplace due to vector resizing deleting mem, put freeing into ctx
     ~GLMesh() {
 #ifdef DEBUG
@@ -114,6 +149,7 @@ public:
     void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) override;
 
     void draw();
+    void draw_no_color();
     void draw_wireframe();
 
     float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const;
@@ -121,6 +157,7 @@ public:
     // translate, scale, and rotate back to origin, fitting into a unit cube
     void set_to_origin();
 
+    const GLMesh& get_mesh();
     // TODO draw with u_model_trans_ and update u_model_trans_ on GL side
 };
 
@@ -140,13 +177,20 @@ class MeshFactory {
     // store meshes as unique pointers to avoid copy operations and so that mem gets deallocated at the end of the program
     std::vector<std::unique_ptr<GLMesh>> meshes_;
 
+    static int get(int n) {
+        return static_cast<int>(n) + static_cast<int>(DefMeshList::NUM_DEF_MESHES);
+    }
+
 public:
     friend class MeshEntity;
 
-    MeshFactory(ShaderProgramCtx& programs) : programs_(programs), meshes_() {}
+    MeshFactory(ShaderProgramCtx& programs) : programs_(programs), meshes_() {
+        push(std::vector<Mesh>{ UnitCube{} });
+    }
 
     MeshEntityList push(std::vector<Mesh> meshes);
 
     const std::vector<std::unique_ptr<GLMesh>>& get_meshes() const;
+    
     MeshEntity get_mesh_entity(size_t i);
 };
