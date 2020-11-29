@@ -149,7 +149,7 @@ void Context::update() {
 void Context::init_mesh_prototypes(std::vector<Mesh> meshes) {
     mesh_factory.push(meshes);
 }
-void Context::push_mesh_entity(std::vector<size_t> ids) {
+void Context::push_mesh_entity(std::vector<int> ids) {
     for (const auto& id : ids) {
         mesh_list.push_back(mesh_factory.get_mesh_entity(id));
     }

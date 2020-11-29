@@ -27,7 +27,7 @@
 
 enum DefMeshList {
     NUM_DEF_MESHES = 1,
-    CUBE = 0,
+    CUBE = -NUM_DEF_MESHES,
 };
 
 const std::string DEF_MESH_DIR = "../data/";
@@ -177,8 +177,12 @@ class MeshFactory {
     // store meshes as unique pointers to avoid copy operations and so that mem gets deallocated at the end of the program
     std::vector<std::unique_ptr<GLMesh>> meshes_;
 
-    static int get(int n) {
-        return static_cast<int>(n) + static_cast<int>(DefMeshList::NUM_DEF_MESHES);
+    // n is DefMeshList or user defined MeshList
+    static size_t get_from_kind(int n) {
+        return n + static_cast<int>(DefMeshList::NUM_DEF_MESHES);
+    }
+    static int get_from_idx(size_t n) {
+        return static_cast<int>(n) - static_cast<int>(DefMeshList::NUM_DEF_MESHES);
     }
 
 public:
@@ -192,5 +196,6 @@ public:
 
     const std::vector<std::unique_ptr<GLMesh>>& get_meshes() const;
     
+    MeshEntity get_mesh_entity(int i);
     MeshEntity get_mesh_entity(size_t i);
 };

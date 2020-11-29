@@ -93,7 +93,7 @@ public:
     // loads in mesh prototypes into the mesh_factory
     void init_mesh_prototypes(std::vector<Mesh> meshes);
     // adds a mesh entity to mesh_list. these are references to the prototypes in mesh_factory
-    void push_mesh_entity(std::vector<size_t> ids);
+    void push_mesh_entity(std::vector<int> ids);
 
     // cycles through the available draw modes enumerated in GLContext::DrawMode
     void switch_draw_mode();

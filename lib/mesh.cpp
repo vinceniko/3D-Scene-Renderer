@@ -349,6 +349,9 @@ const std::vector<std::unique_ptr<GLMesh>>& MeshFactory::get_meshes() const {
     return meshes_;
 }
 
+MeshEntity MeshFactory::get_mesh_entity(int i) {
+    return MeshEntity{ *this, MeshFactory::get_from_kind(i) };
+}
 MeshEntity MeshFactory::get_mesh_entity(size_t i) {
     return MeshEntity{ *this, i };
 }

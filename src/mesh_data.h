@@ -7,7 +7,7 @@
 const std::string MESH_DIR = "../data/";
 
 enum MeshList {
-    BUMPY=1,
+    BUMPY,
     BUNNY,
 };
 
