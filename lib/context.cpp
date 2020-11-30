@@ -46,7 +46,7 @@ double MouseContext::get_scroll() const {
 }
 
 Context::Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> new_cam) :
-    programs(std::move(programs)), mesh_factory(*this->programs), env(*this->programs, this->mesh_factory, new_cam) {}
+    programs(std::move(programs)), mesh_factory(*this->programs), env(this->mesh_factory, new_cam) {}
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
     float min_dist = std::numeric_limits<float>::infinity();
@@ -143,11 +143,11 @@ void Context::update() {
     }
 #endif
 
-    env.camera.buffer();
+    env.camera.buffer(*programs.get());
 }
 
 void Context::init_mesh_prototypes(std::vector<Mesh> meshes) {
-    mesh_factory.push(meshes);
+    mesh_factory.push(*programs.get(), meshes);
 }
 void Context::push_mesh_entity(std::vector<int> ids) {
     for (const auto& id : ids) {
@@ -175,10 +175,10 @@ void Context::update_draw() {
     else if (draw_mode == DrawMode::NORMALS) {
         draw_normals();
     }
-    env.draw();
+    env.draw(*programs.get());
 }
 void Context::draw_surface() {
-    mesh_list.draw();
+    mesh_list.draw(*programs.get());
 }
 void Context::draw_wireframe() {
     ShaderPrograms selected = programs->get_selected();
@@ -190,8 +190,8 @@ void Context::draw_wireframe() {
     auto temp = env.camera->get_view();
     // minimally scale the view to draw on top
     env.camera->scale_view(Camera::ScaleDir::Out, min_zoom);
-    env.camera.buffer();
-    mesh_list.draw_wireframe();
+    env.camera.buffer(*programs.get());
+    mesh_list.draw_wireframe(*programs.get());
     env.camera->set_view(temp);
     
     programs->bind(selected);
@@ -200,16 +200,16 @@ void Context::draw_normals() {
     ShaderPrograms selected = programs->get_selected();
 
     programs->bind(ShaderPrograms::NORMALS);;
-    env.camera.buffer();
+    env.camera.buffer(*programs.get());
 
     for (auto& mesh : mesh_list) {
         auto temp = mesh.get_color();
         mesh.set_color(glm::vec3(1.0, 0.0, 0.0));
-        mesh.draw();
+        mesh.draw(*programs.get());
         mesh.set_color(temp);
     }
 
-    mesh_list.draw();
+    mesh_list.draw(*programs.get());
 
     programs->bind(selected);
 }

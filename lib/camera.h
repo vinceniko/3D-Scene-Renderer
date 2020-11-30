@@ -118,15 +118,13 @@ public:
 class GLCamera {
     std::shared_ptr<Camera> camera_;
 
-    std::reference_wrapper<ShaderProgramCtx> programs_;
-
     GLTransform view_uniform_;
     GLTransform projection_uniform_;
 
-    void buffer_view_uniform();
-    void buffer_projection_uniform();
+    void buffer_view_uniform(ShaderProgramCtx& programs);
+    void buffer_projection_uniform(ShaderProgramCtx& programs);
 public:
-    GLCamera(ShaderProgramCtx& programs, std::shared_ptr<Camera> camera);
+    GLCamera(std::shared_ptr<Camera> camera);
 
     Camera& get_camera();
     std::shared_ptr<Camera> get_camera_ptr();
@@ -136,5 +134,5 @@ public:
     const Camera* operator ->() const;
 
     // buffers the data. used to update gl state after mutating program state
-    void buffer();
+    void buffer(ShaderProgramCtx& programs);
 };

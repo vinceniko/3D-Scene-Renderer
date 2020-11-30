@@ -85,22 +85,20 @@ public:
 
 // holds mesh and GL vertex info
 struct GLMesh : public Mesh {
-    std::reference_wrapper<ShaderProgramCtx> programs_;
-
     uint32_t VAO_, VBO_, EBO_;
 
-    void init(int VAO, uint32_t VBO, uint32_t EBO);
+    void init(ShaderProgramCtx& programs, int VAO, uint32_t VBO, uint32_t EBO);
 
 public:
-    GLMesh(ShaderProgramCtx& programs, Mesh&& mesh) : programs_(programs), Mesh(std::move(mesh)) {
+    GLMesh(ShaderProgramCtx& programs, Mesh&& mesh) : Mesh(std::move(mesh)) {
         glGenVertexArrays(1, &VAO_);
         glGenBuffers(1, &VBO_);
         glGenBuffers(1, &EBO_);
 
-        init(VAO_, VBO_, EBO_);
+        init(programs, VAO_, VBO_, EBO_);
     }
-    GLMesh(ShaderProgramCtx& programs, uint32_t VAO, uint32_t VBO, uint32_t EBO, Mesh&& mesh) : programs_(programs), VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(std::move(mesh)) {
-        init(VAO_, VBO_, EBO_);
+    GLMesh(ShaderProgramCtx& programs, uint32_t VAO, uint32_t VBO, uint32_t EBO, Mesh&& mesh) : VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(std::move(mesh)) {
+        init(programs, VAO_, VBO_, EBO_);
     }
 
     uint32_t get_VAO() const {
@@ -148,9 +146,9 @@ public:
     void scale(glm::mat4 view_trans, ScaleDir dir, float offset) override;
     void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) override;
 
-    void draw();
-    void draw_no_color();
-    void draw_wireframe();
+    void draw(ShaderProgramCtx& programs);
+    void draw_no_color(ShaderProgramCtx& programs);
+    void draw_wireframe(ShaderProgramCtx& programs);
 
     float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const;
 
@@ -164,16 +162,14 @@ public:
 // a list of MeshEntity, i.e. references to Meshes inside the GLMeshFactory; whats actually drawn
 class MeshEntityList : public std::vector<MeshEntity> {
 public:
-    void draw();
-    void draw_wireframe();
+    void draw(ShaderProgramCtx& programs);
+    void draw_wireframe(ShaderProgramCtx& programs);
 };
 
 // holds mesh prototypes from which to generate MeshEntities
 // i.e. each GLMesh in meshes_ is unique
 // all meshes used by the program get loaded in here once and may be drawn multiple times depending on how many MeshEntities are created
 class MeshFactory {
-    std::reference_wrapper<ShaderProgramCtx> programs_;
-
     // store meshes as unique pointers to avoid copy operations and so that mem gets deallocated at the end of the program
     std::vector<std::unique_ptr<GLMesh>> meshes_;
 
@@ -188,11 +184,11 @@ class MeshFactory {
 public:
     friend class MeshEntity;
 
-    MeshFactory(ShaderProgramCtx& programs) : programs_(programs), meshes_() {
-        push(std::vector<Mesh>{ UnitCube{} });
+    MeshFactory(ShaderProgramCtx& programs) : meshes_() {
+        push(programs, std::vector<Mesh>{ UnitCube{} });
     }
 
-    MeshEntityList push(std::vector<Mesh> meshes);
+    MeshEntityList push(ShaderProgramCtx& programs, std::vector<Mesh> meshes);
 
     const std::vector<std::unique_ptr<GLMesh>>& get_meshes() const;
     

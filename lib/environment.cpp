@@ -92,7 +92,7 @@ void GLCubeMap::load(const std::string& dir_path) {
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
-void GLCubeMap::draw() {
+void GLCubeMap::draw(ShaderProgramCtx& programs) {
     glDepthFunc(GL_LEQUAL);
 
     glActiveTexture(GL_TEXTURE0);
@@ -100,16 +100,16 @@ void GLCubeMap::draw() {
     glBindTexture(GL_TEXTURE_CUBE_MAP, tex_id_);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    cube_entity_.draw_no_color();
+    cube_entity_.draw_no_color(programs);
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     
     glDepthFunc(GL_LESS);
 }
 
-void Environment::draw() {
-    ShaderPrograms selected = programs_.get_selected();
-    programs_.bind(ShaderPrograms::ENV);
+void Environment::draw(ShaderProgramCtx& programs) {
+    ShaderPrograms selected = programs.get_selected();
+    programs.bind(ShaderPrograms::ENV);
 
     glm::mat4 old_camera_view = camera->get_view();
     Camera::Projection old_mode = camera->get_projection_mode();
@@ -118,12 +118,12 @@ void Environment::draw() {
     camera->set_projection_mode(Camera::Projection::Perspective);
     camera->set_fov(fov_);
 
-    camera.buffer();
+    camera.buffer(programs);
 
-    cube_map_.draw();
+    cube_map_.draw(programs);
 
     camera->set_fov(old_fov);
     camera->set_view(old_camera_view);
     camera->set_projection_mode(old_mode);
-    programs_.bind(selected);
+    programs.bind(selected);
 }

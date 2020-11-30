@@ -166,21 +166,20 @@ void TrackballCamera::swivel() {
     trans_ = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 }
 
-GLCamera::GLCamera(ShaderProgramCtx& programs, std::shared_ptr<Camera> camera) :
+GLCamera::GLCamera(std::shared_ptr<Camera> camera) :
     camera_(camera),
-    programs_(programs),
-    view_uniform_(programs, "u_view_trans", camera->get_view()),
-    projection_uniform_(programs, "u_projection", camera_->get_projection()) {}
+    view_uniform_("u_view_trans"),
+    projection_uniform_("u_projection") {}
 
-void GLCamera::buffer_view_uniform() {
-    view_uniform_.buffer(camera_->get_view());
+void GLCamera::buffer_view_uniform(ShaderProgramCtx& programs) {
+    view_uniform_.buffer(programs, camera_->get_view());
 }
-void GLCamera::buffer_projection_uniform() {
-    projection_uniform_.buffer(camera_->get_projection());
+void GLCamera::buffer_projection_uniform(ShaderProgramCtx& programs) {
+    projection_uniform_.buffer(programs, camera_->get_projection());
 }
-void GLCamera::buffer() {
-    buffer_view_uniform();
-    buffer_projection_uniform();
+void GLCamera::buffer(ShaderProgramCtx& programs) {
+    buffer_view_uniform(programs);
+    buffer_projection_uniform(programs);
 }
 
 Camera& GLCamera::get_camera() {
