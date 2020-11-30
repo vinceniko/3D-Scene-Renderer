@@ -65,9 +65,8 @@ void GLCubeMap::load(const std::string& dir_path) {
     glGenTextures(1, &tex_id_);
     glBindTexture(GL_TEXTURE_CUBE_MAP, tex_id_);
 
+    stbi_set_flip_vertically_on_load(true);
     for (auto& tex_path : std::filesystem::directory_iterator(dir_path)) {
-        stbi_set_flip_vertically_on_load(true);
-
         int width, height, n_chan;
         unsigned char* data = stbi_load(tex_path.path().c_str(), &width, &height, &n_chan, 0);
         if (data) {
@@ -82,6 +81,7 @@ void GLCubeMap::load(const std::string& dir_path) {
         }
         stbi_image_free(data);
     }
+    stbi_set_flip_vertically_on_load(false);
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -93,17 +93,18 @@ void GLCubeMap::load(const std::string& dir_path) {
 }
 
 void GLCubeMap::draw() {
-    glBindTexture(GL_TEXTURE_CUBE_MAP, tex_id_);
+    glDepthFunc(GL_LEQUAL);
 
+    glActiveTexture(GL_TEXTURE0);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP, tex_id_);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    glDepthMask(GL_FALSE);
-
     cube_entity_.draw_no_color();
-    
-    glDepthMask(GL_TRUE);
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    
+    glDepthFunc(GL_LESS);
 }
 
 void Environment::draw() {

@@ -163,7 +163,6 @@ void Context::switch_draw_mode() {
 }
 
 void Context::update_draw() {
-    env.draw();
     programs->bind(programs->get_selected());
     programs->reload();
     update();
@@ -176,6 +175,7 @@ void Context::update_draw() {
     else if (draw_mode == DrawMode::NORMALS) {
         draw_normals();
     }
+    env.draw();
 }
 void Context::draw_surface() {
     mesh_list.draw();
