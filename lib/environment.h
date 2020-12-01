@@ -27,7 +27,7 @@ protected:
     static CubeMapFace parse_path_name(const std::string& path_name);
 
 public:
-    virtual void load(const std::string& dir_path) = 0;
+    virtual void load(const std::string& dir_path, bool flip) = 0;
 };
 
 class GLCubeMap : public CubeMap {    
@@ -46,7 +46,7 @@ public:
     }
     GLCubeMap(MeshFactory& mesh_factory) : GLCubeMap(mesh_factory, DEF_CUBE_MAP_DIR_PATH) {}
 
-    void load(const std::string& dir_path) override;
+    void load(const std::string& dir_path, bool flip=false) override;
 
     void draw(ShaderProgramCtx& programs);
 };
@@ -54,7 +54,7 @@ public:
 class Environment {
     GLCubeMap cube_map_;
 
-    float fov_ = 90.0;
+    float fov_ = 50.0;
 
 public:
     GLCamera camera;

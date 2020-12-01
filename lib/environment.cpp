@@ -61,11 +61,11 @@ uint32_t GLCubeMap::gl_decode_face(const std::string& path_name) {
     return gl_decode_face(parse_path_name(path_name));
 }
 
-void GLCubeMap::load(const std::string& dir_path) {
+void GLCubeMap::load(const std::string& dir_path, bool flip) {
     glGenTextures(1, &tex_id_);
     glBindTexture(GL_TEXTURE_CUBE_MAP, tex_id_);
 
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(flip);
     for (auto& tex_path : std::filesystem::directory_iterator(dir_path)) {
         int width, height, n_chan;
         unsigned char* data = stbi_load(tex_path.path().c_str(), &width, &height, &n_chan, 0);
