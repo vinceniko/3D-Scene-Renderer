@@ -16,7 +16,7 @@ const float ambient_strength = 0.5;
 
 const float specular_strength = 0.5;
 
-const float shininess = 128;
+const float shininess = pow(2, 7);
 
 void main()
 {
