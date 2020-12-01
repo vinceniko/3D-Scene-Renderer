@@ -162,7 +162,13 @@ glm::vec3 Mesh::calc_scale() const {
         zmax = std::max(zmax, pos.z);
     }
 
-    return glm::vec3{ 1.f / (xmax - xmin), 1.f / (ymax - ymin), 1.f / (zmax - zmin) };
+    float x_dist = xmax - xmin;
+    float y_dist = ymax - ymin;
+    float z_dist = zmax - zmin;
+    auto dists = std::array<float, 3>{ x_dist, y_dist, z_dist };
+    float max_dist = *std::max_element(dists.begin(), dists.end());
+
+    return glm::vec3{ 1.f / max_dist };
 }
 
 void GLMesh::init(ShaderProgramCtx& programs, int VAO, uint32_t VBO, uint32_t EBO) {
