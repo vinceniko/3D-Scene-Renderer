@@ -115,6 +115,8 @@ public:
     virtual void translate(glm::vec3 offset) override;
     virtual void translate(glm::vec3 new_point, glm::vec3 old_point) override;
     virtual void swivel();
+
+    void update_trans();
 };
 
 // stores a Camera or descendent type and necessary gl info to bind to the appropriate uniforms such as the view and projection matrix transforms

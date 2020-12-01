@@ -102,23 +102,31 @@ void FreeCamera::zoom(ScaleDir zoom_dir, float percent) {
 }
 
 TrackballCamera::TrackballCamera(float aspect) : Camera(aspect) {
-    translate(glm::vec3(0.0));
+    update_trans();
 }
 TrackballCamera::TrackballCamera(float aspect, float fov) : Camera(aspect, fov) {
-    translate(glm::vec3(0.0));
+    update_trans();
 }
 
+void TrackballCamera::update_trans() {
+    float camX = radius_ * glm::sin(phi_) * glm::cos(theta_);
+    float camY = radius_ * glm::cos(phi_);
+    float camZ = radius_ * glm::sin(phi_) * glm::sin(theta_);
+    glm::vec3 view_scale = glm::vec3(glm::length(trans_[0]), glm::length(trans_[1]), glm::length(trans_[2]));
+    trans_ = glm::scale(glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(0.0), glm::vec3(0.0, up_, 0.0)), view_scale);  // scale to preserve zoom in ortho
+}
 
 void TrackballCamera::zoom(ScaleDir zoom_dir, float percent) {
     // TODO: limit zoom in
 
     if (projection_mode_ == Projection::Perspective) {
         radius_ *= zoom_dir == Out ? 1.f + percent : 1.f - percent;
-        translate(glm::vec3(0.0));
     } else {
         Camera::scale_view(zoom_dir, percent);
     }
+    update_trans();
 }
+
 void TrackballCamera::translate(glm::vec3 offset) {
     if (up_ > 0.0f) {
         offset.x = -offset.x;
@@ -151,7 +159,7 @@ void TrackballCamera::translate(glm::vec3 offset) {
     float camY = radius_ * glm::cos(phi_);
     float camZ = radius_ * glm::sin(phi_) * glm::sin(theta_);
     glm::vec3 view_scale = glm::vec3(glm::length(trans_[0]), glm::length(trans_[1]), glm::length(trans_[2]));
-    trans_ = glm::scale(glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, up_, 0.0)), view_scale);
+    trans_ = glm::scale(glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(0.0), glm::vec3(0.0, up_, 0.0)), view_scale);  // scale to preserve zoom in ortho
 }
 void TrackballCamera::translate(glm::vec3 new_point, glm::vec3 old_point) {
     auto diff = glm::vec3(new_point.x - old_point.x, -(new_point.y - old_point.y), 0.f) * 2.f;
