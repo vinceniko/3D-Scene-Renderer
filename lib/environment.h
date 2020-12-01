@@ -9,7 +9,7 @@
 #include "mesh.h"
 #include "camera.h"
 
-const std::string DEF_CUBE_MAP_DIR_PATH = "../data/night_env/";
+const std::string DEF_CUBE_MAP_DIR_PATH = "../data/day_sky_env/";
 
 class CubeMap {
 protected:
@@ -41,7 +41,7 @@ class GLCubeMap : public CubeMap {
     uint32_t gl_decode_face(const std::string& path_name);
 public:
     GLCubeMap(MeshFactory& mesh_factory, const std::string& dir_path) : cube_entity_(mesh_factory.get_mesh_entity(DefMeshList::CUBE)) {
-        cube_entity_.scale(glm::mat4(1.f), Spatial::ScaleDir::Out, 2.0);
+        // cube_entity_.scale(glm::mat4(1.f), Spatial::ScaleDir::Out, 2.0);
         load(dir_path);
     }
     GLCubeMap(MeshFactory& mesh_factory) : GLCubeMap(mesh_factory, DEF_CUBE_MAP_DIR_PATH) {}

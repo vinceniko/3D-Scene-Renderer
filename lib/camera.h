@@ -24,11 +24,13 @@ public:
     enum Projection { Ortho, Perspective };
 
 protected:
-    float fov_ = 50.f;
+    float fov_ = 45.f;
 
     float intensity_scale_ = 2.f;
     
     float aspect_;
+
+    float up_ = 1.0;
 
     Projection projection_mode_;
 
@@ -58,6 +60,9 @@ public:
     }
     virtual float get_fov() {
         return fov_;
+    }
+    virtual float get_up() {
+        return up_;
     }
     virtual glm::mat4 get_projection() const;
     virtual Projection get_projection_mode() const;
@@ -98,8 +103,6 @@ class TrackballCamera : public Camera {
     float radius_ = 3.1f;
     float theta_ = glm::half_pi<float>();
     float phi_ = glm::half_pi<float>();
-
-    float up_ = 1.0;
 
     // for swivel
     std::chrono::steady_clock::time_point start_time_ = std::chrono::steady_clock::now();

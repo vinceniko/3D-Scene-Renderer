@@ -32,7 +32,7 @@
 float WIDTH;
 float HEIGHT;
 
-MyContext* ctx;
+std::unique_ptr<MyContext> ctx;
 
 glm::vec2 get_cursor_pos(GLFWwindow* window) {
     int width, height;
@@ -203,6 +203,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     std::cout << "scroll: " << ctx->mouse_ctx.get_scroll() << std::endl;
 #endif
     ctx->env.camera->zoom_protected(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ScaleDir::In : Camera::ScaleDir::Out, glm::abs(scroll_diff / 20.f));
+    ctx->env.camera.buffer(*ctx->programs.get());
 }
 
 int main(void)
@@ -271,12 +272,11 @@ int main(void)
     std::unique_ptr<ShaderProgramCtx> programs = std::unique_ptr<ShaderProgramCtx>{ new ShaderProgramCtx };
     programs->bind(ShaderPrograms::PHONG);
 
-    ctx = new MyContext(
+    ctx = std::unique_ptr<MyContext>(new MyContext{
             std::move(programs),
-            width, 
-            height
-        );
-    ctx->init_mesh_prototypes(std::vector<Mesh>{ BumpyCubeMesh{}, BunnyMesh{} });
+            static_cast<float>(width), 
+            static_cast<float>(height)
+    });
 
     // callbacks
     glfwSetKeyCallback(window, key_callback);
@@ -314,8 +314,6 @@ int main(void)
     for (auto& program : *ctx->programs) {
         program->free();
     }
-
-    delete ctx;
 
     // Deallocate glfw internals
     glfwTerminate();

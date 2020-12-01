@@ -23,7 +23,7 @@ void Camera::set_fov(float fov) {
 
 glm::mat4 Camera::get_projection() const {
     // return projection_mode_ == Projection::Perspective ? glm::perspective(glm::radians(fov_), aspect_, 0.1f, 100.f) : glm::ortho((aspect_ <= 1 ? -aspect_ : -1.0f), (aspect_ <= 1 ? aspect_ : 1.0f), (aspect_ > 1 ? -1.f/aspect_ : -1.0f), (aspect_ > 1 ? 1.f/aspect_ : 1.0f), 0.1f, 100.f);
-    return projection_mode_ == Projection::Perspective ? glm::perspective(glm::radians(fov_), aspect_, 0.1f, 100.f) : glm::ortho(-aspect_, aspect_, -1.f, 1.f, 0.1f, 100.f);
+    return projection_mode_ == Projection::Perspective ? glm::perspective(glm::radians(fov_), aspect_, 0.001f, 100.f) : glm::ortho(-aspect_, aspect_, -1.f, 1.f, 0.1f, 100.f);
 }
 glm::mat4 Camera::get_view() const {
     return trans_;

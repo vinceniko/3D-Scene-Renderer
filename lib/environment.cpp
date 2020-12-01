@@ -108,13 +108,17 @@ void GLCubeMap::draw(ShaderProgramCtx& programs) {
 }
 
 void Environment::draw(ShaderProgramCtx& programs) {
+    glm::mat4 old_view = camera->get_view();
+    glm::mat4 w_out_scale = glm::lookAt(camera->get_position(), glm::vec3(glm::inverse(old_view) * glm::vec4(0.f, 0.f, -1.f, 0.f)), glm::vec3(0.f, camera->get_up(), 0.f));
+    camera->set_view(w_out_scale);
+
     ShaderPrograms selected = programs.get_selected();
     programs.bind(ShaderPrograms::ENV);
 
-    glm::mat4 old_camera_view = camera->get_view();
     Camera::Projection old_mode = camera->get_projection_mode();
     float old_fov = camera->get_fov();
-    camera->set_view(glm::mat3(old_camera_view));
+    glm::mat4 view_w_out_trans = glm::mat3(w_out_scale);
+    camera->set_view(view_w_out_trans);
     camera->set_projection_mode(Camera::Projection::Perspective);
     camera->set_fov(fov_);
 
@@ -123,7 +127,7 @@ void Environment::draw(ShaderProgramCtx& programs) {
     cube_map_.draw(programs);
 
     camera->set_fov(old_fov);
-    camera->set_view(old_camera_view);
     camera->set_projection_mode(old_mode);
+    camera->set_view(old_view);
     programs.bind(selected);
 }

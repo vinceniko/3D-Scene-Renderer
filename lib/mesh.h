@@ -147,6 +147,7 @@ public:
     void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) override;
 
     void draw(ShaderProgramCtx& programs);
+    // TODO: change to remove
     void draw_no_color(ShaderProgramCtx& programs);
     void draw_wireframe(ShaderProgramCtx& programs);
 
@@ -182,8 +183,6 @@ class MeshFactory {
     }
 
 public:
-    friend class MeshEntity;
-
     MeshFactory(ShaderProgramCtx& programs) : meshes_() {
         push(programs, std::vector<Mesh>{ UnitCube{} });
     }
