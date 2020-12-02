@@ -6,10 +6,8 @@
 #include "context.h"
 
 class MyContext : public Context {
-    // the shaders that the program will use
-    std::array<ShaderPrograms, 4> shaders = { ShaderPrograms::PHONG, ShaderPrograms::FLAT, ShaderPrograms::REFLECT, ShaderPrograms::REFRACT };
-    // an index into the list of program shaders
-    size_t shader_idx = 0;
+    ShaderUseList shaders = { ShaderPrograms::PHONG, ShaderPrograms::FLAT, ShaderPrograms::REFLECT, ShaderPrograms::REFRACT };
+    DrawModeUseList draw_modes = { DrawMode::DEF_DRAW_MODE, DrawMode::WIREFRAME, DrawMode::WIREFRAME_ONLY  };
 
     std::array<std::shared_ptr<Camera>, 2> cameras;
     size_t camera_idx = 0;
@@ -18,7 +16,8 @@ public:
     MyContext(std::unique_ptr<ShaderProgramCtx> programs, float width, float height);
 
     // cycles through the available shader programs enumerated in ProgramList
-    void switch_program();
+    void switch_shader();
+    void switch_draw_mode();
     void set_camera(std::shared_ptr<Camera> new_camera);
     void switch_camera();
 };

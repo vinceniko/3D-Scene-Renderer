@@ -21,5 +21,5 @@ void main()
 
     vec3 env_color = texture(u_skybox, refracted).rgb;
 
-    out_color = vec4(mix(env_color, u_object_color, 0.0), 1.0);
+    out_color = vec4(mix(env_color, u_object_color, 0.05), 1.0);
 }

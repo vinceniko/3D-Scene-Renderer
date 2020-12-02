@@ -3,6 +3,7 @@
 #include <iostream>
 #include <limits>
 #include <exception>
+#include <vector>
 
 #include "helpers.h"
 #include "filewatcher.h"
@@ -15,13 +16,23 @@ const std::string SHADER_PATH = "../shaders/";
 enum ShaderPrograms {
     NUM_SHADERS = 7,
 
-    DEF = -ShaderPrograms::NUM_SHADERS,
+    DEF_SHADER = -ShaderPrograms::NUM_SHADERS,
     FLAT,
     PHONG,
     NORMALS,
     ENV,
     REFLECT,
     REFRACT,
+};
+
+// extra modes for drawing. mostly for debug purposes, such as wireframe.
+enum DrawMode {
+    DEF_DRAW_MODE,
+    WIREFRAME,
+    WIREFRAME_ONLY,
+    DRAW_NORMALS,
+
+    NUM_DRAWMODES = 4,
 };
 
 // binds shader programs
@@ -36,7 +47,7 @@ class ShaderProgramCtx : public std::vector<ShaderProgramFile*> {
 public:
     ShaderProgramCtx();
     ~ShaderProgramCtx() {
-        for (auto ptr: *this) {
+        for (auto ptr : *this) {
             delete ptr;
         }
     }
@@ -46,3 +57,20 @@ public:
     ShaderPrograms get_selected();
     void reload();
 };
+
+template <typename T>
+class Cycler : public std::vector<T> {
+    size_t idx = 0;
+public:
+    using std::vector<T>::vector;
+
+    T cycle() {
+        return (*this)[(idx += 1) %= this->size()];
+    }
+};
+
+// the draw modes that the program will use
+class DrawModeUseList : public Cycler<DrawMode> { using Cycler::Cycler; };
+
+// the shaders that the program will use
+class ShaderUseList : public Cycler<ShaderPrograms> { using Cycler::Cycler; };

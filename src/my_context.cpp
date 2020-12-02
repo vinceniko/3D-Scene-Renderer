@@ -11,9 +11,21 @@ cameras{
     init_mesh_prototypes(std::vector<Mesh>{ BumpyCubeMesh{}, BunnyMesh{}, TorusMesh{}, MonkeyMesh{} }); 
 }
 
-void MyContext::switch_program() {
-    programs->bind(shaders[(shader_idx += 1) %= shaders.size()]);
+void MyContext::switch_shader() {
+    Optional<MeshEntity> opt_mesh_entity = get_selected();
+    if (opt_mesh_entity.has_value()) {
+        MeshEntity& mesh_entity = opt_mesh_entity.value().get();
+        mesh_entity.set_shader(shaders.cycle());
+    }
 }
+void MyContext::switch_draw_mode() {
+    Optional<MeshEntity> opt_mesh_entity = get_selected();
+    if (opt_mesh_entity.has_value()) {
+        MeshEntity& mesh_entity = opt_mesh_entity.value().get();
+        mesh_entity.set_draw_mode(draw_modes.cycle());
+    }
+}
+
 void MyContext::set_camera(std::shared_ptr<Camera> new_camera) {
     env.camera.set_camera(new_camera);
 }

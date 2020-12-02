@@ -121,7 +121,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             break;
             // program
         case GLFW_KEY_P:
-            ctx->switch_program();
+            ctx->switch_shader();
             break;
         // switch camera
         case GLFW_KEY_X:

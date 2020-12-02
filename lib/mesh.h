@@ -124,7 +124,10 @@ public:
 class MeshFactory;
 
 // a reference to a Mesh inside the GLMeshFactory; represents one model being drawn;
-class MeshEntity : public Spatial {    
+class MeshEntity : public Spatial {
+    ShaderPrograms shader_ = ShaderPrograms::PHONG;
+    DrawMode draw_mode_ = DrawMode::DEF_DRAW_MODE;
+
     std::reference_wrapper<MeshFactory> ctx_;
 
     // the index into the list of meshes in GLMeshCtx
@@ -157,6 +160,20 @@ public:
     void set_to_origin();
 
     const GLMesh& get_mesh();
+    DrawMode get_draw_mode() {
+        return draw_mode_;
+    }
+    ShaderPrograms get_shader() {
+        return shader_;
+    }
+
+    void set_draw_mode(DrawMode draw_mode) {
+        draw_mode_ = draw_mode;
+    }
+    void set_shader(ShaderPrograms shader) {
+        shader_ = shader;
+    }
+
     // TODO draw with u_model_trans_ and update u_model_trans_ on GL side
 };
 
@@ -164,7 +181,7 @@ public:
 class MeshEntityList : public std::vector<MeshEntity> {
 public:
     void draw(ShaderProgramCtx& programs);
-    void draw_wireframe(ShaderProgramCtx& programs);
+    void draw_wireframes(ShaderProgramCtx& programs);
 };
 
 // holds mesh prototypes from which to generate MeshEntities

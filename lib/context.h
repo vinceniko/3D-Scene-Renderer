@@ -51,19 +51,7 @@ public:
 
 // general context, holds all other state
 class Context {
-    // extra modes for drawing. mostly for debug purposes, such as wireframe.
-    enum DrawMode {
-        DEF,
-        WIREFRAME,
-        WIREFRAME_ONLY,
-        NORMALS,
-
-        NUM_DRAWMODES = 4,
-    };
-
 public:
-    DrawMode draw_mode = DrawMode::DEF;
-
     std::unique_ptr<ShaderProgramCtx> programs;
 
     MeshFactory mesh_factory;
@@ -95,17 +83,22 @@ public:
     // adds a mesh entity to mesh_list. these are references to the prototypes in mesh_factory
     void push_mesh_entity(std::vector<int> ids);
 
-    // cycles through the available draw modes enumerated in GLContext::DrawMode
-    void switch_draw_mode();
-
     // frame by frame updates. call prior to drawing
     void update();
+    // updates and draws the model using the user bound shader program and the selected draw mode
+    void update_draw(MeshEntity& mesh_entity);
+    // draws the model using the user bound shader program
+    void draw_surfaces(MeshEntity& mesh_entity);
+    // draws a wireframe above the mesh
+    void draw_wireframes(MeshEntity& mesh_entity);
+    // draws the mesh normals
+    void draw_normals(MeshEntity& mesh_entity);
     // updates and draws the models using the user bound shader program and the selected draw mode
     void update_draw();
     // draws the models using the user bound shader program
-    void draw_surface();
-    // draws a wireframe above the mesh
-    void draw_wireframe();
+    void draw_surfaces();
+    // draws a wireframe above the meshes
+    void draw_wireframes();
     // draws the mesh normals
     void draw_normals();
 };

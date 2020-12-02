@@ -80,7 +80,8 @@ void Context::select(glm::vec2 cursor_pos, float width, float height) {
     if (env.camera->get_projection_mode() == Camera::Projection::Ortho) {
         glm::vec3 pos_world = env.camera->get_pos_world(cursor_pos, width, height);
         select_ortho(pos_world);
-    } else {
+    }
+    else {
         glm::vec3 ray_world = env.camera->get_ray_world(cursor_pos, width, height);
         select_perspective(ray_world);
     }
@@ -155,36 +156,41 @@ void Context::push_mesh_entity(std::vector<int> ids) {
     }
 }
 
-void Context::switch_draw_mode() {
-    draw_mode = static_cast<DrawMode>((static_cast<int>(draw_mode) + 1) % DrawMode::NUM_DRAWMODES);
-#ifdef DEBUG
-    std::cout << "draw_mode: " << draw_mode << std::endl;
-#endif
-}
-
-void Context::update_draw() {
-    programs->bind(programs->get_selected());
-    programs->reload();
+void Context::update_draw(MeshEntity& mesh_entity) {
+    programs->bind(mesh_entity.get_shader());
     update();
+    env.camera.buffer(*programs.get());
+    if (mesh_entity.get_draw_mode() != DrawMode::WIREFRAME_ONLY) {
+        draw_surfaces(mesh_entity);
+    }
+    if (mesh_entity.get_draw_mode() == DrawMode::WIREFRAME || mesh_entity.get_draw_mode() == DrawMode::WIREFRAME_ONLY) {
+        draw_wireframes(mesh_entity);
+    }
+    else if (mesh_entity.get_draw_mode() == DrawMode::DRAW_NORMALS) {
+        draw_normals(mesh_entity);
+    }
+}
+void Context::update_draw() {
+    programs->reload();
     env.bind();
-    if (draw_mode != DrawMode::WIREFRAME_ONLY) {
-        draw_surface();
-    }
-    if (draw_mode == DrawMode::WIREFRAME || draw_mode == DrawMode::WIREFRAME_ONLY) {
-        draw_wireframe();
-    }
-    else if (draw_mode == DrawMode::NORMALS) {
-        draw_normals();
+    for (MeshEntity& mesh_entity : mesh_list) {
+        update_draw(mesh_entity);
     }
     env.draw(*programs.get());
 }
-void Context::draw_surface() {
-    mesh_list.draw(*programs.get());
+void Context::draw_surfaces(MeshEntity& mesh_entity) {
+    programs->bind(mesh_entity.get_shader());
+    mesh_entity.draw(*programs.get());
 }
-void Context::draw_wireframe() {
-    ShaderPrograms selected = programs->get_selected();
+void Context::draw_surfaces() {
+    for (MeshEntity& mesh : mesh_list) {
+        draw_surfaces(mesh);
+    }
+}
+void Context::draw_wireframes(MeshEntity& mesh_entity) {
+    ShaderPrograms selected = mesh_entity.get_shader();
 
-    programs->bind(ShaderPrograms::DEF);
+    programs->bind(ShaderPrograms::DEF_SHADER);
 
     float min_zoom = 1.f / std::pow(2, 10);  // to prevent z-fighting
 
@@ -192,13 +198,18 @@ void Context::draw_wireframe() {
     // minimally scale the view to draw on top
     env.camera->scale_view(Camera::ScaleDir::Out, min_zoom);
     env.camera.buffer(*programs.get());
-    mesh_list.draw_wireframe(*programs.get());
+    mesh_entity.draw_wireframe(*programs.get());
     env.camera->set_view(temp);
-    
+
     programs->bind(selected);
 }
-void Context::draw_normals() {
-    ShaderPrograms selected = programs->get_selected();
+void Context::draw_wireframes() {
+    for (MeshEntity& mesh : mesh_list) {
+        draw_wireframes(mesh);
+    }
+}
+void Context::draw_normals(MeshEntity& mesh_entity) {
+    ShaderPrograms selected = mesh_entity.get_shader();
 
     programs->bind(ShaderPrograms::NORMALS);;
     env.camera.buffer(*programs.get());
@@ -210,7 +221,12 @@ void Context::draw_normals() {
         mesh.set_color(temp);
     }
 
-    mesh_list.draw(*programs.get());
+    mesh_entity.draw(*programs.get());
 
     programs->bind(selected);
+}
+void Context::draw_normals() {
+    for (MeshEntity& mesh : mesh_list) {
+        draw_normals(mesh);
+    }
 }

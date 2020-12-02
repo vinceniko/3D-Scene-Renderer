@@ -367,7 +367,7 @@ void MeshEntityList::draw(ShaderProgramCtx& programs) {
         mesh.draw(programs);
     }
 }
-void MeshEntityList::draw_wireframe(ShaderProgramCtx& programs) {
+void MeshEntityList::draw_wireframes(ShaderProgramCtx& programs) {
     for (MeshEntity& mesh : *this) {
         mesh.draw_wireframe(programs);
     }
