@@ -7,7 +7,7 @@
 #include <memory>
 #include <chrono>
 
-#include "helpers.h"
+#include "renderer.h"
 
 #include "definitions.h"
 #include "transform.h"
@@ -55,15 +55,9 @@ public:
     virtual void set_aspect(float aspect);
     virtual void set_fov(float fov);
 
-    virtual float get_aspect_() {
-        return aspect_;
-    }
-    virtual float get_fov() {
-        return fov_;
-    }
-    virtual float get_up() {
-        return up_;
-    }
+    virtual float get_aspect_();
+    virtual float get_fov();
+    virtual float get_up();
     virtual glm::mat4 get_projection() const;
     virtual Projection get_projection_mode() const;
     virtual glm::mat4 get_view() const;

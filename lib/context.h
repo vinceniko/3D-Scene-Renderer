@@ -4,7 +4,7 @@
 
 #include "glm/vec2.hpp"
 
-#include "helpers.h"
+#include "renderer.h"
 
 #include "camera.h"
 #include "mesh.h"

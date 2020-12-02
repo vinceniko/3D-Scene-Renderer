@@ -20,6 +20,15 @@ void Camera::set_aspect(float aspect) {
 void Camera::set_fov(float fov) {
     fov_ = fov;
 }
+float Camera::get_aspect_() {
+    return aspect_;
+}
+float Camera::get_fov() {
+    return fov_;
+}
+float Camera::get_up() {
+    return up_;
+}
 
 glm::mat4 Camera::get_projection() const {
     // return projection_mode_ == Projection::Perspective ? glm::perspective(glm::radians(fov_), aspect_, 0.1f, 100.f) : glm::ortho((aspect_ <= 1 ? -aspect_ : -1.0f), (aspect_ <= 1 ? aspect_ : 1.0f), (aspect_ > 1 ? -1.f/aspect_ : -1.0f), (aspect_ > 1 ? 1.f/aspect_ : 1.0f), 0.1f, 100.f);

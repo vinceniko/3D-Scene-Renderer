@@ -5,7 +5,7 @@
 #include <exception>
 #include <vector>
 
-#include "helpers.h"
+#include "renderer.h"
 #include "filewatcher.h"
 #include "utilities.h"
 
@@ -58,8 +58,9 @@ public:
     void reload();
 };
 
+// cycles through values of T in the vector
 template <typename T>
-class Cycler : public std::vector<T> {
+class Cycler : std::vector<T> {
     size_t idx = 0;
 public:
     using std::vector<T>::vector;
