@@ -166,6 +166,7 @@ void Context::update_draw() {
     programs->bind(programs->get_selected());
     programs->reload();
     update();
+    env.bind();
     if (draw_mode != DrawMode::WIREFRAME_ONLY) {
         draw_surface();
     }

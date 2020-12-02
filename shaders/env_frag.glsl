@@ -2,11 +2,11 @@
 
 in vec3 frag_pos;
 
-uniform samplerCube cubemap;
+uniform samplerCube u_skybox;
 
 out vec4 out_color;
 
 void main()
 {             
-    out_color = texture(cubemap, frag_pos);
-}  
+    out_color = texture(u_skybox, frag_pos);
+}

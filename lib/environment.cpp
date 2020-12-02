@@ -61,7 +61,7 @@ uint32_t GLCubeMap::gl_decode_face(const std::string& path_name) {
     return gl_decode_face(parse_path_name(path_name));
 }
 
-void GLCubeMap::load(const std::string& dir_path, bool flip) {
+void GLCubeMap::init(const std::string& dir_path, bool flip) {
     glGenTextures(1, &tex_id_);
     glBindTexture(GL_TEXTURE_CUBE_MAP, tex_id_);
 
@@ -92,19 +92,25 @@ void GLCubeMap::load(const std::string& dir_path, bool flip) {
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
+void GLCubeMap::bind() {
+    glBindTexture(GL_TEXTURE_CUBE_MAP, tex_id_);
+}
+
 void GLCubeMap::draw(ShaderProgramCtx& programs) {
     glDepthFunc(GL_LEQUAL);
 
     glActiveTexture(GL_TEXTURE0);
 
-    glBindTexture(GL_TEXTURE_CUBE_MAP, tex_id_);
+    bind();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     cube_entity_.draw_no_color(programs);
-
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     
     glDepthFunc(GL_LESS);
+}
+
+void Environment::bind() {
+    cube_map_.bind();
 }
 
 void Environment::draw(ShaderProgramCtx& programs) {

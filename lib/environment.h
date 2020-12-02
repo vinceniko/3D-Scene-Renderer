@@ -27,7 +27,7 @@ protected:
     static CubeMapFace parse_path_name(const std::string& path_name);
 
 public:
-    virtual void load(const std::string& dir_path, bool flip) = 0;
+    virtual void init(const std::string& dir_path, bool flip) = 0;
 };
 
 class GLCubeMap : public CubeMap {    
@@ -42,12 +42,13 @@ class GLCubeMap : public CubeMap {
 public:
     GLCubeMap(MeshFactory& mesh_factory, const std::string& dir_path) : cube_entity_(mesh_factory.get_mesh_entity(DefMeshList::CUBE)) {
         // cube_entity_.scale(glm::mat4(1.f), Spatial::ScaleDir::Out, 2.0);
-        load(dir_path);
+        init(dir_path);
     }
     GLCubeMap(MeshFactory& mesh_factory) : GLCubeMap(mesh_factory, DEF_CUBE_MAP_DIR_PATH) {}
 
-    void load(const std::string& dir_path, bool flip=false) override;
+    void init(const std::string& dir_path, bool flip=false) override;
 
+    void bind();
     void draw(ShaderProgramCtx& programs);
 };
 
@@ -62,5 +63,6 @@ public:
     Environment(MeshFactory& mesh_factory, std::shared_ptr<Camera> new_cam) : cube_map_(mesh_factory), camera(new_cam) {}
     Environment(MeshFactory& mesh_factory, std::shared_ptr<Camera> new_cam, float fov) : cube_map_(mesh_factory), camera(new_cam), fov_(fov) {}
 
+    void bind();
     void draw(ShaderProgramCtx& programs);
 };
