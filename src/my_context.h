@@ -7,7 +7,7 @@
 
 class MyContext : public Context {
     // the shaders that the program will use
-    std::array<ShaderPrograms, 3> shaders = { ShaderPrograms::PHONG, ShaderPrograms::FLAT, ShaderPrograms::REFLECT };
+    std::array<ShaderPrograms, 4> shaders = { ShaderPrograms::PHONG, ShaderPrograms::FLAT, ShaderPrograms::REFLECT, ShaderPrograms::REFRACT };
     // an index into the list of program shaders
     size_t shader_idx = 0;
 
