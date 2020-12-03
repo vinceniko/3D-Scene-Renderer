@@ -7,6 +7,7 @@
 
 class GL_CubeMap_FBO {
     uint32_t fbo_ = 0;
+    uint32_t rbo_ = 0;
 
 public:
     GL_CubeMapTex tex_;
@@ -15,9 +16,18 @@ public:
 
     void init() {
         glGenFramebuffers(1, &fbo_);
+        glGenRenderbuffers(1, &rbo_);
+
         bind();
 
-        // // generate texture
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+        glBindRenderbuffer(GL_RENDERBUFFER, rbo_);
+
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, tex_.get_width(), tex_.get_width());
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fbo_);
+
+        // generate texture
         tex_.bind();
         for (int i = 0; i < 6; i++) {
             glTexImage2D(
@@ -43,12 +53,11 @@ public:
         glDeleteFramebuffers(1, &fbo_);
     }
     void bind() {
-        tex_.bind();
         glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-        // const float color[4] = { 1.0, 1.0, 1.0, 1.0 };
-        // glClearBufferfv(GL_FRAMEBUFFER, fbo_, color);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glBindRenderbuffer(GL_RENDERBUFFER, rbo_); 
+        tex_.bind();
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     void unbind() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

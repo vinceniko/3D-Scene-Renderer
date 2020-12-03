@@ -166,6 +166,8 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
     size_t i = 0;
     for (const auto& dir : dirs) {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, fbo.tex_.get_id(), 0);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         auto new_camera = FreeCamera(camera->get_aspect(), 90.f);
 
         new_camera.set_position(mesh_entity.get_origin());
