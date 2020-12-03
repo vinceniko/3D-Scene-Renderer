@@ -45,8 +45,8 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> new_cam) :
-    programs(std::move(programs)), mesh_factory(this->programs->get_selected_program()), env(this->mesh_factory, new_cam) {}
+Context::Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> new_cam, int width, int height) :
+    programs(std::move(programs)), mesh_factory(this->programs->get_selected_program()), env(this->mesh_factory, new_cam, width, height) {}
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
     float min_dist = std::numeric_limits<float>::infinity();
@@ -158,9 +158,32 @@ void Context::push_mesh_entity(std::vector<int> ids) {
 
 void Context::update_draw(MeshEntity& mesh_entity) {
     programs->bind(mesh_entity.get_shader());
-    update();
     env.camera.buffer(programs->get_selected_program());
     if (mesh_entity.get_draw_mode() != DrawMode::WIREFRAME_ONLY) {
+        draw_surfaces(mesh_entity);
+    }
+    if (mesh_entity.get_draw_mode() == DrawMode::WIREFRAME || mesh_entity.get_draw_mode() == DrawMode::WIREFRAME_ONLY) {
+        draw_wireframes(mesh_entity);
+    }
+    else if (mesh_entity.get_draw_mode() == DrawMode::DRAW_NORMALS) {
+        draw_normals(mesh_entity);
+    }
+}
+void Context::update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
+    programs->bind(mesh_entity.get_shader());
+    env.camera.buffer(programs->get_selected_program());
+    if (mesh_entity.get_draw_mode() != DrawMode::WIREFRAME_ONLY) {
+        if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
+            for (auto& sec_mesh: mesh_entities) {
+                if (&sec_mesh != &mesh_entity) {
+                    env.fbo.bind();
+                    update_draw(sec_mesh);
+                }
+            }
+            // env.draw(*programs.get());
+            env.draw_dynamic(*programs.get(), mesh_entity.get_origin());
+            env.fbo.unbind();
+        }
         draw_surfaces(mesh_entity);
     }
     if (mesh_entity.get_draw_mode() == DrawMode::WIREFRAME || mesh_entity.get_draw_mode() == DrawMode::WIREFRAME_ONLY) {
@@ -173,8 +196,9 @@ void Context::update_draw(MeshEntity& mesh_entity) {
 void Context::update_draw() {
     programs->reload();
     env.bind();
+    update();
     for (MeshEntity& mesh_entity : mesh_list) {
-        update_draw(mesh_entity);
+        update_draw(mesh_entity, mesh_list);
     }
     env.draw(*programs.get());
 }

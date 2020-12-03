@@ -29,8 +29,8 @@
 
 #include "mesh_data.h"
 
-float WIDTH;
-float HEIGHT;
+int WIDTH;
+int HEIGHT;
 
 std::unique_ptr<MyContext> ctx;
 
@@ -54,7 +54,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // take into account aspect ratio
     ctx->env.camera->set_aspect(static_cast<float>(width) / static_cast<float>(height));
-    glViewport(0, 0, width, height);
+    ctx->env.viewport(width, height);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -236,7 +236,11 @@ int main(void)
     GLFWmonitor* primary = glfwGetPrimaryMonitor();
     int xpos, ypos, width, height;
     glfwGetMonitorWorkarea(primary, &xpos, &ypos, &width, &height);
-    WIDTH = static_cast<float>(width); HEIGHT = static_cast<float>(height);
+    float xscale, yscale;
+    glfwGetMonitorContentScale(primary, &xscale, &yscale);
+
+    WIDTH = xscale * width; 
+    HEIGHT = yscale * height;
 
     // Create a windowed mode window and its OpenGL context
     window = glfwCreateWindow(WIDTH, HEIGHT, "3D Scene Editor", NULL, NULL);
@@ -280,8 +284,8 @@ int main(void)
 
     ctx = std::unique_ptr<MyContext>(new MyContext{
             std::move(programs),
-            static_cast<float>(width), 
-            static_cast<float>(height)
+            WIDTH, 
+            HEIGHT
     });
 
     // callbacks

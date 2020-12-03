@@ -20,7 +20,7 @@ void Camera::set_aspect(float aspect) {
 void Camera::set_fov(float fov) {
     fov_ = fov;
 }
-float Camera::get_aspect_() {
+float Camera::get_aspect() {
     return aspect_;
 }
 float Camera::get_fov() {

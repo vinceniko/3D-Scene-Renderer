@@ -157,6 +157,9 @@ public:
 
     // translate, scale, and rotate back to origin, fitting into a unit cube
     void set_to_origin();
+    glm::vec3 get_origin() {
+        return glm::vec3(glm::inverse(trans_)[3] * glm::vec4(get_mesh().get_centroid(), 1.f));
+    }
 
     const GLMesh& get_mesh();
 

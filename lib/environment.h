@@ -6,6 +6,7 @@
 #include "shader.h"
 #include "rendereable.h"
 #include "texture.h"
+#include "framebuffer.h"
 #include "mesh.h"
 #include "camera.h"
 
@@ -54,12 +55,30 @@ class Environment {
 
     float fov_ = 50.0;
 
+    int width_;
+    int height_;
+
 public:
+    GL_CubeMap_FBO fbo;
     GLCamera camera;
 
-    Environment(MeshFactory& mesh_factory, std::shared_ptr<Camera> new_cam) : cube_map_(mesh_factory), camera(new_cam) {}
-    Environment(MeshFactory& mesh_factory, std::shared_ptr<Camera> new_cam, float fov) : cube_map_(mesh_factory), camera(new_cam), fov_(fov) {}
+    Environment(MeshFactory& mesh_factory, std::shared_ptr<Camera> new_cam, int width, int height) : Environment(mesh_factory, new_cam, width, height, 50.0) { viewport(width, height); }
+    Environment(MeshFactory& mesh_factory, std::shared_ptr<Camera> new_cam, int width, int height, float fov) : cube_map_(mesh_factory), fbo(width_), width_(width), height_(height), camera(new_cam), fov_(fov) { viewport(width, height); }
 
     void bind();
     void draw(ShaderProgramCtx& programs);
+    // draw the scene to a the fbo
+    void draw_dynamic(ShaderProgramCtx& programs, glm::vec3 obj_pos_world);
+
+    void set_width(int width) {
+        width_ = width;
+    }
+    void set_height(int height) {
+        height_ = height;
+    }
+    void viewport(int width, int height) {
+        width_ = width;
+        height_ = height;
+        glViewport(0, 0, width, height);
+    }
 };

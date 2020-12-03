@@ -59,7 +59,7 @@ public:
 
     MouseContext mouse_ctx;
 
-    Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> camera);
+    Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> camera, int width, int height);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
     int intersected_mesh_perspective(glm::vec3 world_ray) const;
@@ -85,6 +85,7 @@ public:
     void update();
     // updates and draws the model using the user bound shader program and the selected draw mode
     void update_draw(MeshEntity& mesh_entity);
+    void update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entity_list);
     // draws the model using the user bound shader program
     void draw_surfaces(MeshEntity& mesh_entity);
     // draws a wireframe above the mesh

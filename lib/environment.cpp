@@ -1,4 +1,5 @@
 #include "environment.h"
+#include "camera.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -66,12 +67,12 @@ void GL_CubeMapEntity::init(const std::string& dir_path, bool flip) {
 
     stbi_set_flip_vertically_on_load(flip);
     for (auto& tex_path : std::filesystem::directory_iterator(dir_path)) {
-        int width, height, n_chan;
-        unsigned char* data = stbi_load(tex_path.path().c_str(), &width, &height, &n_chan, 0);
+        int n_chan;
+        unsigned char* data = stbi_load(tex_path.path().c_str(), &width_, &width_, &n_chan, 0);
         if (data) {
             glTexImage2D(
                 gl_decode_face(tex_path.path()),
-                0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+                0, GL_RGB, width_, width_, 0, GL_RGB, GL_UNSIGNED_BYTE, data
             );
         }
         else {
@@ -98,7 +99,7 @@ void GL_CubeMapEntity::draw(ShaderProgram& program) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     cube_entity_.draw_no_color(program);
-    
+
     glDepthFunc(GL_LESS);
 }
 
@@ -129,4 +130,65 @@ void Environment::draw(ShaderProgramCtx& programs) {
     camera->set_projection_mode(old_mode);
     camera->set_view(old_view);
     programs.bind(selected);
+}
+
+void Environment::draw_dynamic(ShaderProgramCtx& programs, glm::vec3 obj_pos_world) {
+    fbo.bind();
+
+    ShaderPrograms selected = programs.get_selected();
+    programs.bind(ShaderPrograms::ENV); 
+
+    std::array<const glm::vec3, 6> dirs = {
+        glm::vec3(10.f, 0.f, 0.f),
+        glm::vec3(-10.f, 0.f, 0.f),
+        glm::vec3(0.f, 10.f, 0.f),
+        glm::vec3(0.f, -10.f, 0.f),
+        glm::vec3(0.f, 0.f, 10.f),
+        glm::vec3(0.f, 0.f, -10.f),
+    };
+    std::array<const glm::vec3, 6> up = {
+        glm::vec3(0.f, -1.f, 0.f),
+        glm::vec3(0.f, -1.f, 0.f),
+        glm::vec3(0.f, 0.f, 1.f),
+        glm::vec3(0.f, 0.f, -1.f),
+        glm::vec3(0.f, -1.f, 0.f),
+        glm::vec3(0.f, -1.f, 0.f),
+    };
+    auto old_view = camera->get_view();
+    auto old_fov = camera->get_fov();
+    auto old_proj = camera->get_projection_mode();
+    auto old_aspect = camera->get_aspect();
+
+    camera->set_projection_mode(Camera::Projection::Perspective);
+    camera->set_fov(90);
+    camera->set_aspect(1.0);
+
+    glViewport(0, 0, fbo.tex_.get_width(), fbo.tex_.get_width());
+
+    size_t i = 0;
+    for (const auto& dir : dirs) {
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, fbo.tex_.get_id(), 0);
+        auto new_camera = FreeCamera(camera->get_aspect(), 90.f);
+        
+        new_camera.set_position(obj_pos_world);
+        glm::mat4 looking_at = glm::lookAt(new_camera.get_position(), glm::vec3(dir), up[i]);
+        new_camera.set_view(looking_at);
+
+        camera->set_view(new_camera.get_view());
+
+        camera.buffer(programs.get_selected_program());
+        cube_map_.draw(programs.get_selected_program());
+        
+        i++;
+    }
+    
+    camera->set_view(old_view);
+    camera->set_fov(old_fov);
+    camera->set_aspect(old_aspect);
+    camera->set_projection_mode(old_proj);
+    camera.buffer(programs.get_selected_program());
+    
+    // fbo.unbind();
+    programs.bind(selected);
+    glViewport(0, 0, width_, height_);
 }
