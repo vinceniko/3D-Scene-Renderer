@@ -17,4 +17,8 @@ public:
     virtual void translate(glm::mat4 view_trans, glm::vec3 offset) {};
     virtual void scale(glm::mat4 view_trans, ScaleDir dir, float offset) {};
     virtual void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) {};
+
+    glm::mat4 get_trans() {
+        return trans_;
+    }
 };

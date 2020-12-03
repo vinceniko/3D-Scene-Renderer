@@ -208,9 +208,6 @@ std::shared_ptr<Camera> GLCamera::get_camera_ptr() {
 void GLCamera::set_camera(std::shared_ptr<Camera> camera) {
     camera_ = camera;
 }
-void GLCamera::set_camera(std::shared_ptr<Camera>&& camera) {
-    camera_ = camera;
-}
 Camera* GLCamera::operator ->() {
     return camera_.get();
 }

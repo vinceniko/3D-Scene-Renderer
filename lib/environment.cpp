@@ -157,6 +157,9 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
     auto old_proj = camera->get_projection_mode();
     auto old_aspect = camera->get_aspect();
 
+    auto old_camera = std::move(camera.get_camera_ptr());
+    camera.set_camera(std::make_shared<FreeCamera>(FreeCamera { camera->get_aspect(), 90.f }));
+
     camera->set_projection_mode(Camera::Projection::Perspective);
     camera->set_fov(90);
     camera->set_aspect(1.0);
@@ -168,35 +171,28 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, fbo.tex_.get_id(), 0);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        auto new_camera = FreeCamera(camera->get_aspect(), 90.f);
 
-        new_camera.set_position(mesh_entity.get_origin());
-        glm::mat4 looking_at = glm::lookAt(new_camera.get_position(), glm::vec3(dir), up[i]);
-        new_camera.set_view(looking_at);
+        glm::mat4 looking_at = glm::lookAt(mesh_entity.get_origin(), mesh_entity.get_origin() + dir, up[i]);
+        camera->set_view(looking_at);
 
-        camera->set_view(new_camera.get_view());
-        programs.bind(ShaderPrograms::ENV);
-        camera.buffer(programs.get_selected_program());
-        cube_map_.draw(programs.get_selected_program());
+        // draw all other meshes
         for (auto& sec_mesh : mesh_entities) {
             if (&sec_mesh != &mesh_entity) {
                 draw_f(sec_mesh);
-                // std::cout << "render" << std::endl;
             }
-
         }
-        // std::cout << "done" << std::endl;
-        // // no depth buffer
-        // programs.bind(ShaderPrograms::ENV);
-        // camera.buffer(programs.get_selected_program());
-        // cube_map_.draw(programs.get_selected_program());
+        // draw env
+        programs.bind(ShaderPrograms::ENV);
+        camera->set_view(glm::lookAt(glm::vec3(0), glm::vec3(dir), up[i]));
+        camera.buffer(programs.get_selected_program());
+
+        cube_map_.draw(programs.get_selected_program());
+
         i++;
     }
 
-    camera->set_view(old_view);
-    camera->set_fov(old_fov);
-    camera->set_aspect(old_aspect);
-    camera->set_projection_mode(old_proj);
+    // restore
+    camera.set_camera(old_camera);
     
     fbo.unbind();
     
