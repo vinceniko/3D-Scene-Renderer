@@ -18,8 +18,6 @@ public:
         glGenFramebuffers(1, &fbo_);
         glGenRenderbuffers(1, &rbo_);
 
-        bind();
-
         glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
         glBindRenderbuffer(GL_RENDERBUFFER, rbo_);
 
@@ -54,10 +52,13 @@ public:
     }
     void bind() {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-        glBindRenderbuffer(GL_RENDERBUFFER, rbo_); 
+        glBindRenderbuffer(GL_RENDERBUFFER, rbo_);
         tex_.bind();
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#ifdef DEBUG
+        check_gl_error();
+#endif
     }
     void unbind() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
