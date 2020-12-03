@@ -188,15 +188,15 @@ GLCamera::GLCamera(std::shared_ptr<Camera> camera) :
     view_uniform_("u_view_trans"),
     projection_uniform_("u_projection") {}
 
-void GLCamera::buffer_view_uniform(ShaderProgramCtx& programs) {
-    view_uniform_.buffer(programs, camera_->get_view());
+void GLCamera::buffer_view_uniform(ShaderProgram& program) {
+    view_uniform_.buffer(program, camera_->get_view());
 }
-void GLCamera::buffer_projection_uniform(ShaderProgramCtx& programs) {
-    projection_uniform_.buffer(programs, camera_->get_projection());
+void GLCamera::buffer_projection_uniform(ShaderProgram& program) {
+    projection_uniform_.buffer(program, camera_->get_projection());
 }
-void GLCamera::buffer(ShaderProgramCtx& programs) {
-    buffer_view_uniform(programs);
-    buffer_projection_uniform(programs);
+void GLCamera::buffer(ShaderProgram& program) {
+    buffer_view_uniform(program);
+    buffer_projection_uniform(program);
 }
 
 Camera& GLCamera::get_camera() {

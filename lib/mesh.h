@@ -1,6 +1,6 @@
 #pragma once
 
-#include "renderer.h"
+#include "rendereable.h"
 #include "spatial.h"
 
 #include <fstream>
@@ -87,18 +87,18 @@ public:
 struct GLMesh : public Mesh {
     uint32_t VAO_, VBO_, EBO_;
 
-    void init(ShaderProgramCtx& programs, int VAO, uint32_t VBO, uint32_t EBO);
+    void init(ShaderProgram& program, int VAO, uint32_t VBO, uint32_t EBO);
 
 public:
-    GLMesh(ShaderProgramCtx& programs, Mesh&& mesh) : Mesh(std::move(mesh)) {
+    GLMesh(ShaderProgram& program, Mesh&& mesh) : Mesh(std::move(mesh)) {
         glGenVertexArrays(1, &VAO_);
         glGenBuffers(1, &VBO_);
         glGenBuffers(1, &EBO_);
 
-        init(programs, VAO_, VBO_, EBO_);
+        init(program, VAO_, VBO_, EBO_);
     }
-    GLMesh(ShaderProgramCtx& programs, uint32_t VAO, uint32_t VBO, uint32_t EBO, Mesh&& mesh) : VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(std::move(mesh)) {
-        init(programs, VAO_, VBO_, EBO_);
+    GLMesh(ShaderProgram& program, uint32_t VAO, uint32_t VBO, uint32_t EBO, Mesh&& mesh) : VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(std::move(mesh)) {
+        init(program, VAO_, VBO_, EBO_);
     }
 
     uint32_t get_VAO() const {
@@ -124,10 +124,7 @@ public:
 class MeshFactory;
 
 // a reference to a Mesh inside the GLMeshFactory; represents one model being drawn;
-class MeshEntity : public Spatial {
-    ShaderPrograms shader_ = ShaderPrograms::PHONG;
-    DrawMode draw_mode_ = DrawMode::DEF_DRAW_MODE;
-
+class MeshEntity : public Spatial, public ShaderObject {
     std::reference_wrapper<MeshFactory> ctx_;
 
     // the index into the list of meshes in GLMeshCtx
@@ -149,10 +146,12 @@ public:
     void scale(glm::mat4 view_trans, ScaleDir dir, float offset) override;
     void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) override;
 
-    void draw(ShaderProgramCtx& programs);
+    void buffer(ShaderProgram& program);
+
+    void draw(ShaderProgram& program) override;
     // TODO: change to remove
-    void draw_no_color(ShaderProgramCtx& programs);
-    void draw_wireframe(ShaderProgramCtx& programs);
+    void draw_no_color(ShaderProgram& program);
+    void draw_wireframe(ShaderProgram& program);
 
     float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const;
 
@@ -160,19 +159,6 @@ public:
     void set_to_origin();
 
     const GLMesh& get_mesh();
-    DrawMode get_draw_mode() {
-        return draw_mode_;
-    }
-    ShaderPrograms get_shader() {
-        return shader_;
-    }
-
-    void set_draw_mode(DrawMode draw_mode) {
-        draw_mode_ = draw_mode;
-    }
-    void set_shader(ShaderPrograms shader) {
-        shader_ = shader;
-    }
 
     // TODO draw with u_model_trans_ and update u_model_trans_ on GL side
 };
@@ -180,8 +166,8 @@ public:
 // a list of MeshEntity, i.e. references to Meshes inside the GLMeshFactory; whats actually drawn
 class MeshEntityList : public std::vector<MeshEntity> {
 public:
-    void draw(ShaderProgramCtx& programs);
-    void draw_wireframes(ShaderProgramCtx& programs);
+    void draw(ShaderProgram& program);
+    void draw_wireframes(ShaderProgram& program);
 };
 
 // holds mesh prototypes from which to generate MeshEntities
@@ -200,11 +186,11 @@ class MeshFactory {
     }
 
 public:
-    MeshFactory(ShaderProgramCtx& programs) : meshes_() {
-        push(programs, std::vector<Mesh>{ UnitCube{} });
+    MeshFactory(ShaderProgram& program) : meshes_() {
+        push(program, std::vector<Mesh>{ UnitCube{} });
     }
 
-    MeshEntityList push(ShaderProgramCtx& programs, std::vector<Mesh> meshes);
+    MeshEntityList push(ShaderProgram& program, std::vector<Mesh> meshes);
 
     const std::vector<std::unique_ptr<GLMesh>>& get_meshes() const;
     

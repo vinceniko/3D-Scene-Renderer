@@ -52,7 +52,7 @@ bool _check_gl_error(const char* file, int line);
 enum ShaderType {
     FRAG,
     GEOM,
-    VERT  
+    VERT
 };
 
 // This class wraps an OpenGL program
@@ -143,4 +143,11 @@ public:
     bool has_geom() {
         return geometry_shader > 0;
     }
+};
+
+class RenderObject {
+public:
+    virtual void init() = 0;
+    virtual void free() = 0;
+    virtual void bind() = 0;
 };

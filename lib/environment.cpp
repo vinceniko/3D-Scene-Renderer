@@ -25,7 +25,7 @@ CubeMap::CubeMapFace CubeMap::decode_face(const std::string& kind) {
     throw std::runtime_error("Error decoding CubeMap face: " + kind);
 }
 
-uint32_t GLCubeMap::gl_decode_face(CubeMap::CubeMapFace face) {
+uint32_t GL_CubeMapEntity::gl_decode_face(CubeMap::CubeMapFace face) {
     switch (face) {
     case CubeMap::BACK:
         return GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
@@ -57,13 +57,12 @@ CubeMap::CubeMapFace CubeMap::parse_path_name(const std::string& path_name) {
     return decode_face(face_str);
 }
 
-uint32_t GLCubeMap::gl_decode_face(const std::string& path_name) {
+uint32_t GL_CubeMapEntity::gl_decode_face(const std::string& path_name) {
     return gl_decode_face(parse_path_name(path_name));
 }
 
-void GLCubeMap::init(const std::string& dir_path, bool flip) {
-    glGenTextures(1, &tex_id_);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, tex_id_);
+void GL_CubeMapEntity::init(const std::string& dir_path, bool flip) {
+    bind();
 
     stbi_set_flip_vertically_on_load(flip);
     for (auto& tex_path : std::filesystem::directory_iterator(dir_path)) {
@@ -88,15 +87,9 @@ void GLCubeMap::init(const std::string& dir_path, bool flip) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
-void GLCubeMap::bind() {
-    glBindTexture(GL_TEXTURE_CUBE_MAP, tex_id_);
-}
-
-void GLCubeMap::draw(ShaderProgramCtx& programs) {
+void GL_CubeMapEntity::draw(ShaderProgram& program) {
     glDepthFunc(GL_LEQUAL);
 
     glActiveTexture(GL_TEXTURE0);
@@ -104,7 +97,7 @@ void GLCubeMap::draw(ShaderProgramCtx& programs) {
     bind();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    cube_entity_.draw_no_color(programs);
+    cube_entity_.draw_no_color(program);
     
     glDepthFunc(GL_LESS);
 }
@@ -128,9 +121,9 @@ void Environment::draw(ShaderProgramCtx& programs) {
     camera->set_projection_mode(Camera::Projection::Perspective);
     camera->set_fov(fov_);
 
-    camera.buffer(programs);
+    camera.buffer(programs.get_selected_program());
 
-    cube_map_.draw(programs);
+    cube_map_.draw(programs.get_selected_program());
 
     camera->set_fov(old_fov);
     camera->set_projection_mode(old_mode);

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "renderer.h"
-
 #include <string>
 #include <filesystem>
 
 #include "shader.h"
+#include "rendereable.h"
+#include "texture.h"
 #include "mesh.h"
 #include "camera.h"
 
@@ -22,38 +22,35 @@ protected:
         BOTTOM
     };
 
+    MeshEntity cube_entity_;
+
     // decode the string designation into a CubeMapFace
     static CubeMapFace decode_face(const std::string& kind);
     static CubeMapFace parse_path_name(const std::string& path_name);
 
 public:
+    CubeMap(MeshFactory& mesh_factory) : cube_entity_(mesh_factory.get_mesh_entity(DefMeshList::CUBE)) {}
+
     virtual void init(const std::string& dir_path, bool flip) = 0;
 };
 
-class GLCubeMap : public CubeMap {    
-    MeshEntity cube_entity_;
-
-    uint32_t tex_id_;
-
+class GL_CubeMapEntity : public GL_CubeMapTex, public CubeMap {    
     // decode the face into the gl equivelant
     static uint32_t gl_decode_face(CubeMapFace face);
     // parse and decode the full path name into the gl equivelant
     uint32_t gl_decode_face(const std::string& path_name);
 public:
-    GLCubeMap(MeshFactory& mesh_factory, const std::string& dir_path) : cube_entity_(mesh_factory.get_mesh_entity(DefMeshList::CUBE)) {
-        // cube_entity_.scale(glm::mat4(1.f), Spatial::ScaleDir::Out, 2.0);
+    GL_CubeMapEntity(MeshFactory& mesh_factory, const std::string& dir_path) : GL_CubeMapTex(), CubeMap(mesh_factory) {
         init(dir_path);
     }
-    GLCubeMap(MeshFactory& mesh_factory) : GLCubeMap(mesh_factory, DEF_CUBE_MAP_DIR_PATH) {}
-
+    GL_CubeMapEntity(MeshFactory& mesh_factory) : GL_CubeMapEntity(mesh_factory, DEF_CUBE_MAP_DIR_PATH) {}
+    
     void init(const std::string& dir_path, bool flip=false) override;
-
-    void bind();
-    void draw(ShaderProgramCtx& programs);
+    void draw(ShaderProgram& programs);
 };
 
 class Environment {
-    GLCubeMap cube_map_;
+    GL_CubeMapEntity cube_map_;
 
     float fov_ = 50.0;
 

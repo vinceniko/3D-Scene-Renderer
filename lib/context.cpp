@@ -46,7 +46,7 @@ double MouseContext::get_scroll() const {
 }
 
 Context::Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> new_cam) :
-    programs(std::move(programs)), mesh_factory(*this->programs), env(this->mesh_factory, new_cam) {}
+    programs(std::move(programs)), mesh_factory(this->programs->get_selected_program()), env(this->mesh_factory, new_cam) {}
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
     float min_dist = std::numeric_limits<float>::infinity();
@@ -144,11 +144,11 @@ void Context::update() {
     }
 #endif
 
-    env.camera.buffer(*programs.get());
+    env.camera.buffer(programs->get_selected_program());
 }
 
 void Context::init_mesh_prototypes(std::vector<Mesh> meshes) {
-    mesh_factory.push(*programs.get(), meshes);
+    mesh_factory.push(programs->get_selected_program(), meshes);
 }
 void Context::push_mesh_entity(std::vector<int> ids) {
     for (const auto& id : ids) {
@@ -159,7 +159,7 @@ void Context::push_mesh_entity(std::vector<int> ids) {
 void Context::update_draw(MeshEntity& mesh_entity) {
     programs->bind(mesh_entity.get_shader());
     update();
-    env.camera.buffer(*programs.get());
+    env.camera.buffer(programs->get_selected_program());
     if (mesh_entity.get_draw_mode() != DrawMode::WIREFRAME_ONLY) {
         draw_surfaces(mesh_entity);
     }
@@ -180,7 +180,7 @@ void Context::update_draw() {
 }
 void Context::draw_surfaces(MeshEntity& mesh_entity) {
     programs->bind(mesh_entity.get_shader());
-    mesh_entity.draw(*programs.get());
+    mesh_entity.draw(programs->get_selected_program());
 }
 void Context::draw_surfaces() {
     for (MeshEntity& mesh : mesh_list) {
@@ -197,8 +197,8 @@ void Context::draw_wireframes(MeshEntity& mesh_entity) {
     auto temp = env.camera->get_view();
     // minimally scale the view to draw on top
     env.camera->scale_view(Camera::ScaleDir::Out, min_zoom);
-    env.camera.buffer(*programs.get());
-    mesh_entity.draw_wireframe(*programs.get());
+    env.camera.buffer(programs->get_selected_program());
+    mesh_entity.draw_wireframe(programs->get_selected_program());
     env.camera->set_view(temp);
 
     programs->bind(selected);
@@ -212,16 +212,16 @@ void Context::draw_normals(MeshEntity& mesh_entity) {
     ShaderPrograms selected = mesh_entity.get_shader();
 
     programs->bind(ShaderPrograms::NORMALS);;
-    env.camera.buffer(*programs.get());
+    env.camera.buffer(programs->get_selected_program());
 
     for (auto& mesh : mesh_list) {
         auto temp = mesh.get_color();
         mesh.set_color(glm::vec3(1.0, 0.0, 0.0));
-        mesh.draw(*programs.get());
+        mesh.draw(programs->get_selected_program());
         mesh.set_color(temp);
     }
 
-    mesh_entity.draw(*programs.get());
+    mesh_entity.draw(programs->get_selected_program());
 
     programs->bind(selected);
 }

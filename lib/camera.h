@@ -7,8 +7,6 @@
 #include <memory>
 #include <chrono>
 
-#include "renderer.h"
-
 #include "definitions.h"
 #include "transform.h"
 #include "shader.h"
@@ -120,8 +118,8 @@ class GLCamera {
     GLTransform view_uniform_;
     GLTransform projection_uniform_;
 
-    void buffer_view_uniform(ShaderProgramCtx& programs);
-    void buffer_projection_uniform(ShaderProgramCtx& programs);
+    void buffer_view_uniform(ShaderProgram& program);
+    void buffer_projection_uniform(ShaderProgram& program);
 public:
     GLCamera(std::shared_ptr<Camera> camera);
 
@@ -133,5 +131,5 @@ public:
     const Camera* operator ->() const;
 
     // buffers the data. used to update gl state after mutating program state
-    void buffer(ShaderProgramCtx& programs);
+    void buffer(ShaderProgram& program);
 };

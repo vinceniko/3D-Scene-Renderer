@@ -11,5 +11,5 @@ class GLTransform {
 public:
   GLTransform(const std::string& name);
 
-  void buffer(ShaderProgramCtx& programs, const glm::mat4& mat) const;
+  void buffer(ShaderProgram& program, const glm::mat4& mat) const;
 };

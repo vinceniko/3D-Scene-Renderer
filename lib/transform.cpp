@@ -2,8 +2,8 @@
 
 GLTransform::GLTransform(const std::string& name) : name_(name) {}
 
-void GLTransform::buffer(ShaderProgramCtx& programs, const glm::mat4& mat) const {
-    int32_t id = programs.get_selected_program().uniform(name_);
+void GLTransform::buffer(ShaderProgram& program, const glm::mat4& mat) const {
+    int32_t id = program.uniform(name_);
     if (id < 0) {
         throw std::runtime_error("Error Getting ID of Uniform");
     }
