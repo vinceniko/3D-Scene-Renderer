@@ -170,27 +170,15 @@ void Context::update_draw(MeshEntity& mesh_entity) {
     }
 }
 void Context::update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
-    programs->bind(mesh_entity.get_shader());
-    env.camera.buffer(programs->get_selected_program());
     if (mesh_entity.get_draw_mode() != DrawMode::WIREFRAME_ONLY) {
         if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
-            for (auto& sec_mesh: mesh_entities) {
+            for (auto& sec_mesh : mesh_entities) {
                 if (&sec_mesh != &mesh_entity) {
-                    env.fbo.bind();
-                    update_draw(sec_mesh);
+                    env.draw_dynamic(*programs.get(), mesh_entity.get_origin(), [&] { update_draw(sec_mesh); });
                 }
             }
-            // env.draw(*programs.get());
-            env.draw_dynamic(*programs.get(), mesh_entity.get_origin());
-            env.fbo.unbind();
         }
-        draw_surfaces(mesh_entity);
-    }
-    if (mesh_entity.get_draw_mode() == DrawMode::WIREFRAME || mesh_entity.get_draw_mode() == DrawMode::WIREFRAME_ONLY) {
-        draw_wireframes(mesh_entity);
-    }
-    else if (mesh_entity.get_draw_mode() == DrawMode::DRAW_NORMALS) {
-        draw_normals(mesh_entity);
+        update_draw(mesh_entity);
     }
 }
 void Context::update_draw() {

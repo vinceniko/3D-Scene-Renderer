@@ -31,6 +31,8 @@
 
 int WIDTH;
 int HEIGHT;
+float XSCALE;
+float YSCALE;
 
 std::unique_ptr<MyContext> ctx;
 
@@ -236,11 +238,13 @@ int main(void)
     GLFWmonitor* primary = glfwGetPrimaryMonitor();
     int xpos, ypos, width, height;
     glfwGetMonitorWorkarea(primary, &xpos, &ypos, &width, &height);
-    float xscale, yscale;
-    glfwGetMonitorContentScale(primary, &xscale, &yscale);
+    glfwGetMonitorContentScale(primary, &XSCALE, &YSCALE);
 
-    WIDTH = xscale * width; 
-    HEIGHT = yscale * height;
+    // WIDTH = width / XSCALE; 
+    // HEIGHT = height / YSCALE;
+
+    WIDTH = width * XSCALE; 
+    HEIGHT = height * YSCALE;
 
     // Create a windowed mode window and its OpenGL context
     window = glfwCreateWindow(WIDTH, HEIGHT, "3D Scene Editor", NULL, NULL);

@@ -121,7 +121,6 @@ void Environment::draw(ShaderProgramCtx& programs) {
     camera->set_view(view_w_out_trans);
     camera->set_projection_mode(Camera::Projection::Perspective);
     camera->set_fov(fov_);
-
     camera.buffer(programs.get_selected_program());
 
     cube_map_.draw(programs.get_selected_program());
@@ -132,11 +131,10 @@ void Environment::draw(ShaderProgramCtx& programs) {
     programs.bind(selected);
 }
 
-void Environment::draw_dynamic(ShaderProgramCtx& programs, glm::vec3 obj_pos_world) {
+void Environment::draw_dynamic(ShaderProgramCtx& programs, glm::vec3 obj_pos_world, std::function<void()> draw_f) {
     fbo.bind();
 
     ShaderPrograms selected = programs.get_selected();
-    programs.bind(ShaderPrograms::ENV); 
 
     std::array<const glm::vec3, 6> dirs = {
         glm::vec3(10.f, 0.f, 0.f),
@@ -169,7 +167,7 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, glm::vec3 obj_pos_wor
     for (const auto& dir : dirs) {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, fbo.tex_.get_id(), 0);
         auto new_camera = FreeCamera(camera->get_aspect(), 90.f);
-        
+
         new_camera.set_position(obj_pos_world);
         glm::mat4 looking_at = glm::lookAt(new_camera.get_position(), glm::vec3(dir), up[i]);
         new_camera.set_view(looking_at);
@@ -177,18 +175,27 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, glm::vec3 obj_pos_wor
         camera->set_view(new_camera.get_view());
 
         camera.buffer(programs.get_selected_program());
-        cube_map_.draw(programs.get_selected_program());
-        
+        draw_f();
+
         i++;
     }
-    
+
+    programs.bind(ShaderPrograms::ENV);
+    camera.buffer(programs.get_selected_program());
+    cube_map_.draw(programs.get_selected_program());
+
     camera->set_view(old_view);
     camera->set_fov(old_fov);
     camera->set_aspect(old_aspect);
     camera->set_projection_mode(old_proj);
-    camera.buffer(programs.get_selected_program());
+
+    // glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    // glClear(GL_COLOR_BUFFER_BIT);
+
+    fbo.unbind();
     
-    // fbo.unbind();
     programs.bind(selected);
+
+    camera.buffer(programs.get_selected_program());
     glViewport(0, 0, width_, height_);
 }
