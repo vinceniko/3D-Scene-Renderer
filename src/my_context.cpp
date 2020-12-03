@@ -8,7 +8,7 @@ cameras{
     env.camera.get_camera_ptr(),
     std::make_shared<FreeCamera>(FreeCamera{ static_cast<float>(width) / height })
 } {
-    init_mesh_prototypes(std::vector<Mesh>{ BumpyCubeMesh{}, BunnyMesh{}, TorusMesh{}, MonkeyMesh{} }); 
+    init_mesh_prototypes(std::vector<Mesh>{ BumpyCubeMesh{}, BunnyMesh{}, TorusMesh{}, MonkeyMesh{}, SphereMesh{} }); 
 }
 
 void MyContext::switch_shader() {

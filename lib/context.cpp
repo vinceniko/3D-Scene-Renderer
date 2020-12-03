@@ -170,16 +170,10 @@ void Context::update_draw(MeshEntity& mesh_entity) {
     }
 }
 void Context::update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
-    if (mesh_entity.get_draw_mode() != DrawMode::WIREFRAME_ONLY) {
-        if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
-            for (auto& sec_mesh : mesh_entities) {
-                if (&sec_mesh != &mesh_entity) {
-                    env.draw_dynamic(*programs.get(), mesh_entity.get_origin(), [&] { update_draw(sec_mesh); });
-                }
-            }
-        }
-        update_draw(mesh_entity);
+    if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
+        env.draw_dynamic(*programs.get(), mesh_entity, mesh_entities, [&] (MeshEntity& sec_mesh) { update_draw(sec_mesh); });
     }
+    update_draw(mesh_entity);
 }
 void Context::update_draw() {
     programs->reload();

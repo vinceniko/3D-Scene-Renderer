@@ -69,7 +69,7 @@ public:
     void bind();
     void draw(ShaderProgramCtx& programs);
     // draw the scene to a the fbo
-    void draw_dynamic(ShaderProgramCtx& programs, glm::vec3 obj_pos_world, std::function<void ()> draw_f);
+    void draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f);
 
     void set_width(int width) {
         width_ = width;

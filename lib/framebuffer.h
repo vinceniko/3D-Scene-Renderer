@@ -43,10 +43,12 @@ public:
         glDeleteFramebuffers(1, &fbo_);
     }
     void bind() {
-        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        // glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         tex_.bind();
         glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+        // const float color[4] = { 1.0, 1.0, 1.0, 1.0 };
+        // glClearBufferfv(GL_FRAMEBUFFER, fbo_, color);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     }
     void unbind() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -117,6 +117,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_5:
             ctx->push_mesh_entity({ MeshList::MONKEY });
             break;
+        case GLFW_KEY_6:
+            ctx->push_mesh_entity({ MeshList::SPHERE });
+            break;
             // mode
         case GLFW_KEY_M:
             ctx->switch_draw_mode();

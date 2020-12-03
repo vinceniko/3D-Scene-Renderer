@@ -131,7 +131,7 @@ void Environment::draw(ShaderProgramCtx& programs) {
     programs.bind(selected);
 }
 
-void Environment::draw_dynamic(ShaderProgramCtx& programs, glm::vec3 obj_pos_world, std::function<void()> draw_f) {
+void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f) {
     fbo.bind();
 
     ShaderPrograms selected = programs.get_selected();
@@ -168,30 +168,34 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, glm::vec3 obj_pos_wor
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, fbo.tex_.get_id(), 0);
         auto new_camera = FreeCamera(camera->get_aspect(), 90.f);
 
-        new_camera.set_position(obj_pos_world);
+        new_camera.set_position(mesh_entity.get_origin());
         glm::mat4 looking_at = glm::lookAt(new_camera.get_position(), glm::vec3(dir), up[i]);
         new_camera.set_view(looking_at);
 
         camera->set_view(new_camera.get_view());
-
+        programs.bind(ShaderPrograms::ENV);
         camera.buffer(programs.get_selected_program());
-        draw_f();
+        cube_map_.draw(programs.get_selected_program());
+        for (auto& sec_mesh : mesh_entities) {
+            if (&sec_mesh != &mesh_entity) {
+                draw_f(sec_mesh);
+                // std::cout << "render" << std::endl;
+            }
 
+        }
+        // std::cout << "done" << std::endl;
+        // // no depth buffer
+        // programs.bind(ShaderPrograms::ENV);
+        // camera.buffer(programs.get_selected_program());
+        // cube_map_.draw(programs.get_selected_program());
         i++;
     }
-
-    programs.bind(ShaderPrograms::ENV);
-    camera.buffer(programs.get_selected_program());
-    cube_map_.draw(programs.get_selected_program());
 
     camera->set_view(old_view);
     camera->set_fov(old_fov);
     camera->set_aspect(old_aspect);
     camera->set_projection_mode(old_proj);
-
-    // glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    // glClear(GL_COLOR_BUFFER_BIT);
-
+    
     fbo.unbind();
     
     programs.bind(selected);

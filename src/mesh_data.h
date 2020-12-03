@@ -11,6 +11,7 @@ enum MeshList {
     BUNNY,
     TORUS,
     MONKEY,
+    SPHERE,
 };
 
 class BumpyCubeMesh : public Mesh {
@@ -31,4 +32,9 @@ public:
 class MonkeyMesh : public Mesh {
 public:
     MonkeyMesh() : Mesh(MESH_DIR + "monkey.off") {}
+};
+
+class SphereMesh : public Mesh {
+public:
+    SphereMesh() : Mesh(MESH_DIR + "sphere.off") {}
 };
