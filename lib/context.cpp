@@ -170,7 +170,7 @@ void Context::update_draw(MeshEntity& mesh_entity) {
     }
 }
 void Context::update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
-    if (mesh_entity.get_dyn_reflections()) {
+    if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
         env.draw_dynamic(*programs.get(), mesh_entity, mesh_entities, [&] (MeshEntity& sec_mesh) { update_draw(sec_mesh); });
     } else {
         env.cube_map_.bind();
