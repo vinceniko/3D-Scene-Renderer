@@ -222,16 +222,14 @@ void Context::draw_normals(MeshEntity& mesh_entity) {
     programs->bind(ShaderPrograms::NORMALS);;
     env.camera.buffer(programs->get_selected_program());
 
-    for (auto& mesh : mesh_list) {
-        auto temp = mesh.get_color();
-        mesh.set_color(glm::vec3(1.0, 0.0, 0.0));
-        mesh.draw(programs->get_selected_program());
-        mesh.set_color(temp);
-    }
-
+    auto temp = mesh_entity.get_color();
+    mesh_entity.set_color(glm::vec3(1.0, 0.0, 0.0));
     mesh_entity.draw(programs->get_selected_program());
+    mesh_entity.set_color(temp);
 
     programs->bind(selected);
+
+    draw_wireframes(mesh_entity);
 }
 void Context::draw_normals() {
     for (MeshEntity& mesh : mesh_list) {

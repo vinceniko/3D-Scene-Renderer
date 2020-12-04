@@ -172,8 +172,16 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // draw env
+        programs.bind(ShaderPrograms::ENV);
+        camera->set_view(glm::lookAt(glm::vec3(0), glm::vec3(dir), up[i]));
+        camera.buffer(programs.get_selected_program());
+        cube_map_.draw(programs.get_selected_program());
+
         glm::mat4 looking_at = glm::lookAt(mesh_entity.get_origin(), mesh_entity.get_origin() + dir, up[i]);
         camera->set_view(looking_at);
+
+        // TODO: the reason the empty spots appear in the reflection of contained reflictive objects is because it is sampling from the same tex that the containing object is drawing
 
         // draw all other meshes
         for (auto& sec_mesh : mesh_entities) {
@@ -181,12 +189,6 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
                 draw_f(sec_mesh);
             }
         }
-        // draw env
-        programs.bind(ShaderPrograms::ENV);
-        camera->set_view(glm::lookAt(glm::vec3(0), glm::vec3(dir), up[i]));
-        camera.buffer(programs.get_selected_program());
-
-        cube_map_.draw(programs.get_selected_program());
 
         i++;
     }

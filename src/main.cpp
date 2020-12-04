@@ -320,7 +320,6 @@ int main(void)
         // if (camera != nullptr) {
         //     camera->swivel();
         // }
-
         ctx->update_draw();
 
         // Swap front and back buffers
