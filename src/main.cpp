@@ -199,6 +199,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 case GLFW_KEY_J:
                     selected->get().rotate(ctx->env.camera->get_view(), -10.f, glm::vec3(0.f, 0.f, 1.f));
                     break;
+                // dynamic reflections and refractions
+                case GLFW_KEY_Z:
+                    selected->get().set_dyn_reflections(!selected->get().get_dyn_reflections());
+                    break;  
                 }
             }
             break;

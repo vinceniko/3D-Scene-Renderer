@@ -52,7 +52,6 @@ public:
 };
 
 class Environment {
-    GL_CubeMapEntity cube_map_;
 
     float fov_ = 50.0;
 
@@ -60,6 +59,7 @@ class Environment {
     int height_;
 
 public:
+    GL_CubeMapEntity cube_map_;
     GL_CubeMap_FBO fbo;
     GLCamera camera;
 

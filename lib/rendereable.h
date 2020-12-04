@@ -22,7 +22,7 @@ public:
         shader_ = shader;
     }
     void set_dyn_reflections(bool state) {
-        dynamic_refl_ = true;
+        dynamic_refl_ = state;
     }
     bool get_dyn_reflections() {
         return dynamic_refl_;
