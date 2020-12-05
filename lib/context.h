@@ -50,16 +50,16 @@ public:
 // general context, holds all other state
 class Context {
 public:
-    std::unique_ptr<ShaderProgramCtx> programs;
+    ShaderProgramCtx& programs = ShaderProgramCtx::get();
 
-    MeshFactory mesh_factory;
+    MeshFactory& mesh_factory = MeshFactory::get();
     MeshEntityList mesh_list;
 
     Environment env;
 
     MouseContext mouse_ctx;
 
-    Context(std::unique_ptr<ShaderProgramCtx> programs, std::shared_ptr<Camera> camera, int width, int height);
+    Context(std::shared_ptr<Camera> camera, int width, int height);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
     int intersected_mesh_perspective(glm::vec3 world_ray) const;

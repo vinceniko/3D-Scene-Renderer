@@ -1,9 +1,9 @@
 #include "my_context.h"
 #include "mesh_data.h"
 
-MyContext::MyContext(std::unique_ptr<ShaderProgramCtx> programs, int width, int height) :
+MyContext::MyContext(int width, int height) :
 // the issue with creating the env.camera first is, due to inheritance, Context is initialized firstpo
-Context(std::move(programs), std::make_shared<TrackballCamera>(TrackballCamera{ static_cast<float>(width) / height }), width, height),
+Context(std::make_shared<TrackballCamera>(TrackballCamera{ static_cast<float>(width) / height }), width, height),
 cameras{
     env.camera.get_camera_ptr(),
     std::make_shared<FreeCamera>(FreeCamera{ static_cast<float>(width) / height })

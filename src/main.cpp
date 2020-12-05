@@ -128,7 +128,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_P:
             ctx->switch_shader();
             break;
-        // switch camera
+            // switch camera
         case GLFW_KEY_X:
             ctx->switch_camera();
             break;
@@ -199,10 +199,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 case GLFW_KEY_J:
                     selected->get().rotate(ctx->env.camera->get_view(), -10.f, glm::vec3(0.f, 0.f, 1.f));
                     break;
-                // dynamic reflections and refractions
+                    // dynamic reflections and refractions
                 case GLFW_KEY_Z:
                     selected->get().set_dyn_reflections(!selected->get().get_dyn_reflections());
-                    break;  
+                    break;
                 }
             }
             break;
@@ -218,7 +218,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     std::cout << "scroll: " << ctx->mouse_ctx.get_scroll() << std::endl;
 #endif
     ctx->env.camera->zoom_protected(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ScaleDir::In : Camera::ScaleDir::Out, glm::abs(scroll_diff / 20.f));
-    ctx->env.camera.buffer(ctx->programs->get_selected_program());
+    ctx->env.camera.buffer(ctx->programs.get_selected_program());
 }
 
 int main(void)
@@ -250,7 +250,7 @@ int main(void)
     // WIDTH = width / XSCALE; 
     // HEIGHT = height / YSCALE;
 
-    WIDTH = width * XSCALE; 
+    WIDTH = width * XSCALE;
     HEIGHT = height * YSCALE;
 
     // Create a windowed mode window and its OpenGL context
@@ -290,14 +290,10 @@ int main(void)
     std::cout << "DEBUG ENABLED" << std::endl;
 #endif
 
-    std::unique_ptr<ShaderProgramCtx> programs = std::unique_ptr<ShaderProgramCtx>{ new ShaderProgramCtx };
-    programs->bind(ShaderPrograms::PHONG);
-
     ctx = std::unique_ptr<MyContext>(new MyContext{
-            std::move(programs),
-            WIDTH, 
+            WIDTH,
             HEIGHT
-    });
+        });
 
     // callbacks
     glfwSetKeyCallback(window, key_callback);
@@ -315,6 +311,10 @@ int main(void)
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+#ifdef DEBUG
+        check_gl_error();
+#endif
+
         // // swivel animation
         // auto camera = dynamic_cast<TrackballCamera*>(&ctx->env.camera.get_camera());
         // if (camera != nullptr) {
@@ -331,7 +331,7 @@ int main(void)
 
     // Deallocate opengl memory
     // TODO: move into ~Program
-    for (auto& program : *ctx->programs) {
+    for (auto& program : ctx->programs) {
         program->free();
     }
 

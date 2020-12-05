@@ -188,10 +188,17 @@ class MeshFactory {
         return static_cast<int>(n) - static_cast<int>(DefMeshList::NUM_DEF_MESHES);
     }
 
-public:
     MeshFactory(ShaderProgram& program) : meshes_() {
         push(program, std::vector<Mesh>{ UnitCube{} });
     }
+
+public:
+    static MeshFactory& get() {
+        static MeshFactory mesh_factory{ ShaderProgramCtx::get().get_selected_program() };
+        return mesh_factory;
+    }
+
+    MeshFactory(const MeshFactory&) = delete;
 
     MeshEntityList push(ShaderProgram& program, std::vector<Mesh> meshes);
 

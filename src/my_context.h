@@ -13,7 +13,7 @@ class MyContext : public Context {
     size_t camera_idx = 0;
 
 public:
-    MyContext(std::unique_ptr<ShaderProgramCtx> programs, int width, int height);
+    MyContext(int width, int height);
 
     // cycles through the available shader programs enumerated in ProgramList
     void switch_shader();

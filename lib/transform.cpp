@@ -9,7 +9,7 @@ void GLTransform::buffer(ShaderProgram& program, const glm::mat4& mat) const {
     }
 
     glUniformMatrix4fv(id, 1, GL_FALSE, (float*)&mat);
-    #ifdef DEBUG
+#ifdef DEBUG
     check_gl_error();
-    #endif
+#endif
 }

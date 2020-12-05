@@ -44,13 +44,21 @@ class ShaderProgramCtx : public std::vector<ShaderProgramFile*> {
 
     FileWatcher file_watcher_{ 1000 };
 
-public:
     ShaderProgramCtx();
     ~ShaderProgramCtx() {
         for (auto ptr : *this) {
             delete ptr;
         }
     }
+
+public:
+    static ShaderProgramCtx& get() {
+        static ShaderProgramCtx shader_program;
+        return shader_program;
+    }
+
+    ShaderProgramCtx(const ShaderProgramCtx&) = delete;
+
     static size_t get(int n);
     void bind(ShaderPrograms n);
     ShaderProgram& get_selected_program();
