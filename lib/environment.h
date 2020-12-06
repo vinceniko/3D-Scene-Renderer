@@ -31,9 +31,9 @@ protected:
     static CubeMapFace parse_path_name(const std::string& path_name);
 
 public:
-    CubeMap(MeshFactory& mesh_factory) : cube_entity_(mesh_factory.get_mesh_entity(DefMeshList::CUBE)) {}
+    CubeMap() : cube_entity_(MeshFactory::get().get_mesh_entity(DefMeshList::CUBE)) {}
 
-    virtual void init(const std::string& dir_path, bool flip) = 0;
+    virtual void init(const std::string& dir_path, bool flip=false) = 0;
 };
 
 class GL_CubeMapEntity : public GL_CubeMapTex, public CubeMap {    
@@ -42,10 +42,10 @@ class GL_CubeMapEntity : public GL_CubeMapTex, public CubeMap {
     // parse and decode the full path name into the gl equivelant
     uint32_t gl_decode_face(const std::string& path_name);
 public:
-    GL_CubeMapEntity(MeshFactory& mesh_factory, const std::string& dir_path) : GL_CubeMapTex(), CubeMap(mesh_factory) {
+    GL_CubeMapEntity(const std::string& dir_path) {
         init(dir_path);
     }
-    GL_CubeMapEntity(MeshFactory& mesh_factory) : GL_CubeMapEntity(mesh_factory, DEF_CUBE_MAP_DIR_PATH) {}
+    GL_CubeMapEntity() : GL_CubeMapEntity(DEF_CUBE_MAP_DIR_PATH) {}
     
     void init(const std::string& dir_path, bool flip=false) override;
     void draw(ShaderProgram& programs);
@@ -63,13 +63,12 @@ public:
     GL_CubeMap_FBO fbo;
     GLCamera camera;
 
-    Environment(MeshFactory& mesh_factory, std::shared_ptr<Camera> new_cam, int width, int height) : cube_map_(mesh_factory), fbo(width_ / 2.f), width_(width), height_(height), camera(new_cam) { viewport(width, height); }
-    Environment(MeshFactory& mesh_factory, std::shared_ptr<Camera> new_cam, int width, int height, float fov) : Environment(mesh_factory, new_cam, width, height) { 
+    Environment(std::shared_ptr<Camera> new_cam, int width, int height) : cube_map_(), fbo(width_ / 2.f), width_(width), height_(height), camera(new_cam) { viewport(width, height); }
+    Environment(std::shared_ptr<Camera> new_cam, int width, int height, float fov) : Environment(new_cam, width, height) { 
         fov_ = fov;
         viewport(width, height); 
     }
 
-    void bind();
     void draw(ShaderProgramCtx& programs);
     // draw the scene to a the fbo
     void draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f);

@@ -46,7 +46,7 @@ double MouseContext::get_scroll() const {
 }
 
 Context::Context(std::shared_ptr<Camera> new_cam, int width, int height) :
-    env(this->mesh_factory, new_cam, width, height) {}
+    env(new_cam, width, height) {}
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
     float min_dist = std::numeric_limits<float>::infinity();
@@ -179,7 +179,6 @@ void Context::update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities
 }
 void Context::update_draw() {
     programs.reload();
-    env.bind();
     update();
     for (MeshEntity& mesh_entity : mesh_list) {
         update_draw(mesh_entity, mesh_list);

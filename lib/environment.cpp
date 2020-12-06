@@ -103,11 +103,9 @@ void GL_CubeMapEntity::draw(ShaderProgram& program) {
     glDepthFunc(GL_LESS);
 }
 
-void Environment::bind() {
-    cube_map_.bind();
-}
-
 void Environment::draw(ShaderProgramCtx& programs) {
+    cube_map_.bind();
+
     glm::mat4 old_view = camera->get_view();
     glm::mat4 w_out_scale = glm::lookAt(camera->get_position(), glm::vec3(glm::inverse(old_view) * glm::vec4(0.f, 0.f, -1.f, 0.f)), glm::vec3(0.f, camera->get_up(), 0.f));
     camera->set_view(w_out_scale);

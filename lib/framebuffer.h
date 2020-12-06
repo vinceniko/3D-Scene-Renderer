@@ -22,10 +22,9 @@ public:
         glBindRenderbuffer(GL_RENDERBUFFER, rbo_);
 
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, tex_.get_width(), tex_.get_width());
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fbo_);
 
-        // generate texture
+        // bind already generated texture
         tex_.bind();
         for (int i = 0; i < 6; i++) {
             glTexImage2D(
@@ -62,6 +61,7 @@ public:
     }
     void unbind() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
         tex_.bind();
     }
     uint32_t& get_id() {
