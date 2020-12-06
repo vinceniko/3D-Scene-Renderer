@@ -183,8 +183,8 @@ void TrackballCamera::swivel() {
     trans_ = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 }
 
-GLCamera::GLCamera(std::shared_ptr<Camera> camera) :
-    camera_(camera),
+GLCamera::GLCamera(std::unique_ptr<Camera> camera) :
+    camera_(std::move(camera)),
     view_uniform_("u_view_trans"),
     projection_uniform_("u_projection") {}
 
@@ -202,11 +202,14 @@ void GLCamera::buffer(ShaderProgram& program) {
 Camera& GLCamera::get_camera() {
     return *camera_.get();
 }
-std::shared_ptr<Camera> GLCamera::get_camera_ptr() {
-    return camera_;
+Camera* GLCamera::get_camera_ptr() {
+    return camera_.get();
 }
-void GLCamera::set_camera(std::shared_ptr<Camera> camera) {
-    camera_ = camera;
+std::unique_ptr<Camera> GLCamera::get_camera_move() {
+    return std::move(camera_);
+}
+void GLCamera::set_camera(std::unique_ptr<Camera> camera) {
+    camera_ = std::move(camera);
 }
 Camera* GLCamera::operator ->() {
     return camera_.get();

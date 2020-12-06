@@ -291,9 +291,9 @@ int main(void)
 #endif
 
     ctx = std::unique_ptr<MyContext>(new MyContext{
-            WIDTH,
-            HEIGHT
-        });
+        WIDTH,
+        HEIGHT
+    });
 
     // callbacks
     glfwSetKeyCallback(window, key_callback);

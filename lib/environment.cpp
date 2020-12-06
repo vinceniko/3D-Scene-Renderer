@@ -155,8 +155,8 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
     auto old_proj = camera->get_projection_mode();
     auto old_aspect = camera->get_aspect();
 
-    auto old_camera = std::move(camera.get_camera_ptr());
-    camera.set_camera(std::make_shared<FreeCamera>(FreeCamera { camera->get_aspect(), 90.f }));
+    std::unique_ptr<Camera> old_camera = std::move(camera.get_camera_move());
+    camera.set_camera(std::make_unique<FreeCamera>(FreeCamera { old_camera->get_aspect(), 90.f }));
 
     camera->set_projection_mode(Camera::Projection::Perspective);
     camera->set_fov(90);
@@ -192,7 +192,7 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
     }
 
     // restore
-    camera.set_camera(old_camera);
+    camera.set_camera(std::move(old_camera));
     
     fbo.unbind();
     

@@ -3,10 +3,18 @@
 
 MyContext::MyContext(int width, int height) :
 // the issue with creating the env.camera first is, due to inheritance, Context is initialized firstpo
-Context(std::make_shared<TrackballCamera>(TrackballCamera{ static_cast<float>(width) / height }), width, height),
+Context{
+    new Environment{
+        std::make_unique<TrackballCamera>(TrackballCamera{ static_cast<float>(width) / height }), 
+        width, 
+        height,
+        "../data/night_env/",
+        true,
+    }
+},
 cameras{
     env.camera.get_camera_ptr(),
-    std::make_shared<FreeCamera>(FreeCamera{ static_cast<float>(width) / height })
+    new FreeCamera{ static_cast<float>(width) / height }
 } {
     init_mesh_prototypes(std::vector<Mesh>{ BumpyCubeMesh{}, BunnyMesh{}, TorusMesh{}, MonkeyMesh{}, SphereMesh{} }); 
 }
@@ -26,10 +34,11 @@ void MyContext::switch_draw_mode() {
     }
 }
 
-void MyContext::set_camera(std::shared_ptr<Camera> new_camera) {
-    env.camera.set_camera(new_camera);
+void MyContext::set_camera(Camera* new_camera) {
+    env.camera.set_camera(std::move(std::unique_ptr<Camera>(new_camera)));
 }
 void MyContext::switch_camera() {
+    cameras[camera_idx] = env.camera.get_camera_move().release();  // assign back to array
     camera_idx = (camera_idx + 1) % cameras.size();
-    env.camera.set_camera(cameras[camera_idx]);
+    set_camera(cameras[camera_idx]);
 }

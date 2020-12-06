@@ -41,9 +41,10 @@ class GL_CubeMapEntity : public GL_CubeMapTex, public CubeMap {
     static uint32_t gl_decode_face(CubeMapFace face);
     // parse and decode the full path name into the gl equivelant
     uint32_t gl_decode_face(const std::string& path_name);
+
 public:
-    GL_CubeMapEntity(const std::string& dir_path) {
-        init(dir_path);
+    GL_CubeMapEntity(const std::string& dir_path, bool flip=false) {
+        init(dir_path, flip);
     }
     GL_CubeMapEntity() : GL_CubeMapEntity(DEF_CUBE_MAP_DIR_PATH) {}
     
@@ -52,7 +53,6 @@ public:
 };
 
 class Environment {
-
     float fov_ = 50.0;
 
     int width_;
@@ -63,8 +63,13 @@ public:
     GL_CubeMap_FBO fbo;
     GLCamera camera;
 
-    Environment(std::shared_ptr<Camera> new_cam, int width, int height) : cube_map_(), fbo(width_ / 2.f), width_(width), height_(height), camera(new_cam) { viewport(width, height); }
-    Environment(std::shared_ptr<Camera> new_cam, int width, int height, float fov) : Environment(new_cam, width, height) { 
+    Environment(std::unique_ptr<Camera> new_cam, int width, int height) : cube_map_(), fbo(width_ / 2.f), width_(width), height_(height), camera(std::move(new_cam)) { viewport(width, height); }
+    Environment(std::unique_ptr<Camera> new_cam, int width, int height, float fov) : Environment(std::move(new_cam), width, height) { 
+        fov_ = fov;
+        viewport(width, height); 
+    }
+    Environment(std::unique_ptr<Camera> new_cam, int width, int height, const std::string& dir_path, bool flip=false) : cube_map_(dir_path, flip), fbo(width_ / 2.f), width_(width), height_(height), camera(std::move(new_cam)) { viewport(width, height); }
+    Environment(std::unique_ptr<Camera> new_cam, int width, int height, float fov, const std::string& dir_path, bool flip=false) : Environment(std::move(new_cam), width, height, dir_path, flip) { 
         fov_ = fov;
         viewport(width, height); 
     }

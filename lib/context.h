@@ -59,7 +59,7 @@ public:
 
     MouseContext mouse_ctx;
 
-    Context(std::shared_ptr<Camera> camera, int width, int height);
+    Context(Environment* env);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
     int intersected_mesh_perspective(glm::vec3 world_ray) const;

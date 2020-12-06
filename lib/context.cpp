@@ -45,8 +45,7 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(std::shared_ptr<Camera> new_cam, int width, int height) :
-    env(new_cam, width, height) {}
+Context::Context(Environment* new_env) : env(std::move(*new_env)) {}
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
     float min_dist = std::numeric_limits<float>::infinity();

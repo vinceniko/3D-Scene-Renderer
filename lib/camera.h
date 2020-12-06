@@ -38,6 +38,7 @@ public:
     // defaults to perspective projection
     Camera(float aspect);
     Camera(float aspect, float fov);
+    virtual ~Camera() = default;
 
     virtual void translate(glm::vec3 offset) = 0;
     virtual void translate(glm::vec3 new_point, glm::vec3 old_point) = 0;
@@ -66,10 +67,10 @@ public:
     virtual glm::vec3 get_position() const;
 
     // gets the world ray direction of the nds coords
-    glm::vec3 get_ray_world(glm::vec2 nds_pos, float width, float height) const;
+    virtual glm::vec3 get_ray_world(glm::vec2 nds_pos, float width, float height) const;
 
     // gets the world position of the nds coords
-    glm::vec3 get_pos_world(glm::vec2 nds_pos, float width, float height) const;
+    virtual glm::vec3 get_pos_world(glm::vec2 nds_pos, float width, float height) const;
 };
 
 class TwoDCamera : public Camera {
@@ -116,7 +117,7 @@ public:
 
 // stores a Camera or descendent type and necessary gl info to bind to the appropriate uniforms such as the view and projection matrix transforms
 class GLCamera {
-    std::shared_ptr<Camera> camera_;
+    std::unique_ptr<Camera> camera_;
 
     GLTransform view_uniform_;
     GLTransform projection_uniform_;
@@ -124,11 +125,12 @@ class GLCamera {
     void buffer_view_uniform(ShaderProgram& program);
     void buffer_projection_uniform(ShaderProgram& program);
 public:
-    GLCamera(std::shared_ptr<Camera> camera);
+    GLCamera(std::unique_ptr<Camera> camera);
 
     Camera& get_camera();
-    std::shared_ptr<Camera> get_camera_ptr();
-    void set_camera(std::shared_ptr<Camera> camera);
+    Camera* get_camera_ptr();
+    std::unique_ptr<Camera> get_camera_move();
+    void set_camera(std::unique_ptr<Camera> camera);
     Camera* operator ->();
     const Camera* operator ->() const;
 
