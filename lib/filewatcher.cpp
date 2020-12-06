@@ -27,7 +27,7 @@ FileWatcher::~FileWatcher() {
 void FileWatcher::add_path(const std::string& path, std::function<void()> func) {
     if (paths_.find(path) == paths_.end()) {
         auto f_time = std::filesystem::last_write_time(path);
-        paths_[path] = std::make_unique<FileWatcherVal>(FileWatcherVal{ f_time, false, func });
+        paths_[path] = std::unique_ptr<FileWatcherVal>(new FileWatcherVal{f_time, false, func}); // save allocation
     }
 }
 bool FileWatcher::check_change(const std::string& path) const {

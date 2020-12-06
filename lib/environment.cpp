@@ -103,8 +103,8 @@ void GL_CubeMapEntity::draw(ShaderProgram& program) {
     glDepthFunc(GL_LESS);
 }
 
-void Environment::draw(ShaderProgramCtx& programs) {
-    cube_map_.bind();
+void Environment::draw_static(ShaderProgramCtx& programs) {
+    bind_static();
 
     glm::mat4 old_view = camera->get_view();
     glm::mat4 w_out_scale = glm::lookAt(camera->get_position(), glm::vec3(glm::inverse(old_view) * glm::vec4(0.f, 0.f, -1.f, 0.f)), glm::vec3(0.f, camera->get_up(), 0.f));
@@ -121,7 +121,7 @@ void Environment::draw(ShaderProgramCtx& programs) {
     camera->set_fov(fov_);
     camera.buffer(programs.get_selected_program());
 
-    cube_map_.draw(programs.get_selected_program());
+    cube_map_->draw(programs.get_selected_program());
 
     camera->set_fov(old_fov);
     camera->set_projection_mode(old_mode);
@@ -130,7 +130,7 @@ void Environment::draw(ShaderProgramCtx& programs) {
 }
 
 void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f) {
-    fbo.bind();
+    bind_dynamic();
 
     ShaderPrograms selected = programs.get_selected();
 
@@ -156,7 +156,7 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
     auto old_aspect = camera->get_aspect();
 
     std::unique_ptr<Camera> old_camera = std::move(camera.get_camera_move());
-    camera.set_camera(std::make_unique<FreeCamera>(FreeCamera { old_camera->get_aspect(), 90.f }));
+    camera.set_camera(std::make_unique<FreeCamera>(old_camera->get_aspect(), 90.f));
 
     camera->set_projection_mode(Camera::Projection::Perspective);
     camera->set_fov(90);
@@ -174,7 +174,7 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
         programs.bind(ShaderPrograms::ENV);
         camera->set_view(glm::lookAt(glm::vec3(0), glm::vec3(dir), up[i]));
         camera.buffer(programs.get_selected_program());
-        cube_map_.draw(programs.get_selected_program());
+        cube_map_->draw(programs.get_selected_program());
 
         glm::mat4 looking_at = glm::lookAt(mesh_entity.get_origin(), mesh_entity.get_origin() + dir, up[i]);
         camera->set_view(looking_at);

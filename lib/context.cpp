@@ -172,7 +172,7 @@ void Context::update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities
     if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
         env.draw_dynamic(programs, mesh_entity, mesh_entities, [&] (MeshEntity& sec_mesh) { update_draw(sec_mesh); });
     } else {
-        env.cube_map_.bind();
+        env.bind_static();
     }
     update_draw(mesh_entity);
 }
@@ -182,7 +182,7 @@ void Context::update_draw() {
     for (MeshEntity& mesh_entity : mesh_list) {
         update_draw(mesh_entity, mesh_list);
     }
-    env.draw(programs);
+    env.draw_static(programs);
 }
 void Context::draw_surfaces(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());

@@ -12,12 +12,18 @@ class MyContext : public Context {
     std::array<Camera*, 2> cameras;
     size_t camera_idx = 0;
 
+    // TODO: make list, currently supports two CubeMaps, other set in constructor
+    std::unique_ptr<GL_CubeMapEntity> curr_cube_map = std::make_unique<GL_CubeMapEntity>();
+
 public:
     MyContext(int width, int height);
 
     // cycles through the available shader programs enumerated in ProgramList
     void switch_shader();
     void switch_draw_mode();
+    void switch_cube_map() {
+        env.swap_cube_map(curr_cube_map);
+    }
     void set_camera(Camera* new_camera);
     void switch_camera();
 };
