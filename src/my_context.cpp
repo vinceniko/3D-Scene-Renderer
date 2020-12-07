@@ -1,5 +1,6 @@
 #include "my_context.h"
 #include "mesh_data.h"
+#include "cubemap.h"
 
 MyContext::MyContext(int width, int height) :
 // the issue with creating the env.camera first is, due to inheritance, Context is initialized firstpo

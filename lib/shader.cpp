@@ -17,7 +17,7 @@ ShaderProgramCtx::ShaderProgramCtx() {
     push_back(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "reflect_frag.glsl", "out_color", file_watcher_ });
     push_back(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "refract_frag.glsl", "out_color", file_watcher_ });
     
-    bind(ShaderPrograms::PHONG);
+    bind(ShaderPrograms::DEF_SHADER);
 }
 
 size_t ShaderProgramCtx::get(int n) {
