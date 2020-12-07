@@ -34,6 +34,7 @@ endif()
 
 ### Add OpenGL
 include_directories(${OPENGL_INCLUDE_DIR})
+set(DEPENDENCIES ${OPENGL_LIBRARIES})
 
 ### Include glm for linear algebra
 include_directories("${EXT_DIR}/glm")
@@ -45,7 +46,7 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL " " FORCE)
 set(GLFW_BUILD_INSTALL OFF CACHE BOOL " " FORCE)
 add_subdirectory("${EXT_DIR}/glfw" "glfw")
 include_directories("${EXT_DIR}/glfw/include")
-set(DEPENDENCIES "glfw" ${GLFW_LIBRARIES})
+list(APPEND DEPENDENCIES "glfw" ${GLFW_LIBRARIES})
 
 ### On windows, you also need glew
 if((UNIX AND NOT APPLE) OR WIN32)
@@ -74,12 +75,11 @@ file(GLOB SOURCES
 )
 
 add_executable(${PROJECT_NAME}_bin ${SOURCES} ${LIB})
-target_precompile_headers(${PROJECT_NAME}_bin PUBLIC ${STB})
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DDEBUG)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
-target_include_directories(${PROJECT_NAME}_bin PUBLIC "${EXT_DIR}/stb" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_include_directories(${PROJECT_NAME}_bin PUBLIC "${STB}" "${EXT_DIR}/stb" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_link_libraries(${PROJECT_NAME}_bin ${DEPENDENCIES})
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/extra)

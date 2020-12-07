@@ -68,10 +68,10 @@ void GL_CubeMapEntity::init(const std::string& dir_path, bool flip) {
     stbi_set_flip_vertically_on_load(flip);
     for (auto& tex_path : std::filesystem::directory_iterator(dir_path)) {
         int n_chan;
-        unsigned char* data = stbi_load(tex_path.path().c_str(), &width_, &width_, &n_chan, 0);
+        unsigned char* data = stbi_load(tex_path.path().string().c_str(), &width_, &width_, &n_chan, 0);
         if (data) {
             glTexImage2D(
-                gl_decode_face(tex_path.path()),
+                gl_decode_face(tex_path.path().string()),
                 0, GL_RGB, width_, width_, 0, GL_RGB, GL_UNSIGNED_BYTE, data
             );
         }
