@@ -27,6 +27,10 @@
 #include "my_context.h"
 #include "camera.h"
 
+#ifdef TIMER
+#include "timer.h"
+#endif
+
 #include "mesh_data.h"
 
 int WIDTH;
@@ -303,6 +307,10 @@ int main(void)
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+#ifdef TIMER
+    FrameTimer<std::chrono::seconds> frame_timer(std::chrono::seconds(1));
+#endif
+
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
@@ -329,6 +337,10 @@ int main(void)
 
         // Poll for and process events
         glfwPollEvents();
+
+#ifdef TIMER
+        frame_timer.print();
+#endif
     }
 
     // Deallocate opengl memory

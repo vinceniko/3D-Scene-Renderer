@@ -74,10 +74,21 @@ file(GLOB SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*"
 )
 
-add_executable(${PROJECT_NAME}_bin ${SOURCES} ${LIB})
+add_executable(${PROJECT_NAME}_bin)
+
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DDEBUG)
+  set(TIMER 1)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
+
+if (TIMER)
+  target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DTIMER)
+else()
+  list(REMOVE_ITEM LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/timer.h")
+  list(REMOVE_ITEM LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/timer.cpp")
+endif()
+
+target_sources(${PROJECT_NAME}_bin PUBLIC ${SOURCES} ${LIB})
 
 target_include_directories(${PROJECT_NAME}_bin PUBLIC "${STB}" "${EXT_DIR}/stb" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_link_libraries(${PROJECT_NAME}_bin ${DEPENDENCIES})
