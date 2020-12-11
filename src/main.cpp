@@ -143,6 +143,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_I:
             ctx->switch_cube_map();
             break;
+        case GLFW_KEY_V:
+            ctx->env.dir_light_.rotate(glm::mat4{ 1.f }, 100.f, glm::vec3(1.f, 1.f, 1.f));
+            break;
         default:
             // model
             if (selected.has_value()) {
@@ -224,7 +227,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 //     std::cout << "scroll: " << ctx->mouse_ctx.get_scroll() << std::endl;
 // #endif
     ctx->env.camera->zoom_protected(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ScaleDir::In : Camera::ScaleDir::Out, glm::abs(scroll_diff / 20.f));
-    ctx->env.camera.buffer(ctx->programs.get_selected_program());
 }
 
 int main(void)

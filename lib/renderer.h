@@ -151,3 +151,43 @@ public:
     virtual void free() = 0;
     virtual void bind() = 0;
 };
+
+struct Uniform {
+    std::string name_;
+
+    Uniform() {}
+    Uniform(std::string name) : name_(name) {}
+    void buffer(ShaderProgram& program, const float& val) {
+        int32_t id = program.uniform(name_);
+        if (id < 0) {
+            throw std::runtime_error("Error Getting ID of Uniform");
+        }
+
+        glUniform1f(id, val);
+#ifdef DEBUG
+        check_gl_error();
+#endif
+    }
+    void buffer(ShaderProgram& program, const glm::mat4& val) {
+        int32_t id = program.uniform(name_);
+        if (id < 0) {
+            throw std::runtime_error("Error Getting ID of Uniform");
+        }
+
+        glUniformMatrix4fv(id, 1, GL_FALSE, (float*)&val);
+#ifdef DEBUG
+        check_gl_error();
+#endif
+    }
+    void buffer(ShaderProgram& program, const glm::vec3& val) {
+        int32_t id = program.uniform(name_);
+        if (id < 0) {
+            throw std::runtime_error("Error Getting ID of Uniform");
+        }
+
+        glUniform3f(id, val[0], val[1], val[2]);
+#ifdef DEBUG
+        check_gl_error();
+#endif
+    }
+};

@@ -60,6 +60,9 @@ public:
     ShaderProgramCtx(const ShaderProgramCtx&) = delete;
 
     static size_t get(int n);
+    ShaderProgram& get_program(int n) {
+        return *(*this)[get(n)];
+    }
     void bind(ShaderPrograms n);
     ShaderProgram& get_selected_program();
     ShaderPrograms get_selected();

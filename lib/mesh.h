@@ -1,8 +1,5 @@
 #pragma once
 
-#include "rendereable.h"
-#include "spatial.h"
-
 #include <fstream>
 #include <vector>
 #include <array>
@@ -15,7 +12,9 @@
 #include <iostream>
 
 #include "definitions.h"
-#include "transform.h"
+#include "renderer.h"
+#include "rendereable.h"
+#include "spatial.h"
 #include "triangle.h"
 #include "shader.h"
 
@@ -125,7 +124,7 @@ class MeshEntity : public Spatial, public ShaderObject {
     // the index into the list of meshes in GLMeshCtx
     size_t id_;
 
-    GLTransform model_uniform_;
+    Uniform model_uniform_{ "u_model_trans" };
     glm::vec3 color_;
 
     MeshEntity(MeshFactory& ctx, size_t id);
@@ -136,10 +135,6 @@ public:
     const size_t get_id() const;
     void set_color(glm::vec3 new_color);
     glm::vec3 get_color() const;
-
-    void translate(glm::mat4 view_trans, glm::vec3 offset) override;
-    void scale(glm::mat4 view_trans, ScaleDir dir, float offset) override;
-    void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) override;
 
     void buffer(ShaderProgram& program);
 
@@ -154,6 +149,9 @@ public:
     void set_to_origin();
     glm::vec3 get_origin() {
         return glm::vec3(trans_ * glm::vec4(get_mesh().get_centroid(), 1.f));
+    }
+    glm::vec3 get_position() override {
+        return get_mesh().get_centroid();
     }
 
     const GLMesh& get_mesh();

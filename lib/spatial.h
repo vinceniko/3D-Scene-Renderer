@@ -14,11 +14,12 @@ public:
         In,
     };
 
-    virtual void translate(glm::mat4 view_trans, glm::vec3 offset) {};
-    virtual void scale(glm::mat4 view_trans, ScaleDir dir, float offset) {};
-    virtual void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) {};
+    void translate(glm::mat4 view_trans, glm::vec3 offset);
+    void scale(glm::mat4 view_trans, ScaleDir dir, float offset);
+    void rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis);
 
-    glm::mat4 get_trans() {
-        return trans_;
-    }
+    glm::vec3 look_direction();
+    virtual glm::vec3 get_position();
+
+    glm::mat4 get_trans();
 };

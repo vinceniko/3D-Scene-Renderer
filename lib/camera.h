@@ -8,7 +8,7 @@
 #include <chrono>
 
 #include "definitions.h"
-#include "transform.h"
+#include "renderer.h"
 #include "shader.h"
 #include "spatial.h"
 
@@ -119,8 +119,8 @@ public:
 class GLCamera {
     std::unique_ptr<Camera> camera_;
 
-    GLTransform view_uniform_;
-    GLTransform projection_uniform_;
+    Uniform view_uniform_;
+    Uniform projection_uniform_;
 
     void buffer_view_uniform(ShaderProgram& program);
     void buffer_projection_uniform(ShaderProgram& program);

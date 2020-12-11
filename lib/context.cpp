@@ -145,6 +145,13 @@ void Context::update() {
     }
 
     env.camera.buffer(programs.get_selected_program());
+    for (auto& program : programs) {
+        try {
+            env.buffer_lights(*program);
+        } catch (const std::runtime_error& e) {
+            std::cout << "light error: " << e.what() << std::endl;
+        }
+    }
 }
 
 void Context::init_mesh_prototypes(std::vector<Mesh> meshes) {
