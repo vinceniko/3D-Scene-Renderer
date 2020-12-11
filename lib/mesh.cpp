@@ -90,7 +90,6 @@ const glm::vec3& Mesh::get_scale() const {
     return scale_;
 }
 
-#ifdef DEBUG
 void Mesh::print() const {
     std::cout << verts_.size() << ' ' << faces_.size() << ' ' << ' ' << 0 << std::endl;
     for (auto vert : verts_) {
@@ -104,7 +103,6 @@ void Mesh::print() const {
         std::cout << std::endl;
     }
 }
-#endif
 
 std::vector<glm::vec3> Mesh::calc_normals() const {
     std::vector<glm::vec3> normals{ verts_.size(), glm::vec3{0.0} };
@@ -136,11 +134,11 @@ glm::vec3 Mesh::calc_centroid() const {
         mg += tri_area * centroid(tri);
     }
     glm::vec3 out = mg / m;
-#ifdef DEBUG
-    std::cout << "m: " << m << ' '
-        << "mg: " << mg[0] << ' ' << mg[1] << ' ' << mg[2] << ' ' << std::endl
-        << "out: " << out[0] << ' ' << out[1] << ' ' << out[2] << ' ' << std::endl;
-#endif
+// #ifdef DEBUG
+// std::cout << "m: " << m << ' '
+//     << "mg: " << mg[0] << ' ' << mg[1] << ' ' << mg[2] << ' ' << std::endl
+//     << "out: " << out[0] << ' ' << out[1] << ' ' << out[2] << ' ' << std::endl;
+// #endif
 
     return out;
 }

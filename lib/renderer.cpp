@@ -63,9 +63,9 @@ void ShaderProgramFile::reload_vert() {
     free_vert();
 
     std::string vert_str = get_file_str(get_vert_path());
-#ifdef DEBUG
-    std::cout << "true vert" << std::endl;
-#endif
+// #ifdef DEBUG
+//     std::cout << "true vert" << std::endl;
+// #endif
     vertex_shader = create_shader_helper(GL_VERTEX_SHADER, vert_str);
 
     attach_link(vertex_shader);
@@ -99,9 +99,9 @@ void ShaderProgramFile::reload_frag() {
     free_frag();
 
     std::string frag_str = get_file_str(get_frag_path());
-#ifdef DEBUG
-    std::cout << "true" << std::endl;
-#endif
+// #ifdef DEBUG
+//     std::cout << "true" << std::endl;
+// #endif
     fragment_shader = create_shader_helper(GL_FRAGMENT_SHADER, frag_str);
 
     attach_link(fragment_shader);

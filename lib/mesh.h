@@ -12,9 +12,7 @@
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 
-#ifdef DEBUG
 #include <iostream>
-#endif
 
 #include "definitions.h"
 #include "transform.h"
@@ -68,10 +66,7 @@ public:
     const glm::vec3& get_centroid() const;
     const glm::vec3& get_scale() const;
 
-    // * DEBUG
-#ifdef DEBUG
     void print() const;
-#endif
 
     // operations
     // TODO

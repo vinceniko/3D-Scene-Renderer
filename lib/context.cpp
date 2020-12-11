@@ -7,12 +7,19 @@ void MouseContext::hold() {
 }
 void MouseContext::hold_select(size_t i) {
     selected_ = i;
+#ifdef DEBUG
+    std::cout << "object selected: " << selected_ << std::endl;
+#endif
     held_ = true;
 }
 void MouseContext::release() {
     held_ = false;
 }
 void MouseContext::deselect() {
+#ifdef DEBUG
+    if (selected_ >= 0)
+        std::cout << "object deselected: " << selected_ << std::endl;
+#endif
     selected_ = -1;
 }
 int MouseContext::get_selected() const {
@@ -122,26 +129,20 @@ Optional<MeshEntity> Context::get_selected() {
 }
 
 void Context::update() {
-    // #ifdef DEBUG
+// #ifdef DEBUG
     // std::cout << "new_point: " << new_point[0] << ' ' << new_point[1] << ' ' << 
     // "old_point: " << old_point[0] << ' ' << old_point[1] << ' ' << std::endl;
-    // #endif
+// #endif
 
     if (mouse_ctx.is_held()) {
         glm::vec2 old_point = mouse_ctx.get_prev_position();
         glm::vec2 new_point = mouse_ctx.get_position();
-#ifdef DEBUG
-        auto diff = new_point - old_point;
-        std::cout << "diff: " << diff[0] << ' ' << diff[1] << std::endl;
-#endif
+// #ifdef DEBUG
+//         auto diff = new_point - old_point;
+//         std::cout << "diff: " << diff[0] << ' ' << diff[1] << std::endl;
+// #endif
         env.camera->translate(glm::vec3(new_point, 0.f), glm::vec3(old_point, 0.f));
     }
-
-#ifdef DEBUG
-    if (mouse_ctx.is_selected()) {
-        std::cout << "selected: " << mouse_ctx.get_selected() << std::endl;
-    }
-#endif
 
     env.camera.buffer(programs.get_selected_program());
 }

@@ -220,9 +220,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     ctx->mouse_ctx.set_scroll(yoffset);
     double scroll_diff = ctx->mouse_ctx.get_scroll() - ctx->mouse_ctx.get_prev_scroll();
 
-#ifdef DEBUG
-    std::cout << "scroll: " << ctx->mouse_ctx.get_scroll() << std::endl;
-#endif
+// #ifdef DEBUG
+//     std::cout << "scroll: " << ctx->mouse_ctx.get_scroll() << std::endl;
+// #endif
     ctx->env.camera->zoom_protected(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ScaleDir::In : Camera::ScaleDir::Out, glm::abs(scroll_diff / 20.f));
     ctx->env.camera.buffer(ctx->programs.get_selected_program());
 }
