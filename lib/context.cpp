@@ -144,14 +144,7 @@ void Context::update() {
         env.camera->translate(glm::vec3(new_point, 0.f), glm::vec3(old_point, 0.f));
     }
 
-    env.camera.buffer(programs.get_selected_program());
-    for (auto& program : programs) {
-        try {
-            env.buffer_lights(*program);
-        } catch (const std::runtime_error& e) {
-            std::cout << "light error: " << e.what() << std::endl;
-        }
-    }
+    env.buffer(programs.get_selected_program());
 }
 
 void Context::init_mesh_prototypes(std::vector<Mesh> meshes) {
@@ -165,7 +158,7 @@ void Context::push_mesh_entity(std::vector<int> ids) {
 
 void Context::update_draw(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());
-    env.camera.buffer(programs.get_selected_program());
+    env.buffer(programs.get_selected_program());
     if (mesh_entity.get_draw_mode() != DrawMode::WIREFRAME_ONLY) {
         draw_surfaces(mesh_entity);
     }
@@ -211,7 +204,7 @@ void Context::draw_wireframes(MeshEntity& mesh_entity) {
     auto temp = env.camera->get_view();
     // minimally scale the view to draw on top
     env.camera->scale_view(Camera::ScaleDir::Out, min_zoom);
-    env.camera.buffer(programs.get_selected_program());
+    env.buffer(programs.get_selected_program());
     mesh_entity.draw_wireframe(programs.get_selected_program());
     env.camera->set_view(temp);
 
@@ -226,7 +219,7 @@ void Context::draw_normals(MeshEntity& mesh_entity) {
     ShaderPrograms selected = mesh_entity.get_shader();
 
     programs.bind(ShaderPrograms::NORMALS);;
-    env.camera.buffer(programs.get_selected_program());
+    env.buffer(programs.get_selected_program());
 
     auto temp = mesh_entity.get_color();
     mesh_entity.set_color(glm::vec3(1.0, 0.0, 0.0));

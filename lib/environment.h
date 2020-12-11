@@ -36,6 +36,17 @@ public:
         fbo.bind();
     }
 
+    void buffer(ShaderProgram& program) {
+        camera.buffer(program);
+        try {
+            buffer_lights(program);
+        } catch (const std::runtime_error& e) {
+            // doing nothing is acceptable here, shader doesn't have the appropriate light uniform
+#ifdef DEBUG
+            std::cout << "Light Error: " << e.what() << std::endl;
+#endif
+        }
+    }
     void buffer_lights(ShaderProgram& program) {
         dir_light_.buffer(program);
     }
