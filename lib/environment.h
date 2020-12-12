@@ -16,7 +16,7 @@ class Environment {
     std::unique_ptr<GL_CubeMapEntity> cube_map_;
 public:
     DirLight dir_light_;
-    PointLights point_lights_{ PointLight{ glm::vec3(1.f, 1.f, 0.f) } };
+    PointLights point_lights_{ PointLight{ glm::vec3(1.5f, 1.f, 0.f) } };
     GLCamera camera;
 
     Environment(std::unique_ptr<Camera> new_cam, int width, int height) : cube_map_(std::make_unique<GL_CubeMapEntity>()), fbo(width_ / 2.f), width_(width), height_(height), camera(std::move(new_cam)) { set_viewport(width, height); }

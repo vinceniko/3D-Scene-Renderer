@@ -19,14 +19,27 @@ struct LightTrait {
     }
 };
 
+struct LightTraits {
+    glm::vec3 color_ = glm::vec3(0.5);
+    
+    LightTrait ambient_{ color_, 0.0 };
+    LightTrait diffuse_{ color_, 0.0 };
+    LightTrait specular_{ color_, 0.0 };
+
+    float shininess_ = 1.f;
+
+    LightTraits(glm::vec3 color, float ambient, float diffuse, float specular, float shininess_factor) : color_(color) {
+        ambient_.strength_ = ambient;
+        diffuse_.strength_ = diffuse;
+        specular_.strength_ = specular;
+        shininess_ = pow(2, shininess_factor);
+    }
+    LightTraits(float ambient, float diffuse, float specular, float shininess_factor) : LightTraits(glm::vec3(1.f), ambient, diffuse, specular, shininess_factor) {}
+};
+
 struct Light {
-    glm::vec3 light_color = glm::vec3(0.5);
-
-    LightTrait ambient_{ light_color, 0.0 };
-    LightTrait diffuse_{ light_color, 0.0 };
-    LightTrait specular_{ light_color, 0.0 };
-    float shininess_ = pow(2, 7);
-
+    LightTraits light_traits_;
+    
     std::string uniform_prefix_;
 
     Uniform u_ambient_;
@@ -34,41 +47,35 @@ struct Light {
     Uniform u_specular_;
     Uniform u_shininess_;
 
-    Light(std::string&& kind) : uniform_prefix_(kind) {}
+    Light(std::string&& kind, LightTraits light_traits) : uniform_prefix_(kind), light_traits_(light_traits) {}
     void buffer(ShaderProgram& program) {
         u_ambient_.name_ = uniform_prefix_ + ".ambient";
         u_diffuse_.name_ = uniform_prefix_ + ".diffuse";
         u_specular_.name_ = uniform_prefix_ + ".specular";
         u_shininess_.name_ = uniform_prefix_ + ".shininess";
 
-        u_ambient_.buffer(program, ambient_.get_trait());
-        u_diffuse_.buffer(program, diffuse_.get_trait());
-        u_specular_.buffer(program, specular_.get_trait());
-        u_shininess_.buffer(program, shininess_);
+        u_ambient_.buffer(program, light_traits_.ambient_.get_trait());
+        u_diffuse_.buffer(program, light_traits_.diffuse_.get_trait());
+        u_specular_.buffer(program, light_traits_.specular_.get_trait());
+        u_shininess_.buffer(program, light_traits_.shininess_);
     }
     void set_color(glm::vec3 color) {
-        ambient_.color_ = color;
-        diffuse_.color_ = color;
-        specular_.color_ = color;
+        light_traits_.ambient_.color_ = color;
+        light_traits_.diffuse_.color_ = color;
+        light_traits_.specular_.color_ = color;
     }
     void set_strength(float strength) {
-        ambient_.strength_ = strength;
-        diffuse_.strength_ = strength;
-        specular_.strength_ = strength;
+        light_traits_.ambient_.strength_ = strength;
+        light_traits_.diffuse_.strength_ = strength;
+        light_traits_.specular_.strength_ = strength;
     }
 };
 
 struct DirLight : public Light, public Spatial {
     Uniform u_direction_;
 
-    DirLight() : DirLight(glm::vec3(0.f, -1.f, -1.f), glm::vec3(1.f, 1.f, 1.f)) {}
-    DirLight(glm::vec3 direction, glm::vec3 color) : Light("dir_light") {
-        set_color(color);
-        ambient_.strength_ = 0.2;
-        diffuse_.strength_ = 0.2;
-        specular_.strength_ = 0.2;
-        shininess_ = pow(2, 3);
-
+    DirLight() : DirLight(glm::vec3(0.f, -1.f, -1.f), LightTraits{ glm::vec3(1.f), 0.2, 0.2, 0.2, 0 }) {}
+    DirLight(glm::vec3 direction, LightTraits light_traits) : Light("dir_light", light_traits) {        
         set_trans(glm::lookAt(glm::vec3(0.f), direction, glm::vec3(0.f, 0.f, 1.f)));
     }
     void buffer(ShaderProgram& program) {
@@ -104,15 +111,11 @@ struct PointLight : public Light {
 
     Uniform u_position;
 
-    PointLight() : Light("point_light"), model(MeshFactory::get().get_mesh_entity(DefMeshList::CUBE)) {
-        ambient_.strength_ = 0.2;
-        diffuse_.strength_ = 1.0;
-        specular_.strength_ = 0.75;
-        
+    PointLight(glm::vec3 position) : PointLight(position, LightTraits(0.2, 0.5, 0.5, 7)) {        
         model.scale(glm::mat4{ 1.f }, Spatial::ScaleDir::Out, 1.5);
         model.set_color(glm::vec3{ 1.f });
     }
-    PointLight(glm::vec3 position) : PointLight() {
+    PointLight(glm::vec3 position, LightTraits light_traits) : Light("point_light", light_traits), model(MeshFactory::get().get_mesh_entity(DefMeshList::CUBE)) {
         model.translate(glm::mat4{ 1.f }, position);
     }
     void buffer(ShaderProgram& program) {
