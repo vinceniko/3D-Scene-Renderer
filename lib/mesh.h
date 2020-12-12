@@ -23,8 +23,11 @@
 #include <functional>
 
 enum DefMeshList {
-    NUM_DEF_MESHES = 1,
+    NUM_DEF_MESHES = 4,
     CUBE = -NUM_DEF_MESHES,
+    QUAD,
+    SPHERE,
+    TORUS
 };
 
 const std::string DEF_MESH_DIR = "../data/";
@@ -75,6 +78,21 @@ public:
 class UnitCube : public Mesh {
 public:
     UnitCube() : Mesh(DEF_MESH_DIR + "cube.off") {}
+};
+
+class Quad : public Mesh {
+public:
+    Quad() : Mesh(DEF_MESH_DIR + "quad.off") {}
+};
+
+class Sphere : public Mesh {
+public:
+    Sphere() : Mesh(DEF_MESH_DIR + "sphere.off") {}
+};
+
+class Torus : public Mesh {
+public:
+    Torus() : Mesh(DEF_MESH_DIR + "torus.off") {}
 };
 
 // holds mesh and GL vertex info
@@ -162,6 +180,8 @@ public:
 // a list of MeshEntity, i.e. references to Meshes inside the GLMeshFactory; whats actually drawn
 class MeshEntityList : public std::vector<MeshEntity> {
 public:
+    using std::vector<MeshEntity>::vector;
+
     void draw(ShaderProgram& program);
     void draw_wireframes(ShaderProgram& program);
 };
@@ -182,7 +202,7 @@ class MeshFactory {
     }
 
     MeshFactory(ShaderProgram& program) : meshes_() {
-        push(program, std::vector<Mesh>{ UnitCube{} });
+        push(program, std::vector<Mesh>{ UnitCube{}, Quad{}, Sphere{}, Torus{} });
     }
 
 public:

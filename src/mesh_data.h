@@ -9,9 +9,7 @@ const std::string MESH_DIR = "../data/";
 enum MeshList {
     BUMPY,
     BUNNY,
-    TORUS,
     MONKEY,
-    SPHERE,
 };
 
 class BumpyCubeMesh : public Mesh {
@@ -24,17 +22,7 @@ public:
     BunnyMesh() : Mesh(MESH_DIR + "bunny.off") {}
 };
 
-class TorusMesh : public Mesh {
-public:
-    TorusMesh() : Mesh(MESH_DIR + "torus.off") {}
-};
-
 class MonkeyMesh : public Mesh {
 public:
     MonkeyMesh() : Mesh(MESH_DIR + "monkey.off") {}
-};
-
-class SphereMesh : public Mesh {
-public:
-    SphereMesh() : Mesh(MESH_DIR + "sphere.off") {}
 };

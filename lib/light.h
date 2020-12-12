@@ -140,6 +140,7 @@ struct PointLight : public Light {
 
 struct PointLights : public std::vector<PointLight> {
     using std::vector<PointLight>::vector;
+    
     void buffer(ShaderProgram& program) {
         uint32_t i = 0;
         for (auto light : *this) {

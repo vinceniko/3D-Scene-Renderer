@@ -116,13 +116,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             ctx->push_mesh_entity({ MeshList::BUNNY });
             break;
         case GLFW_KEY_4:
-            ctx->push_mesh_entity({ MeshList::TORUS });
+            ctx->push_mesh_entity({ DefMeshList::SPHERE });
             break;
         case GLFW_KEY_5:
-            ctx->push_mesh_entity({ MeshList::MONKEY });
+            ctx->push_mesh_entity({ DefMeshList::TORUS });
             break;
         case GLFW_KEY_6:
-            ctx->push_mesh_entity({ MeshList::SPHERE });
+            ctx->push_mesh_entity({ MeshList::MONKEY });
             break;
             // mode
         case GLFW_KEY_M:

@@ -77,9 +77,9 @@ public:
     Optional<MeshEntity> get_selected();
 
     // loads in mesh prototypes into the mesh_factory
-    void init_mesh_prototypes(std::vector<Mesh> meshes);
+    void init_mesh_prototypes(std::vector<Mesh>&& meshes);
     // adds a mesh entity to mesh_list. these are references to the prototypes in mesh_factory
-    void push_mesh_entity(std::vector<int> ids);
+    void push_mesh_entity(std::vector<int>&& ids);
 
     // frame by frame updates. call prior to drawing
     void update();
