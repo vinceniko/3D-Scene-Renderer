@@ -22,4 +22,7 @@ public:
     virtual glm::vec3 get_position();
 
     glm::mat4 get_trans();
+    void set_trans(glm::mat4 trans) {
+        trans_ = trans;
+    }
 };

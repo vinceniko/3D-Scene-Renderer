@@ -78,7 +78,6 @@ add_executable(${PROJECT_NAME}_bin)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   target_compile_definitions(${PROJECT_NAME}_bin PUBLIC -DDEBUG)
-  set(TIMER 1)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 if (TIMER)

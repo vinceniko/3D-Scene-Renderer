@@ -143,8 +143,6 @@ void Context::update() {
 // #endif
         env.camera->translate(glm::vec3(new_point, 0.f), glm::vec3(old_point, 0.f));
     }
-
-    env.buffer(programs.get_selected_program());
 }
 
 void Context::init_mesh_prototypes(std::vector<Mesh> meshes) {

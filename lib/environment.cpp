@@ -1,6 +1,9 @@
 #include "environment.h"
 
 void Environment::draw_static(ShaderProgramCtx& programs) {
+    programs.bind(ShaderPrograms::PHONG);
+    draw_lights(programs.get_selected_program());
+
     bind_static();
 
     glm::mat4 old_view = camera->get_view();
