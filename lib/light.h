@@ -74,7 +74,7 @@ struct Light {
 struct DirLight : public Light, public Spatial {
     Uniform u_direction_;
 
-    DirLight() : DirLight(glm::vec3(0.f, -1.f, -1.f), LightTraits{ glm::vec3(1.f), 0.2, 0.2, 0.2, 0 }) {}
+    DirLight() : DirLight(glm::vec3(0.f, -1.f, 0.f), LightTraits{ glm::vec3(1.f), 0.2, 0.2, 0.2, 0 }) {}
     DirLight(glm::vec3 direction, LightTraits light_traits) : Light("dir_light", light_traits) {        
         set_trans(glm::lookAt(glm::vec3(0.f), direction, glm::vec3(0.f, 0.f, 1.f)));
     }
