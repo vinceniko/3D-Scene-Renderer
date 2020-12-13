@@ -3,21 +3,21 @@
 #include "cubemap.h"
 
 MyContext::MyContext(int width, int height) :
-// the issue with creating the env.camera first is, due to inheritance, Context is initialized firstpo
+// the issue with creating the env->camera first is, due to inheritance, Context is initialized firstpo
 Context{
-    new Environment{
+    std::make_unique<Environment>(
         std::make_unique<TrackballCamera>(static_cast<float>(width) / height ),
         width, 
         height,
-        { PointLight{ glm::vec3(1.5f, 1.f, 0.f)} },
+        PointLights{ PointLight{ glm::vec3(1.5f, 1.f, 0.f)} },
         std::make_unique<GL_CubeMapEntity>(
             "../data/night_env/",
             true
         )
-    }
+    )
 },
 cameras{
-    env.camera.get_camera_ptr(),
+    env->camera.get_camera_ptr(),
     new FreeCamera{ static_cast<float>(width) / height }
 } {
     init_mesh_prototypes({ BumpyCubeMesh{}, BunnyMesh{}, MonkeyMesh{} }); 
@@ -45,10 +45,10 @@ void MyContext::switch_draw_mode() {
 }
 
 void MyContext::set_camera(Camera* new_camera) {
-    env.camera.set_camera(std::move(std::unique_ptr<Camera>(new_camera)));
+    env->camera.set_camera(std::move(std::unique_ptr<Camera>(new_camera)));
 }
 void MyContext::switch_camera() {
-    cameras[camera_idx] = env.camera.get_camera_move().release();  // assign back to array
+    cameras[camera_idx] = env->camera.get_camera_move().release();  // assign back to array
     camera_idx = (camera_idx + 1) % cameras.size();
     set_camera(cameras[camera_idx]);
 }

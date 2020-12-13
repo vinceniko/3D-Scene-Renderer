@@ -8,14 +8,14 @@ void ShaderProgramCtx::set_selected_idx(int n) {
 }
 
 ShaderProgramCtx::ShaderProgramCtx() {
-    push_back(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "def_frag.glsl", "out_color", file_watcher_ });
-    push_back(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "flat_frag.glsl", "out_color", file_watcher_ });
-    push_back(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "phong_frag.glsl", "out_color", file_watcher_ });
+    push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "def_frag.glsl", "out_color", file_watcher_ }));
+    push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "flat_frag.glsl", "out_color", file_watcher_ }));
+    push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "phong_frag.glsl", "out_color", file_watcher_ }));
     std::string normal_geom = std::string(SHADER_PATH + "normal_geom.glsl");
-    push_back(new ShaderProgramFile{ SHADER_PATH + "normal_vert.glsl", { normal_geom }, SHADER_PATH + "normal_frag.glsl", "out_color", file_watcher_ });
-    push_back(new ShaderProgramFile{ SHADER_PATH + "env_vert.glsl", {}, SHADER_PATH + "env_frag.glsl", "out_color", file_watcher_ });
-    push_back(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "reflect_frag.glsl", "out_color", file_watcher_ });
-    push_back(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "refract_frag.glsl", "out_color", file_watcher_ });
+    push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "normal_vert.glsl", { normal_geom }, SHADER_PATH + "normal_frag.glsl", "out_color", file_watcher_ }));
+    push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "env_vert.glsl", {}, SHADER_PATH + "env_frag.glsl", "out_color", file_watcher_ }));
+    push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "reflect_frag.glsl", "out_color", file_watcher_ }));
+    push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "refract_frag.glsl", "out_color", file_watcher_ }));
     
     bind(ShaderPrograms::DEF_SHADER);
 }

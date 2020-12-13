@@ -321,7 +321,7 @@ MeshEntityList MeshFactory::push(ShaderProgram& program, std::vector<Mesh> meshe
 
     for (uint i = 0; i < meshes.size(); i++) {
         // assign gl objects and commit to mesh list
-        meshes_.push_back(std::unique_ptr<GLMesh>{ new GLMesh{ program, VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i]) } });
+        meshes_.push_back(std::make_unique<GLMesh>(program, VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i])));
 
 #ifdef DEBUG
         check_gl_error();

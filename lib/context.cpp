@@ -52,13 +52,13 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(Environment* new_env) : env(std::move(*new_env)) {}
+Context::Context(std::unique_ptr<Environment> new_env) : env(std::move(new_env)) {}
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
     float min_dist = std::numeric_limits<float>::infinity();
     int closest = -1;
     for (size_t i = 0; i < mesh_list.size(); i++) {
-        float distance = mesh_list[i].intersected_triangles(env.camera->get_position(), world_ray);
+        float distance = mesh_list[i].intersected_triangles(env->camera->get_position(), world_ray);
         if (distance >= 0) {
             if (min_dist > distance) {
                 min_dist = distance;
@@ -72,7 +72,7 @@ int Context::intersected_mesh_ortho(glm::vec3 world_pos) const {
     float min_dist = std::numeric_limits<float>::infinity();
     int closest = -1;
     for (size_t i = 0; i < mesh_list.size(); i++) {
-        float distance = mesh_list[i].intersected_triangles(world_pos, glm::inverse(env.camera->get_view()) * glm::vec4(0.0, 0.0, -1.f, 0.f));
+        float distance = mesh_list[i].intersected_triangles(world_pos, glm::inverse(env->camera->get_view()) * glm::vec4(0.0, 0.0, -1.f, 0.f));
         if (distance >= 0) {
             if (min_dist > distance) {
                 min_dist = distance;
@@ -83,12 +83,12 @@ int Context::intersected_mesh_ortho(glm::vec3 world_pos) const {
     return closest;
 }
 void Context::select(glm::vec2 cursor_pos, float width, float height) {
-    if (env.camera->get_projection_mode() == Camera::Projection::Ortho) {
-        glm::vec3 pos_world = env.camera->get_pos_world(cursor_pos, width, height);
+    if (env->camera->get_projection_mode() == Camera::Projection::Ortho) {
+        glm::vec3 pos_world = env->camera->get_pos_world(cursor_pos, width, height);
         select_ortho(pos_world);
     }
     else {
-        glm::vec3 ray_world = env.camera->get_ray_world(cursor_pos, width, height);
+        glm::vec3 ray_world = env->camera->get_ray_world(cursor_pos, width, height);
         select_perspective(ray_world);
     }
 }
@@ -141,7 +141,7 @@ void Context::update() {
 //         auto diff = new_point - old_point;
 //         std::cout << "diff: " << diff[0] << ' ' << diff[1] << std::endl;
 // #endif
-        env.camera->translate(glm::vec3(new_point, 0.f), glm::vec3(old_point, 0.f));
+        env->camera->translate(glm::vec3(new_point, 0.f), glm::vec3(old_point, 0.f));
     }
 }
 
@@ -156,7 +156,7 @@ void Context::push_mesh_entity(std::vector<int>&& ids) {
 
 void Context::update_draw(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());
-    env.buffer(programs.get_selected_program());
+    env->buffer(programs.get_selected_program());
     if (mesh_entity.get_draw_mode() != DrawMode::WIREFRAME_ONLY) {
         draw_surfaces(mesh_entity);
     }
@@ -169,9 +169,9 @@ void Context::update_draw(MeshEntity& mesh_entity) {
 }
 void Context::update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
     if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
-        env.draw_dynamic(programs, mesh_entity, mesh_entities, [&] (MeshEntity& sec_mesh) { update_draw(sec_mesh); });
+        env->draw_dynamic(programs, mesh_entity, mesh_entities, [&] (MeshEntity& sec_mesh) { update_draw(sec_mesh); });
     } else {
-        env.bind_static();
+        env->bind_static();
     }
     update_draw(mesh_entity);
 }
@@ -181,7 +181,7 @@ void Context::update_draw() {
     for (MeshEntity& mesh_entity : mesh_list) {
         update_draw(mesh_entity, mesh_list);
     }
-    env.draw_static(programs);
+    env->draw_static(programs);
 }
 void Context::draw_surfaces(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());
@@ -199,12 +199,12 @@ void Context::draw_wireframes(MeshEntity& mesh_entity) {
 
     float min_zoom = 1.f / std::pow(2, 10);  // to prevent z-fighting
 
-    auto temp = env.camera->get_view();
+    auto temp = env->camera->get_view();
     // minimally scale the view to draw on top
-    env.camera->scale_view(Camera::ScaleDir::Out, min_zoom);
-    env.buffer(programs.get_selected_program());
+    env->camera->scale_view(Camera::ScaleDir::Out, min_zoom);
+    env->buffer(programs.get_selected_program());
     mesh_entity.draw_wireframe(programs.get_selected_program());
-    env.camera->set_view(temp);
+    env->camera->set_view(temp);
 
     programs.bind(selected);
 }
@@ -217,7 +217,7 @@ void Context::draw_normals(MeshEntity& mesh_entity) {
     ShaderPrograms selected = mesh_entity.get_shader();
 
     programs.bind(ShaderPrograms::NORMALS);;
-    env.buffer(programs.get_selected_program());
+    env->buffer(programs.get_selected_program());
 
     auto temp = mesh_entity.get_color();
     mesh_entity.set_color(glm::vec3(1.0, 0.0, 0.0));

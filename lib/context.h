@@ -55,11 +55,11 @@ public:
     MeshFactory& mesh_factory = MeshFactory::get();
     MeshEntityList mesh_list;
 
-    Environment env;
+    std::unique_ptr<Environment> env;
 
     MouseContext mouse_ctx;
 
-    Context(Environment* env);
+    Context(std::unique_ptr<Environment> env);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
     int intersected_mesh_perspective(glm::vec3 world_ray) const;

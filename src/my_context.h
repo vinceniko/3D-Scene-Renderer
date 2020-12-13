@@ -22,7 +22,7 @@ public:
     void switch_shader();
     void switch_draw_mode();
     void switch_cube_map() {
-        env.swap_cube_map(curr_cube_map);
+        env->swap_cube_map(curr_cube_map);
     }
     void set_camera(Camera* new_camera);
     void switch_camera();

@@ -31,6 +31,7 @@ class FileWatcher {
 public:
     FileWatcher(int milli_delay);
     FileWatcher();
+    FileWatcher(FileWatcher&&) = default;
     ~FileWatcher();
 
     void add_path(const std::string& path, std::function<void()> func);

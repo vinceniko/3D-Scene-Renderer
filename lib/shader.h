@@ -36,7 +36,7 @@ enum DrawMode {
 };
 
 // binds shader programs
-class ShaderProgramCtx : public std::vector<ShaderProgramFile*> {
+class ShaderProgramCtx : public std::vector<std::unique_ptr<ShaderProgramFile>> {
     int selected_ = -1;
 
     int get_selected_idx() const;
@@ -45,11 +45,7 @@ class ShaderProgramCtx : public std::vector<ShaderProgramFile*> {
     FileWatcher file_watcher_{ 1000 };
 
     ShaderProgramCtx();
-    ~ShaderProgramCtx() {
-        for (auto ptr : *this) {
-            delete ptr;
-        }
-    }
+    ShaderProgramCtx(ShaderProgramCtx&&) = default;
 
 public:
     static ShaderProgramCtx& get() {
