@@ -178,6 +178,22 @@ void Context::update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities
 void Context::update_draw() {
     programs.reload();
     update();
+    programs.bind(ShaderPrograms::SHADOWS);
+    env->draw_shadows(programs, [&] { 
+        for (MeshEntity& mesh : mesh_list) {
+            mesh.draw_no_color(programs.get_selected_program()); 
+        }
+    });
+    programs.bind(ShaderPrograms::SHADOW_MAP);
+    env->buffer(programs.get_selected_program());
+    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    quad.translate(glm::mat4{ 1.f }, glm::vec3(-1.f, 1.f, 0.f));
+    quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 2.f);
+    env->depth_fbo_.get_tex().bind();
+    quad.draw_no_color(programs.get_selected_program());
+    draw();
+}
+void Context::draw() {
     for (MeshEntity& mesh_entity : mesh_list) {
         update_draw(mesh_entity, mesh_list);
     }

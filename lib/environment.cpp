@@ -62,11 +62,9 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
     camera->set_fov(90);
     camera->set_aspect(1.0);
 
-    glViewport(0, 0, fbo.get_tex().get_width(), fbo.get_tex().get_width());
-
     size_t i = 0;
     for (const auto& dir : dirs) {
-        fbo.next_face(i);
+        cubemap_fbo_.next_face(i);
 
         // draw env
         programs.bind(ShaderPrograms::ENV);
@@ -92,10 +90,11 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
     // restore
     camera.set_camera(std::move(old_camera));
     
-    fbo.unbind();
+    cubemap_fbo_.unbind();
     
     programs.bind(selected);
 
     camera.buffer(programs.get_selected_program());
-    glViewport(0, 0, width_, height_);
+
+    reset_viewport();
 }

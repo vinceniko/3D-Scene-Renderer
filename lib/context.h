@@ -86,6 +86,7 @@ public:
     // updates and draws the model using the user bound shader program and the selected draw mode
     void update_draw(MeshEntity& mesh_entity);
     void update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entity_list);
+    void draw();
     // draws the model using the user bound shader program
     void draw_surfaces(MeshEntity& mesh_entity);
     // draws a wireframe above the mesh

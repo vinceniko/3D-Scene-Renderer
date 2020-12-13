@@ -12,14 +12,15 @@ class Environment {
     int width_;
     int height_;
 
-    GL_CubeMap_FBO fbo;
+    GL_CubeMap_FBO cubemap_fbo_;
     std::unique_ptr<GL_CubeMapEntity> cube_map_;
 public:
+    GL_Depth_FBO depth_fbo_;
     DirLight dir_light_;
     PointLights point_lights_;
     GLCamera camera;
 
-    Environment(std::unique_ptr<Camera> new_cam, int width, int height, PointLights&& point_lights, std::unique_ptr<GL_CubeMapEntity> cube_map) : camera(std::move(new_cam)), point_lights_(point_lights), cube_map_(std::move(cube_map)), fbo(width_ / 2.f), width_(width), height_(height) { set_viewport(width, height); }
+    Environment(std::unique_ptr<Camera> new_cam, int width, int height, PointLights&& point_lights, std::unique_ptr<GL_CubeMapEntity> cube_map) : camera(std::move(new_cam)), point_lights_(point_lights), cube_map_(std::move(cube_map)), depth_fbo_(width, height), width_(width), height_(height), cubemap_fbo_(width / 2.f) { set_viewport(width, height); }
     Environment(std::unique_ptr<Camera> new_cam, int width, int height, float fov, PointLights&& point_lights, std::unique_ptr<GL_CubeMapEntity> cube_map) : Environment(std::move(new_cam), width, height, std::move(point_lights), std::move(cube_map)) { 
         fov_ = fov;
         set_viewport(width, height); 
@@ -29,7 +30,7 @@ public:
         cube_map_->bind();
     }
     void bind_dynamic() {
-        fbo.bind();
+        cubemap_fbo_.bind();
     }
 
     void buffer(ShaderProgram& program) {
@@ -51,6 +52,14 @@ public:
         buffer(program);
         point_lights_.draw(program);
     }
+    void draw_shadows(ShaderProgramCtx& programs, std::function<void()> draw_f) {
+        programs.bind(ShaderPrograms::SHADOWS);
+        depth_fbo_.bind();
+        dir_light_.buffer_shadow(programs.get_selected_program());
+        draw_f();
+        depth_fbo_.unbind();
+        reset_viewport();
+    }
 
     void draw_static(ShaderProgramCtx& programs);
     // draw the scene to a the fbo
@@ -66,6 +75,9 @@ public:
         width_ = width;
         height_ = height;
         glViewport(0, 0, width, height);
+    }
+    void reset_viewport() {
+        glViewport(0, 0, width_, height_);
     }
 
     void set_cube_map(std::unique_ptr<GL_CubeMapEntity> cube_map) {

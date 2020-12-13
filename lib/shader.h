@@ -14,7 +14,7 @@ const std::string SHADER_PATH = "../shaders/";
 // default available programs. enumerations use negative values so that user extensions can be 0 based
 // these enumerations represent indices
 enum ShaderPrograms {
-    NUM_SHADERS = 7,
+    NUM_SHADERS = 9,
 
     DEF_SHADER = -ShaderPrograms::NUM_SHADERS,
     FLAT,
@@ -23,6 +23,8 @@ enum ShaderPrograms {
     ENV,
     REFLECT,
     REFRACT,
+    SHADOWS,
+    SHADOW_MAP,
 };
 
 // extra modes for drawing. mostly for debug purposes, such as wireframe.

@@ -199,8 +199,7 @@ void GLMesh::init(ShaderProgram& program, int VAO, uint32_t VBO, uint32_t EBO) {
     glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
     glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, (void*)(size_verts));
 
-    // unbind VAO
-    glBindVertexArray(0);
+    // unbind VA
 }
 
 const size_t MeshEntity::get_id() const {
@@ -266,8 +265,6 @@ void MeshEntity::draw(ShaderProgram& program) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
-    glBindVertexArray(0);
-
 #ifdef DEBUG
     check_gl_error();
 #endif
@@ -281,8 +278,6 @@ void MeshEntity::draw_no_color(ShaderProgram& program) {
     model_uniform_.buffer(program, trans_);
 
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
-
-    glBindVertexArray(0);
 
 #ifdef DEBUG
     check_gl_error();
@@ -300,8 +295,7 @@ void MeshEntity::draw_wireframe(ShaderProgram& program) {
     // // glLineWidth doesn't work, maybe an Apple driver bug 
     // glLineWidth(2.f);
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
-    
-    glBindVertexArray(0);
+
 
 #ifdef DEBUG
     check_gl_error();

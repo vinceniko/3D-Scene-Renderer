@@ -39,7 +39,7 @@ struct LightTraits {
 
 struct Light {
     LightTraits light_traits_;
-    
+
     std::string uniform_prefix_;
 
     Uniform u_ambient_;
@@ -47,7 +47,10 @@ struct Light {
     Uniform u_specular_;
     Uniform u_shininess_;
 
-    Light(std::string&& kind, LightTraits light_traits) : uniform_prefix_(kind), light_traits_(light_traits) {}
+    glm::mat4 projection_;
+    Uniform u_light_view_;
+
+    Light(std::string&& kind, LightTraits light_traits, glm::mat4 projection = glm::mat4{ 1.f }) : uniform_prefix_(kind), light_traits_(light_traits), projection_(projection) {}
     void buffer(ShaderProgram& program) {
         u_ambient_.name_ = uniform_prefix_ + ".ambient";
         u_diffuse_.name_ = uniform_prefix_ + ".diffuse";
@@ -58,6 +61,10 @@ struct Light {
         u_diffuse_.buffer(program, light_traits_.diffuse_.get_trait());
         u_specular_.buffer(program, light_traits_.specular_.get_trait());
         u_shininess_.buffer(program, light_traits_.shininess_);
+    }
+    void buffer_shadow(ShaderProgram& program, glm::mat4 light_view) {
+        u_light_view_.name_ = "u_light_view";
+        u_light_view_.buffer(program, light_view);
     }
     void set_color(glm::vec3 color) {
         light_traits_.ambient_.color_ = color;
@@ -75,7 +82,7 @@ struct DirLight : public Light, public Spatial {
     Uniform u_direction_;
 
     DirLight() : DirLight(glm::vec3(0.f, -1.f, 0.f), LightTraits{ glm::vec3(1.f), 0.2, 0.2, 0.2, 0 }) {}
-    DirLight(glm::vec3 direction, LightTraits light_traits) : Light("dir_light", light_traits) {        
+    DirLight(glm::vec3 direction, LightTraits light_traits) : Light("dir_light", light_traits, glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.f, 7.5f)) {        
         set_trans(glm::lookAt(glm::vec3(0.f), direction, glm::vec3(0.f, 0.f, 1.f)));
     }
     void buffer(ShaderProgram& program) {
@@ -84,6 +91,12 @@ struct DirLight : public Light, public Spatial {
         u_direction_.name_ = uniform_prefix_ + ".direction";
         
         u_direction_.buffer(program, look_direction());
+    }
+    void buffer_shadow(ShaderProgram& program) {
+        // set_trans(glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f), 
+        //                           glm::vec3( 0.0f, 0.0f,  0.0f), 
+        //                           glm::vec3( 0.0f, 1.0f,  0.0f)));
+        Light::buffer_shadow(program, projection_ * get_trans());
     }
 };
 
@@ -111,7 +124,7 @@ struct PointLight : public Light {
 
     Uniform u_position;
 
-    PointLight(glm::vec3 position) : PointLight(position, LightTraits(0.2, 0.5, 0.5, 7)) {        
+    PointLight(glm::vec3 position) : PointLight(position, LightTraits(0.2, 0.5, 0.5, 7)) {
         model.scale(glm::mat4{ 1.f }, Spatial::ScaleDir::Out, 1.5);
         model.set_color(glm::vec3{ 1.f });
     }
