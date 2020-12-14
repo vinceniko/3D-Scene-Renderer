@@ -129,18 +129,18 @@ Optional<MeshEntity> Context::get_selected() {
 }
 
 void Context::update() {
-// #ifdef DEBUG
-    // std::cout << "new_point: " << new_point[0] << ' ' << new_point[1] << ' ' << 
-    // "old_point: " << old_point[0] << ' ' << old_point[1] << ' ' << std::endl;
-// #endif
+    // #ifdef DEBUG
+        // std::cout << "new_point: " << new_point[0] << ' ' << new_point[1] << ' ' << 
+        // "old_point: " << old_point[0] << ' ' << old_point[1] << ' ' << std::endl;
+    // #endif
 
     if (mouse_ctx.is_held()) {
         glm::vec2 old_point = mouse_ctx.get_prev_position();
         glm::vec2 new_point = mouse_ctx.get_position();
-// #ifdef DEBUG
-//         auto diff = new_point - old_point;
-//         std::cout << "diff: " << diff[0] << ' ' << diff[1] << std::endl;
-// #endif
+        // #ifdef DEBUG
+        //         auto diff = new_point - old_point;
+        //         std::cout << "diff: " << diff[0] << ' ' << diff[1] << std::endl;
+        // #endif
         env->camera->translate(glm::vec3(new_point, 0.f), glm::vec3(old_point, 0.f));
     }
 }
@@ -169,28 +169,23 @@ void Context::update_draw(MeshEntity& mesh_entity) {
 }
 void Context::update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
     if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
-        env->draw_dynamic(programs, mesh_entity, mesh_entities, [&] (MeshEntity& sec_mesh) { update_draw(sec_mesh); });
-    } else {
+        env->draw_dynamic(programs, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) { update_draw(sec_mesh); });
+    }
+    else if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
         env->bind_static();
     }
+    // else {
+    //     env->depth_fbo_.get_tex().bind();
+    // }
     update_draw(mesh_entity);
 }
 void Context::update_draw() {
     programs.reload();
     update();
     programs.bind(ShaderPrograms::SHADOWS);
-    env->draw_shadows(programs, [&] { 
-        for (MeshEntity& mesh : mesh_list) {
-            mesh.draw_no_color(programs.get_selected_program()); 
-        }
-    });
-    programs.bind(ShaderPrograms::SHADOW_MAP);
-    env->buffer(programs.get_selected_program());
-    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
-    quad.translate(glm::mat4{ 1.f }, glm::vec3(-1.f, 1.f, 0.f));
-    quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 2.f);
-    env->depth_fbo_.get_tex().bind();
-    quad.draw_no_color(programs.get_selected_program());
+    env->draw_shadows(programs, mesh_list);
+    draw_depth_map();
+
     draw();
 }
 void Context::draw() {
@@ -248,4 +243,21 @@ void Context::draw_normals() {
     for (MeshEntity& mesh : mesh_list) {
         draw_normals(mesh);
     }
+}
+
+void Context::draw_depth_map() {
+    // debug quad
+    programs.bind(ShaderPrograms::SHADOW_MAP);
+    auto old_trans = env->camera->get_trans();
+    auto old_projection = env->camera->get_projection_mode();
+    env->camera->set_projection_mode(Camera::Projection::Ortho);
+    env->camera->set_view(glm::mat4{ 1.f });
+    env->camera.buffer(programs.get_selected_program());
+    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    quad.translate(glm::mat4{ 1.f }, glm::vec3(-1.0f, 0.5f, -0.01f));
+    // quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 10.f);
+    env->depth_fbo_.get_tex().bind();
+    quad.draw_no_color(programs.get_selected_program());
+    env->camera->set_trans(old_trans);
+    env->camera->set_projection_mode(old_projection);
 }

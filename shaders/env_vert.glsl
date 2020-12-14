@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec3 a_pos;
+layout (location=0) in vec3 a_pos;
 
 out vec3 frag_pos;
 

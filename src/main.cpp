@@ -122,6 +122,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             ctx->push_mesh_entity({ DefMeshList::TORUS });
             break;
         case GLFW_KEY_6:
+            ctx->push_mesh_entity({ DefMeshList::QUAD });
+            break;
+        case GLFW_KEY_7:
             ctx->push_mesh_entity({ MeshList::MONKEY });
             break;
             // mode
@@ -144,7 +147,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             ctx->switch_cube_map();
             break;
         case GLFW_KEY_V:
-            ctx->env->dir_light_.rotate(glm::mat4{ 1.f }, 100.f, glm::vec3(1.f, 1.f, 1.f));
+            // TODO: follow camera direction to pose
+            ctx->env->dir_light_.set_trans(ctx->env->camera->get_trans());
             break;
         default:
             // model

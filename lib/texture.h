@@ -4,12 +4,12 @@
 
 class GL_Texture : public RenderObject {
 protected:
-    uint32_t tex_id_;
     GLenum target_ = GL_TEXTURE_2D;
 
     int width_;
     int height_;
 public:
+    uint32_t tex_id_;
     GL_Texture() { init(); }
     GL_Texture(int width, int height) : width_(width), height_(height) { init(); }
     GL_Texture(GLenum target, int width, int height) : width_(width), height_(height), target_(target) { init(); }
@@ -17,14 +17,15 @@ public:
     ~GL_Texture() { free(); }
     void init() override {
         glGenTextures(1, &tex_id_);
+        bind();
 
 #ifdef DEBUG
         check_gl_error();
 #endif
     }
     void bind() override {
-        glBindTexture(target_, tex_id_);
         glActiveTexture(GL_TEXTURE0);
+        glBindTexture(target_, tex_id_);
 #ifdef DEBUG
         check_gl_error();
 #endif

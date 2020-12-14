@@ -174,7 +174,7 @@ struct Uniform {
             throw std::runtime_error("Error Getting ID of Uniform");
         }
 
-        glUniformMatrix4fv(id, 1, GL_FALSE, (float*)&val);
+        glUniformMatrix4fv(id, 1, GL_FALSE, (float*)&val[0][0]);
 #ifdef DEBUG
         check_gl_error();
 #endif

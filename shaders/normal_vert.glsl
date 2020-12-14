@@ -1,6 +1,6 @@
 #version 330 core
-in vec3 a_pos;
-in vec3 a_normal;
+layout (location=0) in vec3 a_pos;
+layout (location=1) in vec3 a_normal;
 
 out VS_OUT {
     vec3 normal;

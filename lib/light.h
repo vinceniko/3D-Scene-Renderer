@@ -48,7 +48,7 @@ struct Light {
     Uniform u_shininess_;
 
     glm::mat4 projection_;
-    Uniform u_light_view_;
+    Uniform u_light_vp_{ "u_light_vp" };
 
     Light(std::string&& kind, LightTraits light_traits, glm::mat4 projection = glm::mat4{ 1.f }) : uniform_prefix_(kind), light_traits_(light_traits), projection_(projection) {}
     void buffer(ShaderProgram& program) {
@@ -62,9 +62,8 @@ struct Light {
         u_specular_.buffer(program, light_traits_.specular_.get_trait());
         u_shininess_.buffer(program, light_traits_.shininess_);
     }
-    void buffer_shadow(ShaderProgram& program, glm::mat4 light_view) {
-        u_light_view_.name_ = "u_light_view";
-        u_light_view_.buffer(program, light_view);
+    void buffer_shadows(ShaderProgram& program, glm::mat4 light_vp) {
+        u_light_vp_.buffer(program, light_vp);
     }
     void set_color(glm::vec3 color) {
         light_traits_.ambient_.color_ = color;
@@ -81,9 +80,9 @@ struct Light {
 struct DirLight : public Light, public Spatial {
     Uniform u_direction_;
 
-    DirLight() : DirLight(glm::vec3(0.f, -1.f, 0.f), LightTraits{ glm::vec3(1.f), 0.2, 0.2, 0.2, 0 }) {}
-    DirLight(glm::vec3 direction, LightTraits light_traits) : Light("dir_light", light_traits, glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.f, 7.5f)) {        
-        set_trans(glm::lookAt(glm::vec3(0.f), direction, glm::vec3(0.f, 0.f, 1.f)));
+    DirLight() : DirLight(-glm::vec3(1.5f, 2.f, 0.f), LightTraits{ glm::vec3(1.f), 0.2, 0.2, 0.2, 0 }) {}
+    DirLight(glm::vec3 direction, LightTraits light_traits) : Light("dir_light", light_traits, glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.01f, 20.f)) {        
+        set_trans(glm::lookAt(-direction, direction, glm::vec3(0.f, 0.f, 1.f)));
     }
     void buffer(ShaderProgram& program) {
         Light::buffer(program);
@@ -92,11 +91,9 @@ struct DirLight : public Light, public Spatial {
         
         u_direction_.buffer(program, look_direction());
     }
-    void buffer_shadow(ShaderProgram& program) {
-        // set_trans(glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f), 
-        //                           glm::vec3( 0.0f, 0.0f,  0.0f), 
-        //                           glm::vec3( 0.0f, 1.0f,  0.0f)));
-        Light::buffer_shadow(program, projection_ * get_trans());
+    void buffer_shadows(ShaderProgram& program) {
+        glm::mat4 light_vp = projection_ * get_trans();
+        Light::buffer_shadows(program, light_vp);
     }
 };
 

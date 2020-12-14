@@ -20,7 +20,7 @@ public:
     PointLights point_lights_;
     GLCamera camera;
 
-    Environment(std::unique_ptr<Camera> new_cam, int width, int height, PointLights&& point_lights, std::unique_ptr<GL_CubeMapEntity> cube_map) : camera(std::move(new_cam)), point_lights_(point_lights), cube_map_(std::move(cube_map)), depth_fbo_(width, height), width_(width), height_(height), cubemap_fbo_(width / 2.f) { set_viewport(width, height); }
+    Environment(std::unique_ptr<Camera> new_cam, int width, int height, PointLights&& point_lights, std::unique_ptr<GL_CubeMapEntity> cube_map) : camera(std::move(new_cam)), point_lights_(point_lights), cube_map_(std::move(cube_map)), depth_fbo_(1024, 1024), width_(width), height_(height), cubemap_fbo_(width / 2.f) { set_viewport(width, height); }
     Environment(std::unique_ptr<Camera> new_cam, int width, int height, float fov, PointLights&& point_lights, std::unique_ptr<GL_CubeMapEntity> cube_map) : Environment(std::move(new_cam), width, height, std::move(point_lights), std::move(cube_map)) { 
         fov_ = fov;
         set_viewport(width, height); 
@@ -36,11 +36,12 @@ public:
     void buffer(ShaderProgram& program) {
         camera.buffer(program);
         try {
+            dir_light_.buffer_shadows(program);
             buffer_lights(program);
         } catch (const std::runtime_error& e) {
             // doing nothing is acceptable here, shader doesn't have the appropriate light uniform
 #ifdef DEBUG
-            std::cout << "Light Error: " << e.what() << std::endl;
+            // std::cout << "Light Error: " << e.what() << std::endl;
 #endif
         }
     }
@@ -52,11 +53,13 @@ public:
         buffer(program);
         point_lights_.draw(program);
     }
-    void draw_shadows(ShaderProgramCtx& programs, std::function<void()> draw_f) {
+    void draw_shadows(ShaderProgramCtx& programs, MeshEntityList mesh_list) {
         programs.bind(ShaderPrograms::SHADOWS);
         depth_fbo_.bind();
-        dir_light_.buffer_shadow(programs.get_selected_program());
-        draw_f();
+        dir_light_.buffer_shadows(programs.get_selected_program());
+        for (MeshEntity& mesh : mesh_list) {
+            mesh.draw_no_color(programs.get_selected_program()); 
+        }
         depth_fbo_.unbind();
         reset_viewport();
     }
@@ -78,6 +81,7 @@ public:
     }
     void reset_viewport() {
         glViewport(0, 0, width_, height_);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     void set_cube_map(std::unique_ptr<GL_CubeMapEntity> cube_map) {
