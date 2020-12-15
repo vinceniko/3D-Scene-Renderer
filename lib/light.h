@@ -21,7 +21,7 @@ struct LightTrait {
 
 struct LightTraits {
     glm::vec3 color_ = glm::vec3(0.5);
-    
+
     LightTrait ambient_{ color_, 0.0 };
     LightTrait diffuse_{ color_, 0.0 };
     LightTrait specular_{ color_, 0.0 };
@@ -81,14 +81,14 @@ struct DirLight : public Light, public Spatial {
     Uniform u_direction_;
 
     DirLight() : DirLight(-glm::vec3(1.5f, 2.f, 0.f), LightTraits{ glm::vec3(1.f), 0.2, 0.2, 0.2, 0 }) {}
-    DirLight(glm::vec3 direction, LightTraits light_traits) : Light("dir_light", light_traits, glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.01f, 20.f)) {        
+    DirLight(glm::vec3 direction, LightTraits light_traits) : Light("dir_light", light_traits, glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.01f, 20.f)) {
         set_trans(glm::lookAt(-direction, direction, glm::vec3(0.f, 0.f, 1.f)));
     }
     void buffer(ShaderProgram& program) {
         Light::buffer(program);
-        
+
         u_direction_.name_ = uniform_prefix_ + ".direction";
-        
+
         u_direction_.buffer(program, look_direction());
     }
     void buffer_shadows(ShaderProgram& program) {
@@ -111,9 +111,9 @@ const Attenuation ATTENUATION_200 = Attenuation{ 1.0, 0.022, 0.0019 };
 const Attenuation ATTENUATION_600 = Attenuation{ 1.0, 0.007, 0.0002 };
 
 struct PointLight : public Light {
-    MeshEntity model;
+    MeshEntity model_;
 
-    Attenuation attenuation = ATTENUATION_50;
+    Attenuation attenuation_ = ATTENUATION_50;
 
     Uniform u_constant;
     Uniform u_linear;
@@ -122,35 +122,37 @@ struct PointLight : public Light {
     Uniform u_position;
 
     PointLight(glm::vec3 position) : PointLight(position, LightTraits(0.2, 0.5, 0.5, 7)) {
-        model.scale(glm::mat4{ 1.f }, Spatial::ScaleDir::Out, 1.5);
-        model.set_color(glm::vec3{ 1.f });
+        model_.scale(glm::mat4{ 1.f }, Spatial::ScaleDir::Out, 1.5);
+        model_.set_color(glm::vec3{ 1.f });
     }
-    PointLight(glm::vec3 position, LightTraits light_traits) : Light("point_light", light_traits), model(MeshFactory::get().get_mesh_entity(DefMeshList::SPHERE)) {
-        model.translate(glm::mat4{ 1.f }, position);
+    PointLight(glm::vec3 position, LightTraits light_traits) : PointLight(position, light_traits, ATTENUATION_50) {}
+    PointLight(glm::vec3 position, LightTraits light_traits, Attenuation attenuation) : PointLight(position, light_traits, ATTENUATION_50, MeshFactory::get().get_mesh_entity(DefMeshList::SPHERE)) {}
+    PointLight(glm::vec3 position, LightTraits light_traits, Attenuation attenuation, MeshEntity model) : Light("point_light", light_traits), attenuation_(attenuation), model_(model) {
+        model_.translate(glm::mat4{ 1.f }, position);
     }
     void buffer(ShaderProgram& program) {
         Light::buffer(program);
-        
+
         u_constant.name_ = uniform_prefix_ + ".constant";
         u_linear.name_ = uniform_prefix_ + ".linear";
         u_quadratic.name_ = uniform_prefix_ + ".quadratic";
 
         u_position.name_ = uniform_prefix_ + ".position";
 
-        u_constant.buffer(program, attenuation.constant);
-        u_linear.buffer(program, attenuation.linear);
-        u_quadratic.buffer(program, attenuation.quadratic);
+        u_constant.buffer(program, attenuation_.constant);
+        u_linear.buffer(program, attenuation_.linear);
+        u_quadratic.buffer(program, attenuation_.quadratic);
 
-        u_position.buffer(program, model.get_origin());
+        u_position.buffer(program, model_.get_origin());
     }
     void draw(ShaderProgram& program) {
-        model.draw(program);
+        model_.draw(program);
     }
 };
 
 struct PointLights : public std::vector<PointLight> {
     using std::vector<PointLight>::vector;
-    
+
     void buffer(ShaderProgram& program) {
         uint32_t i = 0;
         for (auto light : *this) {
@@ -163,7 +165,7 @@ struct PointLights : public std::vector<PointLight> {
         }
     }
     void draw(ShaderProgram& program) {
-        for (auto light : *this) { 
+        for (auto light : *this) {
             light.draw(program);
         }
     }
@@ -182,7 +184,8 @@ struct DebugShadows {
     void buffer(ShaderProgram& program) {
         try {
             u_debug.buffer(program, debug_);
-        } catch (const std::runtime_error& e) {
+        }
+        catch (const std::runtime_error& e) {
 #ifdef DEBUG
             std::cout << "Shadow Debug Error: " << e.what() << std::endl;
 #endif

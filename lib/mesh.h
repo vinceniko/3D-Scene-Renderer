@@ -165,12 +165,8 @@ public:
 
     // translate, scale, and rotate back to origin, fitting into a unit cube
     void set_to_origin();
-    glm::vec3 get_origin() {
-        return glm::vec3(trans_ * glm::vec4(get_mesh().get_centroid(), 1.f));
-    }
-    glm::vec3 get_position() override {
-        return get_mesh().get_centroid();
-    }
+    glm::vec3 get_origin();
+    glm::vec3 get_position() override;
 
     const GLMesh& get_mesh();
 
@@ -216,7 +212,7 @@ public:
     MeshEntityList push(ShaderProgram& program, std::vector<Mesh> meshes);
 
     const std::vector<std::unique_ptr<GLMesh>>& get_meshes() const;
-    
+
     MeshEntity get_mesh_entity(int i);
     MeshEntity get_mesh_entity(size_t i);
 };

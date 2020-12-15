@@ -29,98 +29,28 @@ public:
         set_viewport(width, height); 
     }
 
-    void bind_static() {
-        cube_map_->bind();
-    }
-    void bind_dynamic() {
-        cubemap_fbo_.bind();
-    }
+    void bind_static();
+    void bind_dynamic();
 
-    void buffer(ShaderProgram& program) {
-        camera.buffer(program);
-        try {
-            dir_light_.buffer_shadows(program);
-            buffer_lights(program);
-        } catch (const std::runtime_error& e) {
-            // doing nothing is acceptable here, shader doesn't have the appropriate light uniform
-#ifdef DEBUG
-            // std::cout << "Light Error: " << e.what() << std::endl;
-#endif
-        }
-    }
-    void buffer_lights(ShaderProgram& program) {
-        dir_light_.buffer(program);
-        point_lights_.buffer(program);
-    }
-    void draw_lights(ShaderProgram& program) {
-        buffer(program);
-        point_lights_.draw(program);
-    }
-    void draw_shadows(ShaderProgramCtx& programs, MeshEntityList mesh_list) {
-        programs.bind(ShaderPrograms::SHADOWS);
-        depth_fbo_.bind();
-        dir_light_.buffer_shadows(programs.get_selected_program());
-        glDisable(GL_CULL_FACE);
-        // glCullFace(GL_FRONT);
-        for (MeshEntity& mesh : mesh_list) {
-            mesh.draw_no_color(programs.get_selected_program()); 
-        }
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
-        depth_fbo_.unbind();
-        reset_viewport();
-    }
+    void buffer(ShaderProgram& program);
+    void buffer_lights(ShaderProgram& program);
+    void buffer_shadows(ShaderProgram& program);
+    void draw_lights(ShaderProgram& program);
+    void draw_shadows(ShaderProgramCtx& programs, MeshEntityList mesh_list);
 
-    void draw_static(ShaderProgramCtx& programs);
-    // draw the scene to a the fbo
-    void draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f);
+    void draw_static_scene(ShaderProgramCtx& programs);
+    void draw_static_cubemap(ShaderProgramCtx& programs);
+    void draw_dynamic_cubemap(ShaderProgramCtx& programs, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f);
 
-    void set_width(int width) {
-        width_ = width;
-    }
-    void set_height(int height) {
-        height_ = height;
-    }
-    void set_viewport(int width, int height) {
-        width_ = width;
-        height_ = height;
-        glViewport(0, 0, width, height);
-    }
-    void reset_viewport() {
-        glViewport(0, 0, width_, height_);
-    }
+    void set_width(int width);
+    void set_height(int height);
+    void set_viewport(int width, int height);
+    void reset_viewport();
 
-    void set_cube_map(std::unique_ptr<GL_CubeMapEntity> cube_map) {
-        cube_map_ = std::move(cube_map);
-    }
-    void swap_cube_map(std::unique_ptr<GL_CubeMapEntity>& cube_map) {
-        std::swap(cube_map_, cube_map);
-    }
+    void set_cube_map(std::unique_ptr<GL_CubeMapEntity> cube_map);
+    void swap_cube_map(std::unique_ptr<GL_CubeMapEntity>& cube_map);
 
-    void draw_depth_map(ShaderProgramCtx& programs) {
-        // debug quad
-        programs.bind(ShaderPrograms::SHADOW_MAP);
-        
-        auto old_trans = camera->get_trans();
-        auto old_projection = camera->get_projection_mode();
-        auto old_aspect = camera->get_aspect();
-
-        camera->set_projection_mode(Camera::Projection::Ortho);
-        camera->set_view(glm::mat4{ 1.f });
-        
-        camera.buffer(programs.get_selected_program());
-        auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
-        quad.translate(glm::mat4{ 1.f }, glm::vec3(-1.0f, 0.5f, -0.01f));
-        // quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 10.f);
-        depth_fbo_.get_tex().bind();
-        quad.draw_no_color(programs.get_selected_program());
-        camera->set_trans(old_trans);
-        camera->set_projection_mode(old_projection);
-    }
-    void set_debug_depth_map(bool state) {
-        debug_depth_map_ = state;
-    }
-    bool get_debug_depth_map() {
-        return debug_depth_map_;
-    }
+    void draw_depth_map(ShaderProgramCtx& programs);
+    void set_debug_depth_map(bool state);
+    bool get_debug_depth_map();
 };

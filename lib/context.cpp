@@ -154,9 +154,13 @@ void Context::push_mesh_entity(std::vector<int>&& ids) {
     }
 }
 
-void Context::update_draw(MeshEntity& mesh_entity) {
+void Context::draw_w_mode(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());
-    env->buffer(programs.get_selected_program());
+    env->camera.buffer(programs.get_selected_program());
+    if (mesh_entity.get_shader() == ShaderPrograms::PHONG || mesh_entity.get_shader() == ShaderPrograms::FLAT) {
+        env->buffer_lights(programs.get_selected_program());
+        env->buffer_shadows(programs.get_selected_program());
+    }
     if (mesh_entity.get_draw_mode() != DrawMode::WIREFRAME_ONLY) {
         draw_surfaces(mesh_entity);
     }
@@ -167,10 +171,10 @@ void Context::update_draw(MeshEntity& mesh_entity) {
         draw_normals(mesh_entity);
     }
 }
-void Context::update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
+void Context::draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
     if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
-        env->draw_dynamic(programs, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) { 
-            update_draw(sec_mesh); 
+        env->draw_dynamic_cubemap(programs, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) { 
+            draw_w_mode(sec_mesh); 
         });
     }
     else if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
@@ -179,7 +183,7 @@ void Context::update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities
     // else {
     //     env->depth_fbo_.get_tex().bind();
     // }
-    update_draw(mesh_entity);
+    draw_w_mode(mesh_entity);
 }
 void Context::update_draw() {
     programs.reload();
@@ -190,17 +194,17 @@ void Context::update_draw() {
         env->draw_depth_map(programs);
     }
 
-    draw();
-}
-void Context::draw() {
     for (MeshEntity& mesh_entity : mesh_list) {
-        update_draw(mesh_entity, mesh_list);
+        draw(mesh_entity, mesh_list);
     }
-    env->draw_static(programs);
+    env->draw_static_scene(programs);
 }
 void Context::draw_surfaces(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());
-    env->debug_shadows_.buffer(programs.get_selected_program());
+    // TODO: check if shader has attached uniform at compile time elsewhere
+    if (mesh_entity.get_shader() == ShaderPrograms::PHONG || mesh_entity.get_shader() == ShaderPrograms::FLAT) {
+        env->debug_shadows_.buffer(programs.get_selected_program());
+    }
     mesh_entity.draw(programs.get_selected_program());
 }
 void Context::draw_surfaces() {
@@ -218,7 +222,7 @@ void Context::draw_wireframes(MeshEntity& mesh_entity) {
     auto temp = env->camera->get_view();
     // minimally scale the view to draw on top
     env->camera->scale_view(Camera::ScaleDir::Out, min_zoom);
-    env->buffer(programs.get_selected_program());
+    env->camera.buffer(programs.get_selected_program());
     mesh_entity.draw_wireframe(programs.get_selected_program());
     env->camera->set_view(temp);
 
@@ -233,7 +237,7 @@ void Context::draw_normals(MeshEntity& mesh_entity) {
     ShaderPrograms selected = mesh_entity.get_shader();
 
     programs.bind(ShaderPrograms::NORMALS);;
-    env->buffer(programs.get_selected_program());
+    env->camera.buffer(programs.get_selected_program());
 
     auto temp = mesh_entity.get_color();
     mesh_entity.set_color(glm::vec3(1.0, 0.0, 0.0));

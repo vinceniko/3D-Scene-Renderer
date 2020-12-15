@@ -134,11 +134,11 @@ glm::vec3 Mesh::calc_centroid() const {
         mg += tri_area * centroid(tri);
     }
     glm::vec3 out = mg / m;
-// #ifdef DEBUG
-// std::cout << "m: " << m << ' '
-//     << "mg: " << mg[0] << ' ' << mg[1] << ' ' << mg[2] << ' ' << std::endl
-//     << "out: " << out[0] << ' ' << out[1] << ' ' << out[2] << ' ' << std::endl;
-// #endif
+    // #ifdef DEBUG
+    // std::cout << "m: " << m << ' '
+    //     << "mg: " << mg[0] << ' ' << mg[1] << ' ' << mg[2] << ' ' << std::endl
+    //     << "out: " << out[0] << ' ' << out[1] << ' ' << out[2] << ' ' << std::endl;
+    // #endif
 
     return out;
 }
@@ -217,6 +217,14 @@ void MeshEntity::set_to_origin() {
     glm::mat4 scale = glm::scale(glm::mat4{ 1.f }, ctx_.get().get_meshes()[id_]->get_scale());
     glm::mat4 trans = glm::translate(glm::mat4{ 1.f }, -ctx_.get().get_meshes()[id_]->get_centroid());
     trans_ = scale * trans;
+}
+
+glm::vec3 MeshEntity::get_origin() {
+    return glm::vec3(trans_ * glm::vec4(get_mesh().get_centroid(), 1.f));
+}
+
+glm::vec3 MeshEntity::get_position() {
+    return get_mesh().get_centroid();
 }
 
 void MeshEntity::set_color(glm::vec3 new_color) {

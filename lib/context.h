@@ -84,9 +84,11 @@ public:
     // frame by frame updates. call prior to drawing
     void update();
     // updates and draws the model using the user bound shader program and the selected draw mode
-    void update_draw(MeshEntity& mesh_entity);
-    void update_draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entity_list);
-    void draw();
+    void update_draw();
+    // draws a model based on its mode
+    void draw_w_mode(MeshEntity& mesh_entity);
+    // draws a model when other model's state's are also necessary; such as dynamic reflections
+    void draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entity_list);
     // draws the model using the user bound shader program
     void draw_surfaces(MeshEntity& mesh_entity);
     // draws a wireframe above the mesh
@@ -94,8 +96,6 @@ public:
     // draws the mesh normals
     void draw_normals(MeshEntity& mesh_entity);
     // updates and draws the models using the user bound shader program and the selected draw mode
-    void update_draw();
-    // draws the models using the user bound shader program
     void draw_surfaces();
     // draws a wireframe above the meshes
     void draw_wireframes();
