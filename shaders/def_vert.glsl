@@ -22,8 +22,8 @@ void main()
     
     normal = mat3(transpose(inverse(u_model_trans))) * a_normal;
     
-    float x = float((uint(gl_VertexID) << 1u) & uint(2)); 
-    float y = float(uint(gl_VertexID) & uint(2)); 
+    float x = float((uint(gl_VertexID) << 1u) & uint(2)) / uint(2); 
+    float y = float(uint(gl_VertexID) & uint(2)) / uint(2); 
 
     uv = vec2(x, y);
     gl_Position = u_projection * u_view_trans * vec4(frag_pos, 1.0); 
