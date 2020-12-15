@@ -89,7 +89,7 @@ endif()
 
 target_sources(${PROJECT_NAME}_bin PUBLIC ${SOURCES} ${LIB})
 
-target_include_directories(${PROJECT_NAME}_bin PUBLIC "${STB}" "${EXT_DIR}/stb" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_include_directories(${PROJECT_NAME}_bin PUBLIC "${EXT_DIR}/stb" "${CMAKE_CURRENT_SOURCE_DIR}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_link_libraries(${PROJECT_NAME}_bin ${DEPENDENCIES})
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/extra)
