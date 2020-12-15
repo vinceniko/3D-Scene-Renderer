@@ -10,6 +10,7 @@ uniform mat4 u_view_trans;
 
 in vec4 frag_pos_light;
 uniform sampler2D u_shadow_map;
+uniform uint u_debug_shadows;
 
 out vec4 out_color;
 
@@ -131,12 +132,15 @@ void main()
         lighting += CalcPointLight(point_lights[i], norm, frag_pos, view_dir);    
     
     vec3 shadow_result;
-    if (shadow == 1.0) {
-        shadow_result = vec3(shadow, 0.0, 0.0);
-        // shadow_result = 1 - vec3(shadow);
+    if (bool(u_debug_shadows)) {
+        if (shadow == 1.0) {
+            shadow_result = vec3(1.0, 0.0, 0.0);
+        } else {
+            shadow_result = lighting;
+        }
     } else {
         shadow_result = lighting;
     }
-    
-    out_color = vec4(lighting, 1.0);
+
+    out_color = vec4(shadow_result, 1.0);
 }

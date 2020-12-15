@@ -156,7 +156,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             // }
             // TODO: follow camera direction to pose
             ctx->env->dir_light_.set_trans(ctx->env->camera->get_trans());
-            break;        
+            break;
+        case GLFW_KEY_B:
+            ctx->env->debug_shadows_.set_debug(!ctx->env->debug_shadows_.get_debug());
+            break;
         default:
             // model
             if (selected.has_value()) {

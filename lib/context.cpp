@@ -200,6 +200,7 @@ void Context::draw() {
 }
 void Context::draw_surfaces(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());
+    env->debug_shadows_.buffer(programs.get_selected_program());
     mesh_entity.draw(programs.get_selected_program());
 }
 void Context::draw_surfaces() {

@@ -168,3 +168,24 @@ struct PointLights : public std::vector<PointLight> {
         }
     }
 };
+
+struct DebugShadows {
+    Uniform u_debug{ "u_debug_shadows" };
+    bool debug_ = false;
+
+    void set_debug(bool state) {
+        debug_ = state;
+    }
+    bool get_debug() {
+        return debug_;
+    }
+    void buffer(ShaderProgram& program) {
+        try {
+            u_debug.buffer(program, debug_);
+        } catch (const std::runtime_error& e) {
+#ifdef DEBUG
+            std::cout << "Shadow Debug Error: " << e.what() << std::endl;
+#endif
+        }
+    }
+};

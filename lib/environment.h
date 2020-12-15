@@ -15,10 +15,12 @@ class Environment {
     GL_CubeMap_FBO cubemap_fbo_;
     std::unique_ptr<GL_CubeMapEntity> cube_map_;
 public:
-    GL_Depth_FBO depth_fbo_;
     DirLight dir_light_;
     PointLights point_lights_;
     GLCamera camera;
+    
+    GL_Depth_FBO depth_fbo_;
+    DebugShadows debug_shadows_;
 
     Environment(std::unique_ptr<Camera> new_cam, int width, int height, PointLights&& point_lights, std::unique_ptr<GL_CubeMapEntity> cube_map) : camera(std::move(new_cam)), point_lights_(point_lights), cube_map_(std::move(cube_map)), depth_fbo_(1024, 1024), width_(width), height_(height), cubemap_fbo_(width / 2.f) { set_viewport(width, height); }
     Environment(std::unique_ptr<Camera> new_cam, int width, int height, float fov, PointLights&& point_lights, std::unique_ptr<GL_CubeMapEntity> cube_map) : Environment(std::move(new_cam), width, height, std::move(point_lights), std::move(cube_map)) { 
