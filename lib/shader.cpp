@@ -19,7 +19,7 @@ ShaderProgramCtx::ShaderProgramCtx() {
     push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "shadow_vert.glsl", {}, SHADER_PATH + "shadow_frag.glsl", "out_color", file_watcher_ }));
     push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "depth_map_frag.glsl", "out_color", file_watcher_ }));
     
-    bind(ShaderPrograms::DEF_SHADER);
+    bind(ShaderPrograms::PHONG);
 }
 
 size_t ShaderProgramCtx::get(int n) {

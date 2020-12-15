@@ -186,13 +186,13 @@ void GLMesh::init(ShaderProgram& program, int VAO, uint32_t VBO, uint32_t EBO) {
     // vertex positions
     int32_t position_id = program.attrib("a_pos");
     if (position_id < 0) {
-        throw std::runtime_error("gl vertex attribute not found");
+        throw std::runtime_error("gl vertex attribute not found: a_pos");
     }
     glEnableVertexAttribArray(position_id);
 
     int32_t normal_id = program.attrib("a_normal");
     if (normal_id < 0) {
-        throw std::runtime_error("gl vertex attribute not found");
+        throw std::runtime_error("gl vertex attribute not found: a_normal");
     }
     glEnableVertexAttribArray(normal_id);
 
