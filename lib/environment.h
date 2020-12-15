@@ -57,13 +57,13 @@ public:
         programs.bind(ShaderPrograms::SHADOWS);
         depth_fbo_.bind();
         dir_light_.buffer_shadows(programs.get_selected_program());
-        glEnable(GL_CULL_FACE);
+        glDisable(GL_CULL_FACE);
         // glCullFace(GL_FRONT);
         for (MeshEntity& mesh : mesh_list) {
             mesh.draw_no_color(programs.get_selected_program()); 
         }
-        // glCullFace(GL_BACK);
-        glDisable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
         depth_fbo_.unbind();
         reset_viewport();
     }
@@ -85,7 +85,6 @@ public:
     }
     void reset_viewport() {
         glViewport(0, 0, width_, height_);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     void set_cube_map(std::unique_ptr<GL_CubeMapEntity> cube_map) {

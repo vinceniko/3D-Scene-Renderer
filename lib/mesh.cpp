@@ -256,8 +256,10 @@ void MeshEntity::buffer(ShaderProgram& program) {
 }
 
 void MeshEntity::draw(ShaderProgram& program) {
-    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 
+    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
     glBindVertexArray(mesh_ref.VAO_);
 
     buffer(program);

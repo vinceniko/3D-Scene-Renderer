@@ -75,7 +75,6 @@ class GL_Depth_FBO {
     uint32_t fbo_ = 0;
 
     GL_Texture map_;
-
 public:
     GL_Depth_FBO(int width, int height) : map_(width, height) { init(); }
     void init() {
