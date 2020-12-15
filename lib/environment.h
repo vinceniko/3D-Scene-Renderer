@@ -20,6 +20,7 @@ public:
     GLCamera camera;
     
     GL_Depth_FBO depth_fbo_;
+    bool debug_depth_map_ = false;
     DebugShadows debug_shadows_;
 
     Environment(std::unique_ptr<Camera> new_cam, int width, int height, PointLights&& point_lights, std::unique_ptr<GL_CubeMapEntity> cube_map) : camera(std::move(new_cam)), point_lights_(point_lights), cube_map_(std::move(cube_map)), depth_fbo_(1024, 1024), width_(width), height_(height), cubemap_fbo_(width / 2.f) { set_viewport(width, height); }
@@ -94,5 +95,32 @@ public:
     }
     void swap_cube_map(std::unique_ptr<GL_CubeMapEntity>& cube_map) {
         std::swap(cube_map_, cube_map);
+    }
+
+    void draw_depth_map(ShaderProgramCtx& programs) {
+        // debug quad
+        programs.bind(ShaderPrograms::SHADOW_MAP);
+        
+        auto old_trans = camera->get_trans();
+        auto old_projection = camera->get_projection_mode();
+        auto old_aspect = camera->get_aspect();
+
+        camera->set_projection_mode(Camera::Projection::Ortho);
+        camera->set_view(glm::mat4{ 1.f });
+        
+        camera.buffer(programs.get_selected_program());
+        auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+        quad.translate(glm::mat4{ 1.f }, glm::vec3(-1.0f, 0.5f, -0.01f));
+        // quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 10.f);
+        depth_fbo_.get_tex().bind();
+        quad.draw_no_color(programs.get_selected_program());
+        camera->set_trans(old_trans);
+        camera->set_projection_mode(old_projection);
+    }
+    void set_debug_depth_map(bool state) {
+        debug_depth_map_ = state;
+    }
+    bool get_debug_depth_map() {
+        return debug_depth_map_;
     }
 };

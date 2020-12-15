@@ -101,6 +101,4 @@ public:
     void draw_wireframes();
     // draws the mesh normals
     void draw_normals();
-
-    void draw_depth_map();
 };

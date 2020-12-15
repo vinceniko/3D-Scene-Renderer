@@ -22,7 +22,7 @@ glm::vec3 Spatial::look_direction() {
     return glm::vec4(0.f, 0.f, 1.f, 0.f) * trans_;
 }
 glm::vec3 Spatial::get_position() {
-    return trans_[3];
+    return glm::inverse(trans_) * glm::vec4(glm::vec3(0.f), 1.f);
 }
 
 glm::mat4 Spatial::get_trans() {

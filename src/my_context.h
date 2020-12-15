@@ -26,4 +26,11 @@ public:
     }
     void set_camera(Camera* new_camera);
     void switch_camera();
+
+    void update_draw() {        
+        env->dir_light_.set_trans(glm::rotate(env->dir_light_.get_trans(), glm::radians(1.0f), glm::vec3(0.f, 1.f, 0.f)));
+        env->dir_light_.set_trans(glm::lookAt(env->dir_light_.get_position(), glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f)));
+
+        Context::update_draw();
+    }
 };

@@ -186,9 +186,9 @@ void Context::update_draw() {
     update();
     programs.bind(ShaderPrograms::SHADOWS);
     env->draw_shadows(programs, mesh_list);
-#ifdef DEBUG
-    draw_depth_map();
-#endif
+    if (env->get_debug_depth_map()) {
+        env->draw_depth_map(programs);
+    }
 
     draw();
 }
@@ -248,25 +248,4 @@ void Context::draw_normals() {
     for (MeshEntity& mesh : mesh_list) {
         draw_normals(mesh);
     }
-}
-
-void Context::draw_depth_map() {
-    // debug quad
-    programs.bind(ShaderPrograms::SHADOW_MAP);
-    
-    auto old_trans = env->camera->get_trans();
-    auto old_projection = env->camera->get_projection_mode();
-    auto old_aspect = env->camera->get_aspect();
-
-    env->camera->set_projection_mode(Camera::Projection::Ortho);
-    env->camera->set_view(glm::mat4{ 1.f });
-    
-    env->camera.buffer(programs.get_selected_program());
-    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
-    quad.translate(glm::mat4{ 1.f }, glm::vec3(-1.0f, 0.5f, -0.01f));
-    // quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 10.f);
-    env->depth_fbo_.get_tex().bind();
-    quad.draw_no_color(programs.get_selected_program());
-    env->camera->set_trans(old_trans);
-    env->camera->set_projection_mode(old_projection);
 }
