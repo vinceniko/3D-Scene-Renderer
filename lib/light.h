@@ -125,7 +125,7 @@ struct PointLight : public Light {
         model.scale(glm::mat4{ 1.f }, Spatial::ScaleDir::Out, 1.5);
         model.set_color(glm::vec3{ 1.f });
     }
-    PointLight(glm::vec3 position, LightTraits light_traits) : Light("point_light", light_traits), model(MeshFactory::get().get_mesh_entity(DefMeshList::CUBE)) {
+    PointLight(glm::vec3 position, LightTraits light_traits) : Light("point_light", light_traits), model(MeshFactory::get().get_mesh_entity(DefMeshList::SPHERE)) {
         model.translate(glm::mat4{ 1.f }, position);
     }
     void buffer(ShaderProgram& program) {

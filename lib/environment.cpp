@@ -1,10 +1,10 @@
 #include "environment.h"
 
 void Environment::draw_static(ShaderProgramCtx& programs) {
+    draw_lights(programs.get_selected_program());
+    
     bind_static();
     programs.bind(ShaderPrograms::PHONG);
-
-    draw_lights(programs.get_selected_program());
 
     glm::mat4 old_view = camera->get_view();
     glm::mat4 w_out_scale = glm::lookAt(camera->get_position(), glm::vec3(glm::inverse(old_view) * glm::vec4(0.f, 0.f, -1.f, 0.f)), glm::vec3(0.f, camera->get_up(), 0.f));
