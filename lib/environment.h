@@ -57,9 +57,13 @@ public:
         programs.bind(ShaderPrograms::SHADOWS);
         depth_fbo_.bind();
         dir_light_.buffer_shadows(programs.get_selected_program());
+        glEnable(GL_CULL_FACE);
+        // glCullFace(GL_FRONT);
         for (MeshEntity& mesh : mesh_list) {
             mesh.draw_no_color(programs.get_selected_program()); 
         }
+        // glCullFace(GL_BACK);
+        glDisable(GL_CULL_FACE);
         depth_fbo_.unbind();
         reset_viewport();
     }

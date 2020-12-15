@@ -27,6 +27,8 @@ void Environment::draw_static(ShaderProgramCtx& programs) {
     camera->set_projection_mode(old_mode);
     camera->set_view(old_view);
     programs.bind(selected);
+
+    cube_map_->unbind();
 }
 
 void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f) {
@@ -97,4 +99,6 @@ void Environment::draw_dynamic(ShaderProgramCtx& programs, MeshEntity& mesh_enti
     camera.buffer(programs.get_selected_program());
 
     reset_viewport();
+    
+    cube_map_->unbind();
 }

@@ -147,9 +147,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             ctx->switch_cube_map();
             break;
         case GLFW_KEY_V:
+            // {
+            //     // TODO: follow camera direction to pose
+            //     glm::mat4 camera_trans = ctx->env->camera->get_trans();
+            //     camera_trans[3] = glm::inverse(camera_trans) * camera_trans[3];
+            //     ctx->env->dir_light_.set_trans(camera_trans);
+            //     break;        
+            // }
             // TODO: follow camera direction to pose
             ctx->env->dir_light_.set_trans(ctx->env->camera->get_trans());
-            break;
+            break;        
         default:
             // model
             if (selected.has_value()) {

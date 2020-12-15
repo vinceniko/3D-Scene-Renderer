@@ -24,7 +24,7 @@ cameras{
     
     push_mesh_entity({ DefMeshList::QUAD });
     mesh_list[0].set_trans(glm::translate(glm::mat4{ 1.f }, glm::vec3(0.f, -1.f, 0.f)));
-    mesh_list[0].rotate(glm::mat4{ 1.f }, 90.f, glm::vec3(1.f, 0.f, 0.f));
+    mesh_list[0].rotate(glm::mat4{ 1.f }, -90.f, glm::vec3(1.f, 0.f, 0.f));
     mesh_list[0].scale(glm::mat4{ 1.f }, Spatial::ScaleDir::In, 10.f);
     mesh_list[0].set_color(glm::vec3(252, 137, 42) / 256.f);
 }

@@ -19,7 +19,7 @@ void Spatial::rotate(glm::mat4 view_trans, float degrees, glm::vec3 axis) {
     trans_ = trans_ * trans;
 }
 glm::vec3 Spatial::look_direction() {
-    return trans_ * glm::vec4(0.f, 0.f, 1.f, 0.f);
+    return glm::vec4(0.f, 0.f, 1.f, 0.f) * trans_;
 }
 glm::vec3 Spatial::get_position() {
     return trans_[3];

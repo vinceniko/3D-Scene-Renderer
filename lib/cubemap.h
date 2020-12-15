@@ -20,6 +20,13 @@ public:
 
     // create an empty cubemap
     void init() override;
+    void bind() override {
+        GL_Texture::bind();
+        glCullFace(GL_FRONT);
+    }
+    void unbind() {
+        glCullFace(GL_BACK);
+    }
 };
 
 // interface for loading cubemap
