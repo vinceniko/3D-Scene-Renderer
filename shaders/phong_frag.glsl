@@ -30,7 +30,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     float bias = max(base_bias * dir_light, base_bias);
     float shadow = 0.0;
 
-    vec2 texelSize = 1.0 / textureSize(u_shadow_map, 0) * (2.0 * dir_light * exp(currentDepth)); // multiply by dir_light and depth to make closer fragments sharper, and farther fragments blurrier
+    vec2 texelSize = 1.0 / textureSize(u_shadow_map, 0) * 2.0;
     for(int x = -1; x <= 1; ++x)
     {
         for(int y = -1; y <= 1; ++y)
@@ -133,8 +133,8 @@ void main()
     
     vec3 shadow_result;
     if (bool(u_debug_shadows)) {
-        if (shadow == 1.0) {
-            shadow_result = vec3(1.0, 0.0, 0.0);
+        if (shadow > 0.0) {
+            shadow_result = vec3(shadow, 0.0, 0.0);
         } else {
             shadow_result = lighting;
         }

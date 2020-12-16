@@ -135,8 +135,8 @@ void main()
 
     vec3 shadow_result;
     if (bool(u_debug_shadows)) {
-        if (shadow == 1.0) {
-            shadow_result = vec3(1.0, 0.0, 0.0);
+        if (shadow > 0.0) {
+            shadow_result = vec3(shadow, 0.0, 0.0);
         } else {
             shadow_result = lighting;
         }
