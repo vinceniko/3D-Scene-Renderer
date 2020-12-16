@@ -243,13 +243,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    ctx->mouse_ctx.set_scroll(yoffset);
+    ctx->mouse_ctx.set_scroll(ctx->mouse_ctx.get_scroll() + yoffset);
     double scroll_diff = ctx->mouse_ctx.get_scroll() - ctx->mouse_ctx.get_prev_scroll();
 
 // #ifdef DEBUG
 //     std::cout << "scroll: " << ctx->mouse_ctx.get_scroll() << std::endl;
 // #endif
-    ctx->env->camera->zoom_protected(ctx->mouse_ctx.get_scroll() > 0 ? Camera::ScaleDir::In : Camera::ScaleDir::Out, glm::abs(scroll_diff / 20.f));
+
+    // yoffset is positive when scrolling forward and negative when scrolling backwards
+    ctx->env->camera->zoom_protected(yoffset > 0 ? Camera::ScaleDir::In : Camera::ScaleDir::Out, glm::abs(scroll_diff / 20.f));
 }
 
 int main(void)
