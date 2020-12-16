@@ -1,15 +1,16 @@
-# 3D Scene Editor
+# 3D Scene Renderer
 
 Vincent Nikolayev  
 Professor Silva  
 Interactive Computer Graphics  
-11/18/20  
+12/16/20  
 
-![1](images/1.png)
+![1](images/main.png)
 
-A 3D Scene Editor that can:
+A cross-platform 3D Scene Editor and Renderer written in C++ with OpenGL that can:
 
 * Load triangulated 3D models from .off files
+* Spawn models in a realtime 3D scene
 * View the models
   * Two cameras are available
     * One that moves along the x, y, z axes and always points to the origin of world space
@@ -21,11 +22,17 @@ A 3D Scene Editor that can:
 * Shade the models
   * Flat shading
   * Phong shading
+* Render Static and Dynamic Reflections and Refractions with Cube Mapped Environment Mapping
+* Render shadows with Shadow Mapping
+* Multiple lights
+  * Directional lights
+  * Point lights
 * Draw debug info
-  * Wireframe
+  * Mesh wireframes
   * Mesh normals
+  * Depth map texture used for shadow mapping
 * Hot-reload shaders
-  * Watched shader files are polled from another thread and reloaded automatically
+  * Watched shader files are polled from another thread and reloaded automatically after saving
 
 ## Installation
 
@@ -41,7 +48,81 @@ This project uses CMake for building. A brief getting started guide for creating
 
 Refer to `CMakeLists.txt` for the build configuration and necessary dependencies.
 
-## Tasks
+## Infrastructure Notes
+
+* The `Context` class holds `MouseState`, `Environment` (which contains the Cube Map, Lights, Camera) and `MeshEntityList` (all of the transformable mesh objects). To further generalize the renderer to other applications beyond the assignment, I intend to move the `MeshEntityList` into the `Environment`, which would then be renamed scene.
+* The `lib` directory contains the general editor source code, while `src` adds specific functionality such as a `Context` class descendant to fulfill the assignment. The intention is to separate concerns and make the library extensible.
+
+## Assignment 4
+
+Since Assignment 4 builds on Assignment 3, the same code base was used and the Assignment 3 README was added to accordingly. The description of Assignment 3 is below Assignment 4 in the README and explains foundational functionality.
+
+Note that the default scene (that the program starts with) has one directional light that circles the scene and casts shadows (stop its movement with `u`), and one point light represented by the white sphere that does not cast shadows. Currently there is no way to add additional lights at runtime. Also note that dynamic reflections are enabled on all objects by default and can be switched off for a selected object with key `z`.
+
+### 1.1: Shadow Mapping
+
+A directional light circling the scene and casting shadows:
+
+![shadows](images/shadows.gif)
+
+Directions:
+
+* The movement of the directional light can be paused and un-paused by pressing `u`.
+* Set the direction of the directional light with key `v` (point it in the direction of the camera).
+
+#### Debugging Shadows With Red Color
+
+![shadow_debug_red](images/shadow_debug_red.png)
+
+Directions:
+
+* Show debug red shadows with key `n`.
+
+#### Debug View of the Depth Map Texture
+
+![shadow_map](images/shadow_map.png)
+
+Directions:
+
+* Activate debug view of the depth map texture with key `b`.
+
+### 1.2: Environment Mapping
+
+![reflections_main](images/reflections_main.png)
+#### Static Reflections
+
+![static_reflections](images/static_reflections.png)
+
+Multiple Objects:
+
+![reflections_static_multiple](images/reflections_static_multiple.png)
+
+#### Implementation Notes
+
+* `stb_image` is an external dependency for loading the cube map's png files from disk.
+* The color of the reflective surface is slightly tinted with blue or yellow to indicate selected objects in keeping with the rest of the program. Giving the objects a pure chrome finish would require a small modification to `shaders/reflect_frag.glsl` to avoid mixing in the tint.
+
+### Optional Tasks
+
+### 1.4 Refraction
+
+![refraction](images/refraction.gif)
+
+### 1.5 Dynamic Cube Map Textures
+
+![dynamic_reflection_refraction](images/dynamic_reflection_refraction.gif)
+
+Directions:
+
+* Disable dynamic environment mapping with key `z`.
+
+#### Notes
+
+Note that running the above scene on my MacBook Pro with an integrated Intel Iris Plus Graphics 655 1536 MB was quite slow. A similar scene running on an AMD RX5700 experienced no FPS drops. The reason for the slowdown is that dynamic environment mapping necessitates rendering the entire scene 6 times per reflective / refractive object.
+
+Dynamic reflections and refractions support all rendering modes including debug features (refer to the wireframe in the image) with the exception of recursive dynamic reflections. Rendering a dynamically reflective object in another dynamically reflective object will cause it to be rendered with static reflections in the dynamic reflection.
+
+## Assignment 3
 
 ### 1.1: Scene Editor
 
@@ -64,6 +145,7 @@ Directions:
 Directions:
 
 * Clicking on an model with the mouse selects it. The color changes to the inverse of the model's color to indicate that it is selected.
+  * Mouse picking currently checks each triangle in each mesh for collision and isn't optimized with any spatial data structures or bounding boxes.
 * It is possible to transform the selected model as such (all transformations are relative to the view direction):
   * Translate
     * Key `a` translates the model left, or in the -x direction
