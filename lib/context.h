@@ -82,9 +82,9 @@ public:
     void push_mesh_entity(std::vector<int>&& ids);
 
     // frame by frame updates. call prior to drawing
-    void update();
+    void update(std::chrono::duration<double> delta);
     // updates and draws the model using the user bound shader program and the selected draw mode
-    void update_draw();
+    void draw();
     // draws a model based on its mode
     void draw_w_mode(MeshEntity& mesh_entity);
     // draws a model when other model's state's are also necessary; such as dynamic reflections

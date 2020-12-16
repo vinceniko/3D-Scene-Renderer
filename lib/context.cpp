@@ -128,19 +128,12 @@ Optional<MeshEntity> Context::get_selected() {
     return {};
 }
 
-void Context::update() {
-    // #ifdef DEBUG
-        // std::cout << "new_point: " << new_point[0] << ' ' << new_point[1] << ' ' << 
-        // "old_point: " << old_point[0] << ' ' << old_point[1] << ' ' << std::endl;
-    // #endif
+void Context::update(std::chrono::duration<double> delta) {
+    programs.reload();
 
     if (mouse_ctx.is_held()) {
         glm::vec2 old_point = mouse_ctx.get_prev_position();
         glm::vec2 new_point = mouse_ctx.get_position();
-        // #ifdef DEBUG
-        //         auto diff = new_point - old_point;
-        //         std::cout << "diff: " << diff[0] << ' ' << diff[1] << std::endl;
-        // #endif
         env->camera->translate(glm::vec3(new_point, 0.f), glm::vec3(old_point, 0.f));
     }
 }
@@ -185,9 +178,7 @@ void Context::draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
     // }
     draw_w_mode(mesh_entity);
 }
-void Context::update_draw() {
-    programs.reload();
-    update();
+void Context::draw() {
     programs.bind(ShaderPrograms::SHADOWS);
     env->draw_shadows(programs, mesh_list);
     if (env->get_debug_depth_map()) {

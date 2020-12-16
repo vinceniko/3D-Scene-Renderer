@@ -28,10 +28,10 @@ public:
     void set_camera(Camera* new_camera);
     void switch_camera();
 
-    void update_draw(std::chrono::milliseconds delta) {
-        env->dir_light_.set_trans(glm::rotate(env->dir_light_.get_trans(), glm::radians(60.f / 1000.f) * static_cast<float>(delta.count()), glm::vec3(0.f, 1.f, 0.f)));
+    void update(std::chrono::duration<double> delta) {
+        env->dir_light_.set_trans(glm::rotate(env->dir_light_.get_trans(), glm::radians(45.f) * static_cast<float>(delta.count()), glm::vec3(0.f, 1.f, 0.f)));
         env->dir_light_.set_trans(glm::lookAt(env->dir_light_.get_position(), glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f)));
 
-        Context::update_draw();
+        Context::update(delta);
     }
 };

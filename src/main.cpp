@@ -39,6 +39,11 @@ int HEIGHT;
 float XSCALE;
 float YSCALE;
 
+using namespace std::chrono_literals;
+
+// https://gist.github.com/mariobadr/673bbd5545242fcf9482 for timestep reference
+const std::chrono::nanoseconds TIMESTEP(16ms);
+
 std::unique_ptr<MyContext> ctx;
 
 glm::vec2 get_cursor_pos(GLFWwindow* window) {
@@ -331,7 +336,8 @@ int main(void)
     FrameTimer<std::chrono::seconds> frame_timer(std::chrono::seconds(1));
 #endif
 
-    auto previous_frame = std::chrono::high_resolution_clock::now();
+    auto previous_frame = std::chrono::steady_clock::now();
+    std::chrono::nanoseconds lag(0);
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
@@ -352,9 +358,23 @@ int main(void)
         // if (camera != nullptr) {
         //     camera->swivel();
         // }
-        auto current_frame = std::chrono::high_resolution_clock::now();
-        ctx->update_draw(std::chrono::duration_cast<std::chrono::milliseconds>(current_frame - previous_frame));
+
+        auto current_frame = std::chrono::steady_clock::now();
+        auto frame_time = current_frame - previous_frame;
         previous_frame = current_frame;
+        lag += std::chrono::duration_cast<std::chrono::nanoseconds>(frame_time);
+
+        while (lag >= TIMESTEP) {
+            ctx->update(TIMESTEP);
+
+            lag -= TIMESTEP;
+        }
+
+        // calculate how close or far we are from the next timestep
+        std::chrono::nanoseconds alpha(lag.count() / TIMESTEP.count());
+        std::this_thread::sleep_for(alpha);
+
+        ctx->draw();
 
         // Swap front and back buffers
         glfwSwapBuffers(window);
