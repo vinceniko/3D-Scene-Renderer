@@ -169,6 +169,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_N:
             ctx->env->debug_shadows_.set_debug(!ctx->env->debug_shadows_.get_debug());
             break;
+        case GLFW_KEY_U:
+            ctx->rotate_light = !ctx->rotate_light;
+            break;
         default:
             // model
             if (selected.has_value()) {
