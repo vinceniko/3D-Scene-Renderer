@@ -82,7 +82,7 @@ public:
     void push_mesh_entity(std::vector<int>&& ids);
 
     // frame by frame updates. call prior to drawing
-    void update(std::chrono::duration<double> delta);
+    void update(std::chrono::duration<float> delta);
     // updates and draws the model using the user bound shader program and the selected draw mode
     void draw();
     // draws a model based on its mode

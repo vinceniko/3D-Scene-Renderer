@@ -128,7 +128,7 @@ Optional<MeshEntity> Context::get_selected() {
     return {};
 }
 
-void Context::update(std::chrono::duration<double> delta) {
+void Context::update(std::chrono::duration<float> delta) {
     programs.reload();
 
     if (mouse_ctx.is_held()) {

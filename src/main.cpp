@@ -342,9 +342,6 @@ int main(void)
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
-        // setting the position happens in main instead of in a callback because the callback didnt update frequently enough which caused drift
-        ctx->mouse_ctx.set_position(get_cursor_pos(window));
-
         // Clear the framebuffer
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -365,6 +362,9 @@ int main(void)
         lag += std::chrono::duration_cast<std::chrono::nanoseconds>(frame_time);
 
         while (lag >= TIMESTEP) {
+            // setting the position happens in main instead of in a callback because the callback didnt update frequently enough which caused drift
+            ctx->mouse_ctx.set_position(get_cursor_pos(window));
+
             ctx->update(TIMESTEP);
 
             lag -= TIMESTEP;
