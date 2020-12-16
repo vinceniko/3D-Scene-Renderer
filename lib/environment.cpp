@@ -148,8 +148,6 @@ void Environment::draw_dynamic_cubemap(ShaderProgramCtx& programs, MeshEntity& m
 
     programs.bind(selected);
 
-    camera.buffer(programs.get_selected_program());
-
     reset_viewport();
 
     cube_map_->unbind();
