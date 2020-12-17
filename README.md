@@ -97,6 +97,10 @@ Multiple Objects:
 
 ![reflections_static_multiple](images/reflections_static_multiple.png)
 
+Directions:
+
+* There are two available cube map textures. Key `i` switches between them. Note that the day time sky texture is much higher resolution and will impact system performance more than the night time sky texture.
+
 #### Implementation Notes
 
 * `stb_image` is an external dependency for loading the cube map's png files from disk.
