@@ -212,7 +212,7 @@ void Context::draw_wireframes(MeshEntity& mesh_entity) {
 
     auto temp = env->camera->get_view();
     // minimally scale the view to draw on top
-    env->camera->scale_view(Camera::ScaleDir::Out, min_zoom);
+    env->camera->scale_view(Camera::ScaleDir::In, min_zoom);
     env->camera.buffer(programs.get_selected_program());
     mesh_entity.draw_wireframe(programs.get_selected_program());
     env->camera->set_view(temp);

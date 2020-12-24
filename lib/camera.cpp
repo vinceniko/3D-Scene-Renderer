@@ -78,7 +78,7 @@ void Camera::scale_view(ScaleDir zoom_dir, float percent) {
 
     glm::mat4 clone = glm::translate(glm::mat4(1.0f), view_origin);
     
-    float zoom_perc = static_cast<bool>(zoom_dir) ? 1.f + percent : 1.f - percent;
+    float zoom_perc = static_cast<bool>(zoom_dir) ? 1.f - percent : 1.f + percent;
     
     clone = glm::scale(clone, glm::vec3(zoom_perc, zoom_perc, zoom_perc));
     clone = glm::translate(clone, -view_origin);
