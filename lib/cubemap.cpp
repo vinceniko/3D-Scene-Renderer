@@ -113,7 +113,7 @@ void GL_CubeMapEntity::draw(ShaderProgram& program) {
     bind();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    cube_entity_.draw_no_color(program);
+    cube_entity_.draw_minimal(program);
 
     glDepthFunc(GL_LESS);
 }

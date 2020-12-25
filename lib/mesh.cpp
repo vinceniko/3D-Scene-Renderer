@@ -220,7 +220,7 @@ void MeshEntity::set_to_origin() {
 }
 
 glm::vec3 MeshEntity::get_origin() {
-    return glm::vec3(trans_ * glm::vec4(get_mesh().get_centroid(), 1.f));
+    return glm::vec3(trans_ * glm::vec4(glm::vec3(0.f), 1.f));
 }
 
 glm::vec3 MeshEntity::get_position() {
@@ -280,7 +280,9 @@ void MeshEntity::draw(ShaderProgram& program) {
 #endif
 }
 
-void MeshEntity::draw_no_color(ShaderProgram& program) {
+void MeshEntity::draw_minimal(ShaderProgram& program) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
 
     glBindVertexArray(mesh_ref.VAO_);
@@ -295,6 +297,8 @@ void MeshEntity::draw_no_color(ShaderProgram& program) {
 }
 
 void MeshEntity::draw_wireframe(ShaderProgram& program) {
+    glDisable(GL_CULL_FACE);
+
     const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
 
     glBindVertexArray(mesh_ref.VAO_);
@@ -305,7 +309,6 @@ void MeshEntity::draw_wireframe(ShaderProgram& program) {
     // // glLineWidth doesn't work, maybe an Apple driver bug 
     // glLineWidth(2.f);
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
-
 
 #ifdef DEBUG
     check_gl_error();

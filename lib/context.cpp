@@ -25,6 +25,9 @@ void MouseContext::deselect() {
 int MouseContext::get_selected() const {
     return selected_;
 }
+void MouseContext::set_selected(int selected) {
+    selected_ = selected;
+}
 bool MouseContext::is_selected() const {
     return selected_ >= 0;
 }
@@ -97,7 +100,7 @@ void Context::select_perspective(glm::vec3 world_ray) {
     if (found >= 0 && found != mouse_ctx.get_selected()) {
         deselect();
         mouse_ctx.hold_select(found);
-        mesh_list[found].set_color(glm::vec3(1.f) - mesh_list[found].get_color());
+        // mesh_list[found].set_color(glm::vec3(1.f) - mesh_list[found].get_color());
     }
     else if (found >= 0) {
         deselect();
@@ -108,7 +111,7 @@ void Context::select_ortho(glm::vec3 world_pos) {
     if (found >= 0 && found != mouse_ctx.get_selected()) {
         deselect();
         mouse_ctx.hold_select(found);
-        mesh_list[found].set_color(glm::vec3(1.f) - mesh_list[found].get_color());
+        // mesh_list[found].set_color(glm::vec3(1.f) - mesh_list[found].get_color());
     }
     else if (found >= 0) {
         deselect();
@@ -116,7 +119,7 @@ void Context::select_ortho(glm::vec3 world_pos) {
 }
 void Context::deselect() {
     if (mouse_ctx.is_selected()) {
-        mesh_list[mouse_ctx.get_selected()].set_color(glm::vec3(1.f) - mesh_list[mouse_ctx.get_selected()].get_color());
+        // mesh_list[mouse_ctx.get_selected()].set_color(glm::vec3(1.f) - mesh_list[mouse_ctx.get_selected()].get_color());
     }
     mouse_ctx.deselect();
 }
@@ -147,6 +150,36 @@ void Context::push_mesh_entity(std::vector<int>&& ids) {
     }
 }
 
+void Context::draw_selected(MeshEntity& mesh_entity) {
+    glEnable(GL_STENCIL_TEST);
+    glClear(GL_STENCIL_BUFFER_BIT);
+
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    // glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); // for outline only, no solid fill
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    glStencilMask(0xFF);
+    draw_w_mode(mesh_entity);
+
+    ShaderPrograms selected = mesh_entity.get_shader();
+    programs.bind(ShaderPrograms::OUTLINE);
+    Uniform aspect("u_aspect");
+    aspect.buffer(programs.get_selected_program(), env->camera->get_aspect());
+    env->camera.buffer(programs.get_selected_program());
+    // glDisable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glDepthFunc(GL_ALWAYS);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilMask(0x00);
+    mesh_entity.draw_minimal(programs.get_selected_program());
+
+    glDepthFunc(GL_LESS);
+    glStencilMask(0xFF);
+    glDisable(GL_STENCIL_TEST);
+    glCullFace(GL_BACK);
+    // glEnable(GL_CULL_FACE);
+    programs.bind(selected);
+}
+
 void Context::draw_w_mode(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());
     env->camera.buffer(programs.get_selected_program());
@@ -166,8 +199,8 @@ void Context::draw_w_mode(MeshEntity& mesh_entity) {
 }
 void Context::draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
     if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
-        env->draw_dynamic_cubemap(programs, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) { 
-            draw_w_mode(sec_mesh); 
+        env->draw_dynamic_cubemap(programs, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) {
+            draw_w_mode(sec_mesh);
         });
     }
     else if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
@@ -176,19 +209,44 @@ void Context::draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
     // else {
     //     env->depth_fbo_.get_tex().bind();
     // }
-    draw_w_mode(mesh_entity);
+    draw_static(mesh_entity);
 }
+
+void Context::draw_static(MeshEntity& mesh_entity) {
+    if (get_selected().has_value() && &mesh_entity == &get_selected().value().get()) {
+        draw_selected(mesh_entity);
+    }
+    else {
+        draw_w_mode(mesh_entity);
+    }
+}
+
+void Context::swap_selected_mesh(const uint32_t idx) {
+    uint32_t i = 0;
+    for (MeshEntity& mesh_entity : mesh_list) {
+        if (get_selected().has_value() && &mesh_entity == &get_selected().value().get()) {
+            std::swap(mesh_list[i], mesh_list[idx]);
+            mouse_ctx.set_selected(idx);
+        }
+        i++;
+    }
+}
+
 void Context::draw() {
     programs.bind(ShaderPrograms::SHADOWS);
     env->draw_shadows(programs, mesh_list);
-    if (env->get_debug_depth_map()) {
-        env->draw_depth_map(programs);
-    }
 
+    // swap selected to end of drawing list
+    swap_selected_mesh(mesh_list.size() - 1.0);
     for (MeshEntity& mesh_entity : mesh_list) {
         draw(mesh_entity, mesh_list);
     }
+    
     env->draw_static_scene(programs);
+    
+    if (env->get_debug_depth_map()) {
+        env->draw_depth_map(programs);
+    }
 }
 void Context::draw_surfaces(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());

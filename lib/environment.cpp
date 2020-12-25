@@ -38,7 +38,7 @@ void Environment::draw_shadows(ShaderProgramCtx& programs, MeshEntityList mesh_l
     glDisable(GL_CULL_FACE);
     // glCullFace(GL_FRONT);
     for (MeshEntity& mesh : mesh_list) {
-        mesh.draw_no_color(programs.get_selected_program());
+        mesh.draw_minimal(programs.get_selected_program());
     }
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -191,7 +191,7 @@ void Environment::draw_depth_map(ShaderProgramCtx& programs) {
     quad.translate(glm::mat4{ 1.f }, glm::vec3(-1.0f, 0.5f, -0.01f));
     // quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 10.f);
     depth_fbo_.get_tex().bind();
-    quad.draw_no_color(programs.get_selected_program());
+    quad.draw_minimal(programs.get_selected_program());
     camera->set_trans(old_trans);
     camera->set_projection_mode(old_projection);
 }

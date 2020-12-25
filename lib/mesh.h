@@ -157,8 +157,8 @@ public:
     void buffer(ShaderProgram& program);
 
     void draw(ShaderProgram& program) override;
-    // TODO: change to remove
-    void draw_no_color(ShaderProgram& program);
+    // draw only with the vbo, no render state mutated
+    void draw_minimal(ShaderProgram& program);
     void draw_wireframe(ShaderProgram& program);
 
     float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const;

@@ -35,6 +35,7 @@ public:
     void deselect();
 
     int get_selected() const;
+    void set_selected(int selected);
     bool is_selected() const;
     bool is_held() const;
 
@@ -73,6 +74,8 @@ public:
     void select_ortho(glm::vec3 world_pos);
     // mutates mouse state in mouse_ctx to deselect a selected mesh
     void deselect();
+    // swap the selected mesh with another mesh in the mesh list, used to draw selected mesh last
+    void swap_selected_mesh(const uint32_t idx);
     // returns an optional selected mesh
     Optional<MeshEntity> get_selected();
 
@@ -85,6 +88,8 @@ public:
     void update(std::chrono::duration<float> delta);
     // updates and draws the model using the user bound shader program and the selected draw mode
     void draw();
+    void draw_selected(MeshEntity& mesh_entity);
+    void draw_static(MeshEntity& mesh_entity);
     // draws a model based on its mode
     void draw_w_mode(MeshEntity& mesh_entity);
     // draws a model when other model's state's are also necessary; such as dynamic reflections
