@@ -24,7 +24,7 @@ A cross-platform 3D Scene Editor and Renderer written in C++ with OpenGL that ca
   * Phong shading
 * Render Static and Dynamic Reflections and Refractions with Cube Mapped Environment Mapping
 * Render shadows with Shadow Mapping
-* Multiple lights
+* Shade models with Multiple Lights
   * Directional lights
   * Point lights
 * Draw debug info
