@@ -391,12 +391,6 @@ int main(void)
 #endif
     }
 
-    // Deallocate opengl memory
-    // TODO: move into ~Program
-    for (auto& program : ctx->programs) {
-        program->free();
-    }
-
     // Deallocate glfw internals
     glfwTerminate();
     return 0;

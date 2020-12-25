@@ -65,6 +65,7 @@ public:
     uint32_t program_shader;
 
     ShaderProgram() : vertex_shader(0), fragment_shader(0), geometry_shader(0), program_shader(0) { }
+    ~ShaderProgram() { free(); }
 
     // Create a new shader from the specified source strings
     bool init(const std::string& vertex_shader_string,
