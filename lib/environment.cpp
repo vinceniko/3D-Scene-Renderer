@@ -162,6 +162,7 @@ void Environment::set_height(int height) {
 void Environment::set_viewport(int width, int height) {
     width_ = width;
     height_ = height;
+    camera->set_aspect(width, height);
     glViewport(0, 0, width, height);
 }
 void Environment::reset_viewport() {

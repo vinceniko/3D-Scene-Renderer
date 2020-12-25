@@ -52,6 +52,7 @@ public:
     virtual void set_projection_mode(Projection projection);
 
     virtual void set_aspect(float aspect);
+    virtual void set_aspect(int width, int height);
     virtual void set_fov(float fov);
     virtual void set_position(glm::vec3 new_pos) {
         trans_[3] = glm::inverse(trans_) * glm::vec4(new_pos, 1.0);

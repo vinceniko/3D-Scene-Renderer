@@ -13,7 +13,9 @@ void Camera::switch_projection() {
 void Camera::set_projection_mode(Camera::Projection projection) {
     projection_mode_ = projection;
 }
-
+void Camera::set_aspect(int width, int height) {
+    set_aspect(static_cast<float>(width) / height);
+}
 void Camera::set_aspect(float aspect) {
     aspect_ = aspect;
 }
