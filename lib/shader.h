@@ -80,8 +80,8 @@ public:
     }
 };
 
-// the draw modes that the program will use
-class DrawModeUseList : public Cycler<DrawMode> { using Cycler::Cycler; };
+// the draw modes that the program will cycle through
+class DrawModeCycler : public Cycler<DrawMode> { using Cycler::Cycler; };
 
-// the shaders that the program will use
-class ShaderUseList : public Cycler<ShaderPrograms> { using Cycler::Cycler; };
+// the shaders that the program will cycle through
+class ShaderCycler : public Cycler<ShaderPrograms> { using Cycler::Cycler; };
