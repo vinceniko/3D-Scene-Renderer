@@ -45,11 +45,11 @@ class Mesh {
     std::vector<glm::vec3> normals_;
     std::vector<glm::vec3> calc_normals() const;
 
-    glm::vec3 centroid_;
-    glm::vec3 calc_centroid() const;
+	glm::vec3 centroid_ = glm::vec3{ 0.f };
+	glm::vec3 calc_centroid() const;
 
-    glm::vec3 scale_;
-    glm::vec3 calc_scale() const;
+	glm::vec3 scale_ = glm::vec3{ 1.f };
+	glm::vec3 calc_scale() const;
 
 protected:
     void init();
