@@ -17,7 +17,7 @@ void Camera::set_aspect(int width, int height) {
     set_aspect(static_cast<float>(width) / height);
 }
 void Camera::set_aspect(float aspect) {
-    aspect_ = aspect;
+    aspect_ = isnan(aspect) ? 1.f : aspect;
 }
 void Camera::set_fov(float fov) {
     fov_ = fov;
