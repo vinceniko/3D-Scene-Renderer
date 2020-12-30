@@ -15,7 +15,7 @@ void Camera::set_projection_mode(Camera::Projection projection) {
 }
 
 void Camera::set_aspect(float aspect) {
-    aspect_ = aspect;
+    aspect_ = isnan(aspect) ? 1.f : aspect;
 }
 void Camera::set_fov(float fov) {
     fov_ = fov;
