@@ -374,10 +374,9 @@ int main(void)
             lag -= TIMESTEP;
         }
 
-        // calculate how close or far we are from the next timestep
-        std::chrono::nanoseconds alpha(lag.count() / TIMESTEP.count());
-        std::this_thread::sleep_for(alpha);
-
+        // // calculate how close or far we are from the next timestep
+        // std::chrono::nanoseconds alpha(lag.count() / TIMESTEP.count())
+        // std::this_thread::sleep_for(TIMESTEP - lag);
         ctx->draw();
 
         // Swap front and back buffers
@@ -386,6 +385,7 @@ int main(void)
         // Poll for and process events
         glfwPollEvents();
 
+        std::this_thread::sleep_for((current_frame + TIMESTEP) - std::chrono::steady_clock::now() - lag);
 #ifdef TIMER
         frame_timer.print();
 #endif

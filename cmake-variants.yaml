@@ -1,0 +1,11 @@
+TIMER:
+  default: 'no'
+  choices:
+    'yes':
+      short: Enable Timer
+      settings:
+        TIMER: 1
+    'no':
+      short: Disable Timer
+      settings:
+        TIMER: 0
