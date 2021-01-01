@@ -15,6 +15,7 @@ TIMER:
   choices:
     'yes':
       short: Enable Timer
+      long: Show frame time and FPS
       settings:
         TIMER: 1
     'no':
