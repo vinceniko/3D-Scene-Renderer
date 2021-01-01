@@ -283,13 +283,9 @@ int main(void)
     GLFWmonitor* primary = glfwGetPrimaryMonitor();
     int xpos, ypos, width, height;
     glfwGetMonitorWorkarea(primary, &xpos, &ypos, &width, &height);
-    glfwGetMonitorContentScale(primary, &XSCALE, &YSCALE);
 
-    // WIDTH = width / XSCALE; 
-    // HEIGHT = height / YSCALE;
-
-    WIDTH = width * XSCALE;
-    HEIGHT = height * YSCALE;
+    WIDTH = width;
+    HEIGHT = height;
 
     // Create a windowed mode window and its OpenGL context
     window = glfwCreateWindow(WIDTH, HEIGHT, "3D Scene Editor", NULL, NULL);
@@ -338,6 +334,11 @@ int main(void)
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    glfwShowWindow(window);
+    int pixWidth, pixHeight;
+    glfwGetFramebufferSize(window, &pixWidth, &pixHeight);
+    framebuffer_size_callback(window, pixWidth, pixHeight);
 
 #ifdef TIMER
     FrameTimer<std::chrono::seconds> frame_timer(std::chrono::seconds(1));
