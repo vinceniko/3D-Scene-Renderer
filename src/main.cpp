@@ -41,8 +41,11 @@ float YSCALE;
 
 using namespace std::chrono_literals;
 
+// typedef std::chrono::duration<double, std::nano> std::chrono::nanoseconds;
+
 // https://gist.github.com/mariobadr/673bbd5545242fcf9482 for timestep reference
-const std::chrono::nanoseconds TIMESTEP(16ms);
+constexpr int FPS = 60;
+const std::chrono::nanoseconds TIMESTEP(std::chrono::duration_cast<std::chrono::nanoseconds>(1000ms / FPS));
 
 std::unique_ptr<MyContext> ctx;
 
@@ -384,8 +387,10 @@ int main(void)
 
         // Poll for and process events
         glfwPollEvents();
-
-        std::this_thread::sleep_for((current_frame + TIMESTEP) - std::chrono::steady_clock::now() - lag);
+        
+        // fixed max rendering rate
+        std::chrono::nanoseconds wait_dur = (current_frame + TIMESTEP) - std::chrono::steady_clock::now() - lag;
+        std::this_thread::sleep_for(wait_dur);
 #ifdef TIMER
         frame_timer.print();
 #endif

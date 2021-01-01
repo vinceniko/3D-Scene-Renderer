@@ -39,6 +39,9 @@ class FrameTimer : public Timer<microseconds> {
 public:
     FrameTimer(Interval interval) : output_interval_(interval) { start(); }
 
+    int get_num_frames() {
+        return num_frames;
+    }
     void start() override {
         Timer::start();
 
@@ -66,9 +69,11 @@ public:
     }
 
     void print() {
+        int curr_num_frames = get_num_frames();
         auto [ frame_time, ready ] = stop_ready();
         if (ready) {
             std::cout << "frame_time: " << frame_time.count() / 1000.f << std::endl;
+            std::cout << "fps: " << curr_num_frames << std::endl;
         }
     }
 };
