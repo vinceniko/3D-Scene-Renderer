@@ -153,5 +153,5 @@ void main()
         shadow_result = lighting;
     }
 
-    out_color = vec4(shadow_result * 2.0 * env_color, 1.0);
+    out_color = vec4(min(shadow_result + 0.5, 1.0) * env_color, 1.0);
 }
