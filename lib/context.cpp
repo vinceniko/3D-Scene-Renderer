@@ -183,7 +183,7 @@ void Context::draw_selected(MeshEntity& mesh_entity) {
 void Context::draw_w_mode(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());
     env->camera.buffer(programs.get_selected_program());
-    if (mesh_entity.get_shader() == ShaderPrograms::PHONG || mesh_entity.get_shader() == ShaderPrograms::FLAT) {
+    if (mesh_entity.get_shader() == ShaderPrograms::PHONG || mesh_entity.get_shader() == ShaderPrograms::FLAT || mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
         env->buffer_lights(programs.get_selected_program());
         env->buffer_shadows(programs.get_selected_program());
     }
@@ -251,7 +251,7 @@ void Context::draw() {
 void Context::draw_surfaces(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());
     // TODO: check if shader has attached uniform at compile time elsewhere
-    if (mesh_entity.get_shader() == ShaderPrograms::PHONG || mesh_entity.get_shader() == ShaderPrograms::FLAT) {
+    if (mesh_entity.get_shader() == ShaderPrograms::PHONG || mesh_entity.get_shader() == ShaderPrograms::FLAT || mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
         env->debug_shadows_.buffer(programs.get_selected_program());
     }
     mesh_entity.draw(programs.get_selected_program());
