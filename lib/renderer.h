@@ -194,6 +194,17 @@ struct Uniform {
         check_gl_error();
 #endif
     }
+    virtual void buffer(ShaderProgram& program, const int& val) {
+        int32_t id = program.uniform(name_);
+        check_error(id);
+
+        glUniform1i(id, val);
+#ifdef DEBUG
+        check_gl_error();
+#endif
+    }
+
+private:
     void check_error(int32_t id) {
         if (id < 0) {
             throw std::runtime_error("Error Getting ID of Uniform: " + name_);

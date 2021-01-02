@@ -12,11 +12,13 @@ class Environment {
     int width_;
     int height_;
 
-    GL_CubeMap_FBO cubemap_fbo_;
-    std::unique_ptr<GL_CubeMapEntity> cube_map_;
 public:
+    std::unique_ptr<GL_CubeMapEntity> cube_map_;  // static env map
+    GL_CubeMap_FBO cubemap_fbo_;  // dynamic env map
+
     DirLight dir_light_;
     PointLights point_lights_;
+    
     GLCamera camera;
     
     GL_Depth_FBO depth_fbo_;

@@ -24,7 +24,10 @@ public:
 #endif
     }
     void bind() override {
-        glActiveTexture(GL_TEXTURE0);
+        bind(GL_TEXTURE0);
+    }
+    virtual void bind(uint32_t tex_unit) {
+        glActiveTexture(tex_unit);
         glBindTexture(target_, tex_id_);
 #ifdef DEBUG
         check_gl_error();

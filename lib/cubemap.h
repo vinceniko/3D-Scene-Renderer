@@ -21,7 +21,10 @@ public:
     // create an empty cubemap
     void init() override;
     void bind() override {
-        GL_Texture::bind();
+        bind(GL_TEXTURE0);
+    }
+    void bind(uint32_t tex_unit) override {
+        GL_Texture::bind(tex_unit);
         glCullFace(GL_FRONT);
     }
     void unbind() {
