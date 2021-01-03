@@ -334,7 +334,7 @@ MeshEntityList MeshFactory::push(ShaderProgram& program, std::vector<Mesh> meshe
         check_gl_error();
 #endif
 
-        out.push_back(get_mesh_entity(meshes_.size() - 1));
+        out.push_back(std::make_unique<MeshEntity>(get_mesh_entity(meshes_.size() - 1)));
     }
 
     return out;
@@ -352,13 +352,13 @@ MeshEntity MeshFactory::get_mesh_entity(size_t i) {
 }
 
 void MeshEntityList::draw(ShaderProgram& program) {
-    for (MeshEntity& mesh : *this) {
-        mesh.draw(program);
+    for (auto& mesh : *this) {
+        mesh->draw(program);
     }
 }
 void MeshEntityList::draw_wireframes(ShaderProgram& program) {
-    for (MeshEntity& mesh : *this) {
-        mesh.draw_wireframe(program);
+    for (auto& mesh : *this) {
+        mesh->draw_wireframe(program);
     }
 }
 

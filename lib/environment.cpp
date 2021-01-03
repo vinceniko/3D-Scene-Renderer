@@ -31,14 +31,14 @@ void Environment::draw_lights(ShaderProgram& program) {
     buffer(program);
     point_lights_.draw(program);
 }
-void Environment::draw_shadows(ShaderProgramCtx& programs, MeshEntityList mesh_list) {
+void Environment::draw_shadows(ShaderProgramCtx& programs, MeshEntityList& mesh_list) {
     programs.bind(ShaderPrograms::SHADOWS);
     depth_fbo_.bind();
     dir_light_.buffer_shadows(programs.get_selected_program());
     glDisable(GL_CULL_FACE);
     // glCullFace(GL_FRONT);
-    for (MeshEntity& mesh : mesh_list) {
-        mesh.draw_minimal(programs.get_selected_program());
+    for (auto& mesh : mesh_list) {
+        mesh->draw_minimal(programs.get_selected_program());
     }
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -49,7 +49,8 @@ void Environment::draw_shadows(ShaderProgramCtx& programs, MeshEntityList mesh_l
 void Environment::draw_static_scene(ShaderProgramCtx& programs) {
     bind_static();
     programs.bind(ShaderPrograms::PHONG);
-    draw_lights(programs.get_selected_program());
+    // // not necesary anymore since the point lights are drawn with MeshEntities
+    // draw_lights(programs.get_selected_program());
     draw_static_cubemap(programs);
 }
 
@@ -132,8 +133,8 @@ void Environment::draw_dynamic_cubemap(ShaderProgramCtx& programs, MeshEntity& m
 
         // draw all other meshes
         for (auto& sec_mesh : mesh_entities) {
-            if (&sec_mesh != &mesh_entity) {
-                draw_f(sec_mesh);
+            if (sec_mesh.get() != &mesh_entity) {
+                draw_f(*sec_mesh);
                 cube_map_->bind();
             }
         }

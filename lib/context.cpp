@@ -55,13 +55,17 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(std::unique_ptr<Environment> new_env) : env(std::move(new_env)) {}
+Context::Context(std::unique_ptr<Environment> new_env) : env(std::move(new_env)) {
+    for (auto& point_light : env->point_lights_) {
+        mesh_list.push_back(std::unique_ptr<MeshEntity>(&point_light));
+    }
+}
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
     float min_dist = std::numeric_limits<float>::infinity();
     int closest = -1;
     for (size_t i = 0; i < mesh_list.size(); i++) {
-        float distance = mesh_list[i].intersected_triangles(env->camera->get_position(), world_ray);
+        float distance = mesh_list[i]->intersected_triangles(env->camera->get_position(), world_ray);
         if (distance >= 0) {
             if (min_dist > distance) {
                 min_dist = distance;
@@ -75,7 +79,7 @@ int Context::intersected_mesh_ortho(glm::vec3 world_pos) const {
     float min_dist = std::numeric_limits<float>::infinity();
     int closest = -1;
     for (size_t i = 0; i < mesh_list.size(); i++) {
-        float distance = mesh_list[i].intersected_triangles(world_pos, glm::inverse(env->camera->get_view()) * glm::vec4(0.0, 0.0, -1.f, 0.f));
+        float distance = mesh_list[i]->intersected_triangles(world_pos, glm::inverse(env->camera->get_view()) * glm::vec4(0.0, 0.0, -1.f, 0.f));
         if (distance >= 0) {
             if (min_dist > distance) {
                 min_dist = distance;
@@ -125,7 +129,7 @@ void Context::deselect() {
 }
 Optional<MeshEntity> Context::get_selected() {
     if (mouse_ctx.is_selected()) {
-        return { {mesh_list[mouse_ctx.get_selected()] } };
+        return { {*mesh_list[mouse_ctx.get_selected()] } };
     }
 
     return {};
@@ -146,7 +150,7 @@ void Context::init_mesh_prototypes(std::vector<Mesh>&& meshes) {
 }
 void Context::push_mesh_entity(std::vector<int>&& ids) {
     for (const auto& id : ids) {
-        mesh_list.push_back(mesh_factory.get_mesh_entity(id));
+        mesh_list.push_back(std::make_unique<MeshEntity>(mesh_factory.get_mesh_entity(id)));
     }
 }
 
@@ -219,8 +223,8 @@ void Context::draw_static(MeshEntity& mesh_entity) {
 
 void Context::swap_selected_mesh(const uint32_t idx) {
     uint32_t i = 0;
-    for (MeshEntity& mesh_entity : mesh_list) {
-        if (get_selected().has_value() && &mesh_entity == &get_selected().value().get()) {
+    for (auto& mesh_entity : mesh_list) {
+        if (get_selected().has_value() && mesh_entity.get() == &get_selected().value().get()) {
             std::swap(mesh_list[i], mesh_list[idx]);
             mouse_ctx.set_selected(idx);
         }
@@ -234,8 +238,8 @@ void Context::draw() {
 
     // swap selected to end of drawing list
     swap_selected_mesh(mesh_list.size() - 1.0);
-    for (MeshEntity& mesh_entity : mesh_list) {
-        draw(mesh_entity, mesh_list);
+    for (auto& mesh_entity : mesh_list) {
+        draw(*mesh_entity, mesh_list);
     }
     
     env->draw_static_scene(programs);
@@ -262,8 +266,8 @@ void Context::draw_surfaces(MeshEntity& mesh_entity) {
     mesh_entity.draw(programs.get_selected_program());
 }
 void Context::draw_surfaces() {
-    for (MeshEntity& mesh : mesh_list) {
-        draw_surfaces(mesh);
+    for (auto& mesh : mesh_list) {
+        draw_surfaces(*mesh);
     }
 }
 void Context::draw_wireframes(MeshEntity& mesh_entity) {
@@ -291,8 +295,8 @@ void Context::draw_wireframes(MeshEntity& mesh_entity) {
     programs.bind(selected);
 }
 void Context::draw_wireframes() {
-    for (MeshEntity& mesh : mesh_list) {
-        draw_wireframes(mesh);
+    for (auto& mesh : mesh_list) {
+        draw_wireframes(*mesh);
     }
 }
 void Context::draw_normals(MeshEntity& mesh_entity) {
@@ -311,7 +315,7 @@ void Context::draw_normals(MeshEntity& mesh_entity) {
     draw_wireframes(mesh_entity);
 }
 void Context::draw_normals() {
-    for (MeshEntity& mesh : mesh_list) {
-        draw_normals(mesh);
+    for (auto& mesh : mesh_list) {
+        draw_normals(*mesh);
     }
 }

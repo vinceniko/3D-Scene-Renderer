@@ -38,7 +38,7 @@ public:
     void buffer_lights(ShaderProgram& program);
     void buffer_shadows(ShaderProgram& program);
     void draw_lights(ShaderProgram& program);
-    void draw_shadows(ShaderProgramCtx& programs, MeshEntityList mesh_list);
+    void draw_shadows(ShaderProgramCtx& programs, MeshEntityList& mesh_list);
 
     void draw_static_scene(ShaderProgramCtx& programs);
     void draw_static_cubemap(ShaderProgramCtx& programs);

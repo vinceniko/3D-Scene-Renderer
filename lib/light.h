@@ -28,13 +28,13 @@ struct LightTraits {
 
     float shininess_ = 1.f;
 
+    LightTraits(float ambient, float diffuse, float specular, float shininess_factor) : LightTraits(glm::vec3(1.f), ambient, diffuse, specular, shininess_factor) {}
     LightTraits(glm::vec3 color, float ambient, float diffuse, float specular, float shininess_factor) : color_(color) {
         ambient_.strength_ = ambient;
         diffuse_.strength_ = diffuse;
         specular_.strength_ = specular;
         shininess_ = pow(2, shininess_factor);
     }
-    LightTraits(float ambient, float diffuse, float specular, float shininess_factor) : LightTraits(glm::vec3(1.f), ambient, diffuse, specular, shininess_factor) {}
 };
 
 struct Light {
@@ -110,9 +110,7 @@ const Attenuation ATTENUATION_100 = Attenuation{ 1.0, 0.045, 0.0075 };
 const Attenuation ATTENUATION_200 = Attenuation{ 1.0, 0.022, 0.0019 };
 const Attenuation ATTENUATION_600 = Attenuation{ 1.0, 0.007, 0.0002 };
 
-struct PointLight : public Light {
-    MeshEntity model_;
-
+struct PointLight : public Light, public MeshEntity {
     Attenuation attenuation_ = ATTENUATION_50;
 
     Uniform u_constant;
@@ -121,14 +119,14 @@ struct PointLight : public Light {
 
     Uniform u_position;
 
-    PointLight(glm::vec3 position) : PointLight(position, LightTraits(0.2, 0.5, 0.5, 7)) {
-        model_.scale(glm::mat4{ 1.f }, Spatial::ScaleDir::Out, 1.5);
-        model_.set_color(glm::vec3{ 1.f });
-    }
+    PointLight(glm::vec3 position) : PointLight(position, LightTraits(glm::vec3(1.f), 0.2, 0.5, 0.5, 7)) {}
     PointLight(glm::vec3 position, LightTraits light_traits) : PointLight(position, light_traits, ATTENUATION_50) {}
     PointLight(glm::vec3 position, LightTraits light_traits, Attenuation attenuation) : PointLight(position, light_traits, ATTENUATION_50, MeshFactory::get().get_mesh_entity(DefMeshList::SPHERE)) {}
-    PointLight(glm::vec3 position, LightTraits light_traits, Attenuation attenuation, MeshEntity model) : Light("point_light", light_traits), attenuation_(attenuation), model_(model) {
-        model_.translate(glm::mat4{ 1.f }, position);
+    PointLight(glm::vec3 position, LightTraits light_traits, Attenuation attenuation, MeshEntity&& model) : Light("point_light", light_traits), attenuation_(attenuation), MeshEntity(std::move(model)) {
+        translate(glm::mat4{ 1.f }, position);
+        scale(glm::mat4{ 1.f }, Spatial::ScaleDir::Out, 1.5);
+        MeshEntity::set_color(glm::vec3{ 1.f });
+        deletable = false;
     }
     void buffer(ShaderProgram& program) {
         Light::buffer(program);
@@ -143,10 +141,7 @@ struct PointLight : public Light {
         u_linear.buffer(program, attenuation_.linear);
         u_quadratic.buffer(program, attenuation_.quadratic);
 
-        u_position.buffer(program, model_.get_origin());
-    }
-    void draw(ShaderProgram& program) {
-        model_.draw(program);
+        u_position.buffer(program, get_origin());
     }
 };
 
@@ -165,7 +160,7 @@ struct PointLights : public std::vector<PointLight> {
         }
     }
     void draw(ShaderProgram& program) {
-        for (auto light : *this) {
+        for (auto& light : *this) {
             light.draw(program);
         }
     }

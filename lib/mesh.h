@@ -144,10 +144,12 @@ class MeshEntity : public Spatial, public ShaderObject {
 
     Uniform model_uniform_{ "u_model_trans" };
     glm::vec3 color_;
+    
 
     MeshEntity(MeshFactory& ctx, size_t id);
 
 public:
+    bool deletable = true;
     friend class MeshFactory;
 
     const size_t get_id() const;
@@ -174,10 +176,19 @@ public:
 };
 
 // a list of MeshEntity, i.e. references to Meshes inside the GLMeshFactory; whats actually drawn
-class MeshEntityList : public std::vector<MeshEntity> {
+class MeshEntityList : public std::vector<std::unique_ptr<MeshEntity>> {
 public:
-    using std::vector<MeshEntity>::vector;
-
+    using std::vector<std::unique_ptr<MeshEntity>>::vector;
+    
+    void erase(std::vector<std::unique_ptr<MeshEntity>>::const_iterator it) {
+        if ((*it)->deletable) {
+            std::vector<std::unique_ptr<MeshEntity>>::erase(it);
+            return;
+        }
+#ifdef DEBUG
+        std::cout << "Attempting to delete undeletable MeshEntity" << std::endl;
+#endif
+    }
     void draw(ShaderProgram& program);
     void draw_wireframes(ShaderProgram& program);
 };

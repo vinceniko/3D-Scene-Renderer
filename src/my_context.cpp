@@ -23,10 +23,11 @@ cameras{
     init_mesh_prototypes({ BumpyCubeMesh{}, BunnyMesh{}, MonkeyMesh{} });
 
     push_mesh_entity({ DefMeshList::QUAD });
-    mesh_list[0].translate(glm::mat4{ 1.f }, glm::vec3(0.f, -1.f, 0.f));
-    mesh_list[0].rotate(glm::mat4{ 1.f }, -90.f, glm::vec3(1.f, 0.f, 0.f));
-    mesh_list[0].scale(glm::mat4{ 1.f }, Spatial::ScaleDir::In, 10.f);
-    mesh_list[0].set_color(glm::vec3(252, 137, 42) / 256.f);
+    auto& inserted_quad = *(mesh_list.end()-1);
+    inserted_quad->translate(glm::mat4{ 1.f }, glm::vec3(0.f, -1.f, 0.f));
+    inserted_quad->rotate(glm::mat4{ 1.f }, -90.f, glm::vec3(1.f, 0.f, 0.f));
+    inserted_quad->scale(glm::mat4{ 1.f }, Spatial::ScaleDir::In, 10.f);
+    inserted_quad->set_color(glm::vec3(252, 137, 42) / 256.f);
 }
 
 void MyContext::switch_cube_map() {
