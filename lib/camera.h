@@ -101,6 +101,9 @@ class TrackballCamera : public Camera {
     float theta_ = glm::half_pi<float>();
     float phi_ = glm::half_pi<float>();
 
+    // for ortho zoom
+    glm::vec3 ortho_scale_ = glm::vec3(1.f);
+
     // for swivel
     std::chrono::steady_clock::time_point start_time_ = std::chrono::steady_clock::now();
 
@@ -112,6 +115,10 @@ public:
     virtual void translate(glm::vec3 offset) override;
     virtual void translate(glm::vec3 new_point, glm::vec3 old_point) override;
     virtual void swivel();
+
+    virtual void switch_projection() override;
+    // sets ortho scale
+    virtual void scale_view(ScaleDir zoom_dir, float percent = 0.2) override;
 
     void update_trans();
 };

@@ -72,7 +72,7 @@ void Camera::set_view(glm::mat4 view) {
 void Camera::zoom_protected(ScaleDir zoom_dir, float percent) {
     // if (projection_mode_ == Projection::Ortho) return;
 
-    this->zoom(zoom_dir, percent);
+    zoom(zoom_dir, percent);
 }
 
 void Camera::scale_view(ScaleDir zoom_dir, float percent) {
@@ -80,9 +80,9 @@ void Camera::scale_view(ScaleDir zoom_dir, float percent) {
 
     glm::mat4 clone = glm::translate(glm::mat4(1.0f), view_origin);
     
-    float zoom_perc = static_cast<bool>(zoom_dir) ? 1.f - percent : 1.f + percent;
+    float zoom_perc = static_cast<bool>(zoom_dir) == ScaleDir::In ? 1.f + percent : 1.f - percent;
     
-    clone = glm::scale(clone, glm::vec3(zoom_perc, zoom_perc, zoom_perc));
+    clone = glm::scale(clone, glm::vec3(zoom_perc));
     clone = glm::translate(clone, -view_origin);
     
     trans_ *= clone;
@@ -123,19 +123,34 @@ void TrackballCamera::update_trans() {
     float camX = radius_ * glm::sin(phi_) * glm::cos(theta_);
     float camY = radius_ * glm::cos(phi_);
     float camZ = radius_ * glm::sin(phi_) * glm::sin(theta_);
-    glm::vec3 view_scale = glm::vec3(glm::length(trans_[0]), glm::length(trans_[1]), glm::length(trans_[2]));
-    trans_ = glm::scale(glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(0.0), glm::vec3(0.0, up_, 0.0)), view_scale);  // scale to preserve zoom in ortho
+    trans_ = glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(0.0), glm::vec3(0.0, up_, 0.0));
+    // scale to enable ortho zoom
+    if (projection_mode_ == Camera::Projection::Ortho) {
+        trans_ = glm::scale(trans_, ortho_scale_); // reinstate scale
+    }
 }
 
 void TrackballCamera::zoom(ScaleDir zoom_dir, float percent) {
     // TODO: limit zoom in
 
     if (projection_mode_ == Projection::Perspective) {
-        radius_ *= zoom_dir == Out ? 1.f + percent : 1.f - percent;
+        radius_ *= zoom_dir == In ? 1.f - percent : 1.f + percent;  // increase radius to zoom out
+        update_trans();
     } else {
-        Camera::scale_view(zoom_dir, percent);
+        scale_view(zoom_dir, percent);
     }
-    update_trans();
+}
+
+void TrackballCamera::switch_projection() {
+    Camera::switch_projection();
+    update_trans();    
+}
+
+void TrackballCamera::scale_view(ScaleDir zoom_dir, float percent) {
+    Camera::scale_view(zoom_dir, percent);
+    if (projection_mode_ == Camera::Projection::Ortho) {
+        ortho_scale_ = glm::vec3(glm::length(trans_[0]), glm::length(trans_[1]), glm::length(trans_[2]));
+    }
 }
 
 void TrackballCamera::translate(glm::vec3 offset) {
@@ -169,8 +184,7 @@ void TrackballCamera::translate(glm::vec3 offset) {
     float camX = radius_ * glm::sin(phi_) * glm::cos(theta_);
     float camY = radius_ * glm::cos(phi_);
     float camZ = radius_ * glm::sin(phi_) * glm::sin(theta_);
-    glm::vec3 view_scale = glm::vec3(glm::length(trans_[0]), glm::length(trans_[1]), glm::length(trans_[2]));
-    trans_ = glm::scale(glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(0.0), glm::vec3(0.0, up_, 0.0)), view_scale);  // scale to preserve zoom in ortho
+    update_trans();
 }
 void TrackballCamera::translate(glm::vec3 new_point, glm::vec3 old_point) {
     auto diff = glm::vec3(new_point.x - old_point.x, -(new_point.y - old_point.y), 0.f) * 2.f;

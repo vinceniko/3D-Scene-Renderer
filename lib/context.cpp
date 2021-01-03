@@ -271,14 +271,22 @@ void Context::draw_wireframes(MeshEntity& mesh_entity) {
 
     programs.bind(ShaderPrograms::DEF_SHADER);
 
-    float min_zoom = 1.f / std::pow(2, 10);  // to prevent z-fighting
+    if (env->camera->get_projection_mode() == Camera::Projection::Perspective) {
+        float min_zoom = 1.f / std::pow(2, 5);  // to prevent z-fighting
 
-    auto temp = env->camera->get_view();
-    // minimally scale the view to draw on top
-    env->camera->scale_view(Camera::ScaleDir::In, min_zoom);
-    env->camera.buffer(programs.get_selected_program());
-    mesh_entity.draw_wireframe(programs.get_selected_program());
-    env->camera->set_view(temp);
+        auto temp = env->camera->get_view();
+        // minimally scale the view to draw on top
+        env->camera->scale_view(Camera::ScaleDir::Out, min_zoom);
+        env->camera.buffer(programs.get_selected_program());
+        mesh_entity.draw_wireframe(programs.get_selected_program());
+        env->camera->set_view(temp);
+    } else {
+        env->camera.buffer(programs.get_selected_program());
+        auto old_trans = mesh_entity.get_trans();
+        mesh_entity.scale(env->camera->get_view(), Spatial::ScaleDir::In, 1.f / std::pow(2, 8));
+        mesh_entity.draw_wireframe(programs.get_selected_program());
+        mesh_entity.set_trans(old_trans);
+    }
 
     programs.bind(selected);
 }
