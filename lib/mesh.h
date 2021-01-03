@@ -179,7 +179,17 @@ public:
 class MeshEntityList : public std::vector<std::unique_ptr<MeshEntity>> {
 public:
     using std::vector<std::unique_ptr<MeshEntity>>::vector;
-    
+
+    MeshEntityList(const MeshEntityList&) = default;
+    MeshEntityList(MeshEntityList&&) = default;
+    ~MeshEntityList() {
+        for (auto& mesh_entity : *this) {
+            // used for objects which are managed elsewhere; i.e. PointLights
+            if (!mesh_entity->deletable) {
+                mesh_entity.release();
+            }
+        }
+    }
     void erase(std::vector<std::unique_ptr<MeshEntity>>::const_iterator it) {
         if ((*it)->deletable) {
             std::vector<std::unique_ptr<MeshEntity>>::erase(it);

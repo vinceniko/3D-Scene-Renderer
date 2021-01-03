@@ -276,7 +276,7 @@ void Context::draw_wireframes(MeshEntity& mesh_entity) {
     programs.bind(ShaderPrograms::DEF_SHADER);
 
     if (env->camera->get_projection_mode() == Camera::Projection::Perspective) {
-        float min_zoom = 1.f / std::pow(2, 5);  // to prevent z-fighting
+        float min_zoom = 1.f / std::pow(2, 8);  // to prevent z-fighting
 
         auto temp = env->camera->get_view();
         // minimally scale the view to draw on top
