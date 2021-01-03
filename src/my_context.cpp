@@ -23,7 +23,7 @@ cameras{
     init_mesh_prototypes({ BumpyCubeMesh{}, BunnyMesh{}, MonkeyMesh{} });
 
     push_mesh_entity({ DefMeshList::QUAD });
-    mesh_list[0].set_trans(glm::translate(glm::mat4{ 1.f }, glm::vec3(0.f, -1.f, 0.f)));
+    mesh_list[0].translate(glm::mat4{ 1.f }, glm::vec3(0.f, -1.f, 0.f));
     mesh_list[0].rotate(glm::mat4{ 1.f }, -90.f, glm::vec3(1.f, 0.f, 0.f));
     mesh_list[0].scale(glm::mat4{ 1.f }, Spatial::ScaleDir::In, 10.f);
     mesh_list[0].set_color(glm::vec3(252, 137, 42) / 256.f);
@@ -54,7 +54,9 @@ void MyContext::set_camera(Camera* new_camera) {
 }
 
 void MyContext::switch_camera() {
+    float aspect = env->camera->get_aspect();
     cameras[camera_idx] = env->camera.get_camera_move().release();  // assign back to array
     camera_idx = (camera_idx + 1) % cameras.size();
+    cameras[camera_idx]->set_aspect(aspect);
     set_camera(cameras[camera_idx]);
 }
