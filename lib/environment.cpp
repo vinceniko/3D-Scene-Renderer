@@ -198,9 +198,3 @@ void Environment::draw_depth_map(ShaderProgramCtx& programs) {
     camera->set_trans(old_trans);
     camera->set_projection_mode(old_projection);
 }
-void Environment::set_debug_depth_map(bool state) {
-    debug_depth_map_ = state;
-}
-bool Environment::get_debug_depth_map() {
-    return debug_depth_map_;
-}

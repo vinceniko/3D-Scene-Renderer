@@ -22,8 +22,6 @@ public:
     GLCamera camera;
     
     GL_Depth_FBO depth_fbo_;
-    bool debug_depth_map_ = false;
-    DebugShadows debug_shadows_;
 
     Environment(std::unique_ptr<Camera> new_cam, int width, int height, PointLights&& point_lights, std::unique_ptr<GL_CubeMapEntity> cube_map) : camera(std::move(new_cam)), point_lights_(std::move(point_lights)), cube_map_(std::move(cube_map)), depth_fbo_(1024, 1024), width_(width), height_(height), cubemap_fbo_(width / 2.f) { set_viewport(width, height); }
     Environment(std::unique_ptr<Camera> new_cam, int width, int height, float fov, PointLights&& point_lights, std::unique_ptr<GL_CubeMapEntity> cube_map) : Environment(std::move(new_cam), width, height, std::move(point_lights), std::move(cube_map)) { 
@@ -53,6 +51,4 @@ public:
     void swap_cube_map(std::unique_ptr<GL_CubeMapEntity>& cube_map);
 
     void draw_depth_map(ShaderProgramCtx& programs);
-    void set_debug_depth_map(bool state);
-    bool get_debug_depth_map();
 };
