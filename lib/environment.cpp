@@ -35,6 +35,7 @@ void Environment::draw_shadows(ShaderProgramCtx& programs, MeshEntityList& mesh_
     programs.bind(ShaderPrograms::SHADOWS);
     depth_fbo_.bind();
     dir_light_.buffer_shadows(programs.get_selected_program());
+    // disable culling to prevent shadow bias issue
     glDisable(GL_CULL_FACE);
     // glCullFace(GL_FRONT);
     for (auto& mesh : mesh_list) {

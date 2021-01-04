@@ -123,8 +123,8 @@ struct PointLight : public Light, public MeshEntity {
     PointLight(glm::vec3 position, LightTraits light_traits) : PointLight(position, light_traits, ATTENUATION_50) {}
     PointLight(glm::vec3 position, LightTraits light_traits, Attenuation attenuation) : PointLight(position, light_traits, ATTENUATION_50, MeshFactory::get().get_mesh_entity(DefMeshList::SPHERE)) {}
     PointLight(glm::vec3 position, LightTraits light_traits, Attenuation attenuation, MeshEntity&& model) : Light("point_light", light_traits), attenuation_(attenuation), MeshEntity(std::move(model)) {
+        scale(glm::mat4{ 1.f }, Spatial::ScaleDir::Out, 0.5);
         translate(glm::mat4{ 1.f }, position);
-        scale(glm::mat4{ 1.f }, Spatial::ScaleDir::Out, 1.5);
         MeshEntity::set_color(glm::vec3{ 1.f });
     }
     void buffer(ShaderProgram& program) {
