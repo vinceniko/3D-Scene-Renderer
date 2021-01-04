@@ -60,6 +60,8 @@ public:
 
     MouseContext mouse_ctx;
 
+    bool draw_grid_ = true;
+
     Context(std::unique_ptr<Environment> env);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
@@ -89,6 +91,7 @@ public:
     // updates and draws the model using the user bound shader program and the selected draw mode
     void draw();
     void draw_selected(MeshEntity& mesh_entity);
+    void draw_grid();
     void draw_static(MeshEntity& mesh_entity);
     // draws a model based on its mode
     void draw_w_mode(MeshEntity& mesh_entity);
