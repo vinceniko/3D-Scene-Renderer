@@ -172,6 +172,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_U:
             ctx->rotate_light = !ctx->rotate_light;
             break;
+        case GLFW_KEY_COMMA:
+            ctx->draw_grid_ = !ctx->draw_grid_;
+            break;
         default:
             // model
             if (selected.has_value()) {

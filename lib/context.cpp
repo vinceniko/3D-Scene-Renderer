@@ -232,10 +232,21 @@ void Context::swap_selected_mesh(const uint32_t idx) {
     }
 }
 
+void Context::draw_grid() {
+    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    quad.rotate(glm::mat4{ 1.f }, -90.f, glm::vec3(1.f, 0.f, 0.f));
+    quad.scale(glm::mat4{ 1.f }, Spatial::ScaleDir::In, 20.f);
+    programs.bind(ShaderPrograms::GRID);
+    env->camera.buffer(programs.get_selected_program());
+    glDisable(GL_CULL_FACE);
+    quad.draw_minimal(programs.get_selected_program());
+    glEnable(GL_CULL_FACE);
+}
+
 void Context::draw() {
     programs.bind(ShaderPrograms::SHADOWS);
     env->draw_shadows(programs, mesh_list);
-
+    
     // swap selected to end of drawing list
     swap_selected_mesh(mesh_list.size() - 1.0);
     for (auto& mesh_entity : mesh_list) {
@@ -243,7 +254,10 @@ void Context::draw() {
     }
     
     env->draw_static_scene(programs);
-    
+    if (draw_grid_) {
+        draw_grid();
+    }
+
     if (env->get_debug_depth_map()) {
         env->draw_depth_map(programs);
     }
