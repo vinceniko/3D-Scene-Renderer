@@ -126,7 +126,6 @@ struct PointLight : public Light, public MeshEntity {
         translate(glm::mat4{ 1.f }, position);
         scale(glm::mat4{ 1.f }, Spatial::ScaleDir::Out, 1.5);
         MeshEntity::set_color(glm::vec3{ 1.f });
-        deletable = false;
     }
     void buffer(ShaderProgram& program) {
         Light::buffer(program);
@@ -145,23 +144,26 @@ struct PointLight : public Light, public MeshEntity {
     }
 };
 
-struct PointLights : public std::vector<PointLight> {
-    using std::vector<PointLight>::vector;
+struct PointLights : public std::vector<std::shared_ptr<PointLight>> {
+    using std::vector<std::shared_ptr<PointLight>>::vector;
 
-    void buffer(ShaderProgram& program) {
+    PointLights(PointLights&& point_lights) : vector(point_lights) {
         uint32_t i = 0;
         for (auto light : *this) {
             std::ostringstream ss;
             ss << "s[" << i << "]";
-            light.uniform_prefix_ += ss.str();
-            light.buffer(program);
-
+            light->uniform_prefix_ += ss.str();
             i++;
+        }
+    }
+    void buffer(ShaderProgram& program) {
+        for (auto& light : *this) {
+            light->buffer(program);
         }
     }
     void draw(ShaderProgram& program) {
         for (auto& light : *this) {
-            light.draw(program);
+            light->draw(program);
         }
     }
 };

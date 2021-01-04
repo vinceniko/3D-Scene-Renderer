@@ -15,13 +15,13 @@ public:
     ShaderPrograms get_shader() {
         return shader_;
     }
-    void set_draw_mode(DrawMode draw_mode) {
+    virtual void set_draw_mode(DrawMode draw_mode) {
         draw_mode_ = draw_mode;
     }
-    void set_shader(ShaderPrograms shader) {
+    virtual void set_shader(ShaderPrograms shader) {
         shader_ = shader;
     }
-    void set_dyn_reflections(bool state) {
+    virtual void set_dyn_reflections(bool state) {
         dynamic_refl_ = state;
     }
     bool get_dyn_reflections() {

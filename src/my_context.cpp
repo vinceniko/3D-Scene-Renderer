@@ -9,7 +9,7 @@ MyContext::MyContext(int width, int height) :
             std::make_unique<TrackballCamera>(static_cast<float>(width) / height),
             width,
             height,
-            PointLights{ PointLight{ glm::vec3(1.5f, 1.f, 0.f)} },
+            PointLights{ std::make_shared<PointLight>(glm::vec3(1.5f, 1.f, 0.f)) },
             std::make_unique<GL_CubeMapEntity>(
                 "../data/night_env/",
                 true

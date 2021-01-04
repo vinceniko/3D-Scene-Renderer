@@ -334,7 +334,7 @@ MeshEntityList MeshFactory::push(ShaderProgram& program, std::vector<Mesh> meshe
         check_gl_error();
 #endif
 
-        out.push_back(std::make_unique<MeshEntity>(get_mesh_entity(meshes_.size() - 1)));
+        out.push_back(std::make_shared<MeshEntity>(get_mesh_entity(meshes_.size() - 1)));
     }
 
     return out;

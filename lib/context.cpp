@@ -57,7 +57,7 @@ double MouseContext::get_scroll() const {
 
 Context::Context(std::unique_ptr<Environment> new_env) : env(std::move(new_env)) {
     for (auto& point_light : env->point_lights_) {
-        mesh_list.push_back(std::unique_ptr<MeshEntity>(&point_light));
+        mesh_list.push_back(point_light);
     }
 }
 
@@ -150,7 +150,7 @@ void Context::init_mesh_prototypes(std::vector<Mesh>&& meshes) {
 }
 void Context::push_mesh_entity(std::vector<int>&& ids) {
     for (const auto& id : ids) {
-        mesh_list.push_back(std::make_unique<MeshEntity>(mesh_factory.get_mesh_entity(id)));
+        mesh_list.push_back(std::make_shared<MeshEntity>(mesh_factory.get_mesh_entity(id)));
     }
 }
 

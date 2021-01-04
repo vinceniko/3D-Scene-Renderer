@@ -178,7 +178,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 switch (key) {
                     // despawn
                 case GLFW_KEY_R:
-                    ctx->mesh_list.erase(ctx->mesh_list.begin() + ctx->mouse_ctx.get_selected());
+                    ctx->mesh_list.erase_owned(ctx->mesh_list.begin() + ctx->mouse_ctx.get_selected());
                     ctx->mouse_ctx.deselect();
                     break;
                     // center to origin

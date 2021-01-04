@@ -149,7 +149,6 @@ class MeshEntity : public Spatial, public ShaderObject {
     MeshEntity(MeshFactory& ctx, size_t id);
 
 public:
-    bool deletable = true;
     friend class MeshFactory;
 
     const size_t get_id() const;
@@ -176,27 +175,19 @@ public:
 };
 
 // a list of MeshEntity, i.e. references to Meshes inside the GLMeshFactory; whats actually drawn
-class MeshEntityList : public std::vector<std::unique_ptr<MeshEntity>> {
+class MeshEntityList : public std::vector<std::shared_ptr<MeshEntity>> {
 public:
-    using std::vector<std::unique_ptr<MeshEntity>>::vector;
+    using std::vector<std::shared_ptr<MeshEntity>>::vector;
 
     MeshEntityList(const MeshEntityList&) = default;
     MeshEntityList(MeshEntityList&&) = default;
-    ~MeshEntityList() {
-        for (auto& mesh_entity : *this) {
-            // used for objects which are managed elsewhere; i.e. PointLights
-            if (!mesh_entity->deletable) {
-                mesh_entity.release();
-            }
-        }
-    }
-    void erase(std::vector<std::unique_ptr<MeshEntity>>::const_iterator it) {
-        if ((*it)->deletable) {
-            std::vector<std::unique_ptr<MeshEntity>>::erase(it);
+    void erase_owned(std::vector<std::shared_ptr<MeshEntity>>::const_iterator it) {
+        if ((*it).use_count() == 1) {
+            std::vector<std::shared_ptr<MeshEntity>>::erase(it);
             return;
         }
 #ifdef DEBUG
-        std::cout << "Attempting to delete undeletable MeshEntity" << std::endl;
+        std::cout << "Attempting to delete unowned MeshEntity" << std::endl;
 #endif
     }
     void draw(ShaderProgram& program);
