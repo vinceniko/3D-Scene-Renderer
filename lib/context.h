@@ -61,6 +61,8 @@ public:
     MouseContext mouse_ctx;
 
     bool draw_grid_ = true;
+    bool debug_depth_map_ = false;
+    DebugShadows debug_shadows_;
 
     Context(std::unique_ptr<Environment> env);
 

@@ -258,7 +258,7 @@ void Context::draw() {
         draw_grid();
     }
 
-    if (env->get_debug_depth_map()) {
+    if (debug_depth_map_) {
         env->draw_depth_map(programs);
     }
 }
@@ -275,7 +275,7 @@ void Context::draw_surfaces(MeshEntity& mesh_entity) {
         }
         env->buffer_lights(programs.get_selected_program());
         env->buffer_shadows(programs.get_selected_program());
-        env->debug_shadows_.buffer(programs.get_selected_program());
+        debug_shadows_.buffer(programs.get_selected_program());
     }
     mesh_entity.draw(programs.get_selected_program());
 }

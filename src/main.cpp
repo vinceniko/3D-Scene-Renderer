@@ -164,10 +164,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             ctx->env->dir_light_.set_trans(ctx->env->camera->get_trans());
             break;
         case GLFW_KEY_B:
-            ctx->env->set_debug_depth_map(!ctx->env->get_debug_depth_map());
+            ctx->debug_depth_map_ = !ctx->debug_depth_map_;
             break;
         case GLFW_KEY_N:
-            ctx->env->debug_shadows_.set_debug(!ctx->env->debug_shadows_.get_debug());
+            ctx->debug_shadows_.debug_ = !ctx->debug_shadows_.debug_;
             break;
         case GLFW_KEY_U:
             ctx->rotate_light = !ctx->rotate_light;
