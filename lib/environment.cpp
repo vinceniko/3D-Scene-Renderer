@@ -188,13 +188,15 @@ void Environment::draw_depth_map(ShaderProgramCtx& programs) {
 
     camera->set_projection_mode(Camera::Projection::Ortho);
     camera->set_view(glm::mat4{ 1.f });
+    // camera->set_aspect(1.f);
 
     camera.buffer(programs.get_selected_program());
     auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
-    quad.translate(glm::mat4{ 1.f }, glm::vec3(-1.0f, 0.5f, -0.01f));
+    quad.translate(camera->get_trans(), glm::vec3(-0.5f, 0.5f, -0.01f));
     // quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 10.f);
     depth_fbo_.get_tex().bind();
     quad.draw_minimal(programs.get_selected_program());
     camera->set_trans(old_trans);
     camera->set_projection_mode(old_projection);
+    // camera->set_aspect(old_aspect);
 }
