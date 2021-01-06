@@ -102,7 +102,7 @@ public:
     // draws the model using the user bound shader program
     void draw_surfaces(MeshEntity& mesh_entity);
     // draws a wireframe above the mesh
-    void draw_wireframes(MeshEntity& mesh_entity);
+    void draw_wireframe(MeshEntity& mesh_entity);
     // draws the mesh normals
     void draw_normals(MeshEntity& mesh_entity);
     // updates and draws the models using the user bound shader program and the selected draw mode

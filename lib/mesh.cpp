@@ -310,6 +310,8 @@ void MeshEntity::draw_wireframe(ShaderProgram& program) {
     // glLineWidth(2.f);
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
+    glEnable(GL_CULL_FACE);
+
 #ifdef DEBUG
     check_gl_error();
 #endif

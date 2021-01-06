@@ -169,8 +169,8 @@ void Context::draw_selected(MeshEntity& mesh_entity) {
     Uniform aspect("u_aspect");
     aspect.buffer(programs.get_selected_program(), env->camera->get_aspect());
     env->camera.buffer(programs.get_selected_program());
-    // glDisable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
+    glDisable(GL_CULL_FACE); // disable to render selected quads better (quads have weird normals)
+    // glCullFace(GL_FRONT); // culling works for selected objects with correct normals
     glDepthFunc(GL_ALWAYS);
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilMask(0x00);
@@ -179,8 +179,8 @@ void Context::draw_selected(MeshEntity& mesh_entity) {
     glDepthFunc(GL_LESS);
     glStencilMask(0xFF);
     glDisable(GL_STENCIL_TEST);
-    glCullFace(GL_BACK);
-    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
     programs.bind(selected);
 }
 
@@ -191,7 +191,7 @@ void Context::draw_w_mode(MeshEntity& mesh_entity) {
         draw_surfaces(mesh_entity);
     }
     if (mesh_entity.get_draw_mode() == DrawMode::WIREFRAME || mesh_entity.get_draw_mode() == DrawMode::WIREFRAME_ONLY) {
-        draw_wireframes(mesh_entity);
+        draw_wireframe(mesh_entity);
     }
     else if (mesh_entity.get_draw_mode() == DrawMode::DRAW_NORMALS) {
         draw_normals(mesh_entity);
@@ -284,7 +284,7 @@ void Context::draw_surfaces() {
         draw_surfaces(*mesh);
     }
 }
-void Context::draw_wireframes(MeshEntity& mesh_entity) {
+void Context::draw_wireframe(MeshEntity& mesh_entity) {
     ShaderPrograms selected = mesh_entity.get_shader();
 
     programs.bind(ShaderPrograms::DEF_SHADER);
@@ -310,7 +310,7 @@ void Context::draw_wireframes(MeshEntity& mesh_entity) {
 }
 void Context::draw_wireframes() {
     for (auto& mesh : mesh_list) {
-        draw_wireframes(*mesh);
+        draw_wireframe(*mesh);
     }
 }
 void Context::draw_normals(MeshEntity& mesh_entity) {
@@ -326,7 +326,7 @@ void Context::draw_normals(MeshEntity& mesh_entity) {
 
     programs.bind(selected);
 
-    draw_wireframes(mesh_entity);
+    draw_wireframe(mesh_entity);
 }
 void Context::draw_normals() {
     for (auto& mesh : mesh_list) {
