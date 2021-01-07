@@ -5,11 +5,12 @@
 MyContext::MyContext(int width, int height) :
     // the issue with creating the env->camera first is, due to inheritance, Context is initialized firstpo
     Context{
+        width,
+        height,
         std::make_unique<Environment>(
             std::make_unique<TrackballCamera>(static_cast<float>(width) / height),
             width,
-            height,
-            PointLights{ std::make_shared<PointLight>(glm::vec3(1.5f, 1.f, 0.f)) },
+            PointLights{ std::make_shared<PointLight>(glm::vec3(1.5f, 1.f, 0.f)), std::make_shared<PointLight>(glm::vec3(-1.5f, 1.f, 0.f)) },
             std::make_unique<GL_CubeMapEntity>(
                 "../data/night_env/",
                 true

@@ -68,7 +68,7 @@ glm::vec2 get_cursor_pos(GLFWwindow* window) {
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // take into account aspect ratio
-    ctx->env->set_viewport(width, height);
+    ctx->set_viewport(width, height);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -325,11 +325,6 @@ int main(void)
     std::cout << "DEBUG ENABLED" << std::endl;
 #endif
 
-    ctx = std::make_unique<MyContext>(
-        WIDTH,
-        HEIGHT
-    );
-
     // callbacks
     glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -339,7 +334,12 @@ int main(void)
     glfwShowWindow(window);
     int pixWidth, pixHeight;
     glfwGetFramebufferSize(window, &pixWidth, &pixHeight);
-    framebuffer_size_callback(window, pixWidth, pixHeight);
+    // framebuffer_size_callback(window, pixWidth, pixHeight);
+
+    ctx = std::make_unique<MyContext>(
+        pixWidth,
+        pixHeight
+    );
 
 #ifdef TIMER
     FrameTimer<std::chrono::seconds> frame_timer(std::chrono::seconds(1));
@@ -351,14 +351,6 @@ int main(void)
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
-        // Clear the framebuffer
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-#ifdef DEBUG
-        check_gl_error();
-#endif
-
         // // swivel animation
         // auto camera = dynamic_cast<TrackballCamera*>(&ctx->env->camera.get_camera());
         // if (camera != nullptr) {

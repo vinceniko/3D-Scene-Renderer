@@ -55,10 +55,27 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(std::unique_ptr<Environment> new_env) : env(std::move(new_env)) {
+Context::Context(int width, int height, std::unique_ptr<Environment> new_env) : env(std::move(new_env)), width_(width), height_(height), main_fbo_(0, 0), offscreen_fbo_(width_, height_), depth_fbo_(1024, 1024) {
+    // set_viewport(width_, height_);
     for (auto& point_light : env->point_lights_) {
         mesh_list.push_back(point_light);
     }
+}
+
+void Context::set_width(int width) {
+    width_ = width;
+}
+void Context::set_height(int height) {
+    height_ = height;
+}
+void Context::set_viewport(int width, int height) {
+    width_ = width;
+    height_ = height;
+    env->camera->set_aspect(width, height);
+    glViewport(0, 0, width, height);
+}
+void Context::reset_viewport() {
+    glViewport(0, 0, width_, height_);
 }
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
@@ -197,9 +214,9 @@ void Context::draw_w_mode(MeshEntity& mesh_entity) {
         draw_normals(mesh_entity);
     }
 }
-void Context::draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
+void Context::draw(GL_FBO_RBO_Interface& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
     if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
-        env->draw_dynamic_cubemap(programs, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) {
+        env->draw_dynamic_cubemap(programs, main_fbo, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) {
             draw_w_mode(sec_mesh);
         });
     }
@@ -244,13 +261,21 @@ void Context::draw_grid() {
 }
 
 void Context::draw() {
-    programs.bind(ShaderPrograms::SHADOWS);
-    env->draw_shadows(programs, mesh_list);
+    offscreen_fbo_.bind();
+    // main_fbo_.bind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    depth_fbo_.bind();
+    // env->draw_shadows(programs, main_fbo_, mesh_list);
+    env->draw_shadows(programs, offscreen_fbo_, mesh_list);
+    // depth_fbo_.unbind(main_fbo_);
+    depth_fbo_.unbind(offscreen_fbo_);
     
     // swap selected to end of drawing list
     swap_selected_mesh(mesh_list.size() - 1.0);
     for (auto& mesh_entity : mesh_list) {
-        draw(*mesh_entity, mesh_list);
+        draw(offscreen_fbo_, *mesh_entity, mesh_list);
+        // draw(main_fbo_, *mesh_entity, mesh_list);
     }
     
     env->draw_static_scene(programs);
@@ -258,10 +283,28 @@ void Context::draw() {
         draw_grid();
     }
 
+    draw_offscreen();
+
     if (debug_depth_map_) {
-        env->draw_depth_map(programs);
+        draw_depth_map();
     }
 }
+
+void Context::draw_offscreen() {
+    offscreen_fbo_.unbind(main_fbo_);
+    reset_viewport();
+    // Clear the framebuffer
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    programs.bind(ShaderPrograms::OFFSCREEN);
+    // Uniform("u_aspect").buffer(programs.get_selected_program(), env->camera->get_aspect());
+    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    offscreen_fbo_.get_tex().bind();
+    quad.draw_none(programs.get_selected_program());
+    glEnable(GL_DEPTH_TEST);
+}
+
 void Context::draw_surfaces(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());
     // TODO: check if shader has attached uniform at compile time elsewhere
@@ -269,7 +312,7 @@ void Context::draw_surfaces(MeshEntity& mesh_entity) {
         // bind the depth map as well for env mapped objs
         if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
             // * don't need to bind the cubemap texture here because it is already bound after rendering to it
-            env->depth_fbo_.get_tex().bind(GL_TEXTURE1); // bind the depthmap to the second texture slot
+            depth_fbo_.get_tex().bind(GL_TEXTURE1); // bind the depthmap to the second texture slot
             Uniform("u_skybox").buffer(programs.get_selected_program(), 0);
             Uniform("u_shadow_map").buffer(programs.get_selected_program(), 1);
         }
@@ -278,6 +321,7 @@ void Context::draw_surfaces(MeshEntity& mesh_entity) {
         debug_shadows_.buffer(programs.get_selected_program());
     }
     mesh_entity.draw(programs.get_selected_program());
+    depth_fbo_.get_tex().bind(); // bind back to first texture slot
 }
 void Context::draw_surfaces() {
     for (auto& mesh : mesh_list) {
@@ -332,4 +376,29 @@ void Context::draw_normals() {
     for (auto& mesh : mesh_list) {
         draw_normals(*mesh);
     }
+}
+
+void Context::draw_depth_map() {
+    // debug quad
+    glDisable(GL_DEPTH_TEST);
+    programs.bind(ShaderPrograms::SHADOW_MAP);
+
+    auto old_trans = env->camera->get_trans();
+    auto old_projection = env->camera->get_projection_mode();
+    auto old_aspect = env->camera->get_aspect();
+
+    env->camera->set_projection_mode(Camera::Projection::Ortho);
+    env->camera->set_view(glm::mat4{ 1.f });
+    // camera->set_aspect(1.f);
+
+    env->camera.buffer(programs.get_selected_program());
+    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    quad.translate(env->camera->get_trans(), glm::vec3(-0.5f, 0.5f, -0.01f));
+    // quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 10.f);
+    depth_fbo_.get_tex().bind();
+    quad.draw_minimal(programs.get_selected_program());
+    env->camera->set_trans(old_trans);
+    env->camera->set_projection_mode(old_projection);
+    // camera->set_aspect(old_aspect);
+    glEnable(GL_DEPTH_TEST);
 }
