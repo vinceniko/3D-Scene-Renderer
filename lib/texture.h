@@ -51,6 +51,12 @@ public:
     int get_height() const {
         return height_;
     }
+    void set_width(int width) {
+        width_ = width;
+    }
+    void set_height(int height) {
+        height_ = height;
+    }
 
     void reset_viewport() {
         glViewport(0, 0, width_, height_);

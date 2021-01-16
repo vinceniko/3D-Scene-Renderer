@@ -27,7 +27,7 @@ cameras{
     auto& inserted_quad = *(mesh_list.end()-1);
     inserted_quad->translate(glm::mat4{ 1.f }, glm::vec3(0.f, -1.f, 0.f));
     inserted_quad->rotate(glm::mat4{ 1.f }, -90.f, glm::vec3(1.f, 0.f, 0.f));
-    inserted_quad->scale(glm::mat4{ 1.f }, Spatial::ScaleDir::In, 10.f);
+    inserted_quad->scale(glm::mat4{ 1.f }, Spatial::ScaleDir::In, 40.f);
     inserted_quad->set_color(glm::vec3(252, 137, 42) / 256.f);
 }
 

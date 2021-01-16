@@ -72,6 +72,7 @@ void Context::set_viewport(int width, int height) {
     width_ = width;
     height_ = height;
     env->camera->set_aspect(width, height);
+    offscreen_fbo_.resize(width, height);
     glViewport(0, 0, width, height);
 }
 void Context::reset_viewport() {
@@ -214,7 +215,7 @@ void Context::draw_w_mode(MeshEntity& mesh_entity) {
         draw_normals(mesh_entity);
     }
 }
-void Context::draw(GL_FBO_RBO_Interface& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
+void Context::draw(GL_FBO_Interface& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
     if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
         env->draw_dynamic_cubemap(programs, main_fbo, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) {
             draw_w_mode(sec_mesh);
@@ -279,11 +280,12 @@ void Context::draw() {
     }
     
     env->draw_static_scene(programs);
+    
+    draw_offscreen();
+
     if (draw_grid_) {
         draw_grid();
     }
-
-    draw_offscreen();
 
     if (debug_depth_map_) {
         draw_depth_map();
@@ -296,13 +298,12 @@ void Context::draw_offscreen() {
     // Clear the framebuffer
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_DEPTH_TEST);
-    programs.bind(ShaderPrograms::OFFSCREEN);
     // Uniform("u_aspect").buffer(programs.get_selected_program(), env->camera->get_aspect());
+    offscreen_fbo_.bind(programs);
+    glDepthFunc(GL_ALWAYS);
     auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
-    offscreen_fbo_.get_tex().bind();
     quad.draw_none(programs.get_selected_program());
-    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 }
 
 void Context::draw_surfaces(MeshEntity& mesh_entity) {

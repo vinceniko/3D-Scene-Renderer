@@ -185,42 +185,6 @@ public:
     }
 };
 
-class GL_Offscreen_FBO : public GL_FBO_RBO_Tex_Interface<GL_Texture> {
-    void init() override {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_.get_width(), tex_.get_height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, tex_.get_width(), tex_.get_height());
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo_);
-
-        // attach it to currently bound framebuffer object
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_.get_id(), 0);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            throw std::runtime_error("framebuffer incomplete");
-        }
-
-#ifdef DEBUG
-        check_gl_error();
-#endif
-    }
-
-public:
-    GL_Offscreen_FBO(int width) : GL_FBO_RBO_Tex_Interface(width) { init(); }
-    GL_Offscreen_FBO(int width, int height) : GL_FBO_RBO_Tex_Interface(width, height) { init(); }
-    void bind() override {
-        GL_FBO_RBO_Tex_Interface::bind();
-
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
-
-#ifdef DEBUG
-        check_gl_error();
-#endif
-    }
-};
-
 class GL_Depth_FBO : public GL_FBO_Tex_Interface<GL_Texture> {
     void init() override {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, tex_.get_width(), tex_.get_height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -246,6 +210,7 @@ class GL_Depth_FBO : public GL_FBO_Tex_Interface<GL_Texture> {
 
 public:
     GL_Depth_FBO(int width, int height) : GL_FBO_Tex_Interface(width, height) { init(); }
+    GL_Depth_FBO(int width, int height, bool) : GL_FBO_Tex_Interface(width, height) { init(); }
 
     void bind() override {
         GL_FBO_Tex_Interface::bind();
@@ -257,5 +222,77 @@ public:
 #ifdef DEBUG
         check_gl_error();
 #endif
+    }
+};
+
+class GL_Offscreen_FBO : public GL_FBO_RBO_Tex_Interface<GL_Texture> {
+    GL_Texture depth_tex_;
+
+    void init() override {
+        tex_.bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_.get_width(), tex_.get_height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        // attach it to currently bound framebuffer object
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_.get_id(), 0);
+
+        depth_tex_.bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, depth_tex_.get_width(), depth_tex_.get_height(), 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor); 
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth_tex_.get_id(), 0);
+
+        // GL_FBO_RBO_Interface::bind();
+        // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, tex_.get_width(), tex_.get_height());
+        // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo_);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            throw std::runtime_error("framebuffer incomplete");
+        }
+
+#ifdef DEBUG
+        check_gl_error();
+#endif
+    }
+
+public:
+    GL_Offscreen_FBO(int width, int height) : GL_FBO_RBO_Tex_Interface(width, height), depth_tex_(width, height) { init(); }
+    void bind() override {
+        GL_FBO_RBO_Tex_Interface::bind();
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+
+#ifdef DEBUG
+        check_gl_error();
+#endif
+    }
+    void bind(ShaderProgramCtx& programs) {
+        programs.bind(ShaderPrograms::OFFSCREEN);
+        Uniform("u_offscreen_tex").buffer(programs.get_selected_program(), 0);
+        Uniform("u_depth_map").buffer(programs.get_selected_program(), 1);
+
+        get_tex().bind(GL_TEXTURE0);
+        depth_tex_.bind(GL_TEXTURE1);
+
+#ifdef DEBUG
+        check_gl_error();
+#endif
+    }
+
+    void resize(int width, int height) {
+        tex_.set_width(width);
+        tex_.set_height(height);
+        depth_tex_.set_width(width);
+        depth_tex_.set_height(height);
+        
+        tex_.bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_.get_width(), tex_.get_height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        depth_tex_.bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, depth_tex_.get_width(), depth_tex_.get_height(), 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
     }
 };

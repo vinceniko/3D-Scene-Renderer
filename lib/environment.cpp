@@ -31,7 +31,7 @@ void Environment::draw_lights(ShaderProgram& program) {
     buffer(program);
     point_lights_.draw(program);
 }
-void Environment::draw_shadows(ShaderProgramCtx& programs, GL_FBO_RBO_Interface& main_fbo, MeshEntityList& mesh_list) {
+void Environment::draw_shadows(ShaderProgramCtx& programs, GL_FBO_Interface& main_fbo, MeshEntityList& mesh_list) {
     programs.bind(ShaderPrograms::SHADOWS);
     dir_light_.buffer_shadows(programs.get_selected_program());
     // disable culling to prevent shadow bias issue
@@ -81,7 +81,7 @@ void Environment::draw_static_cubemap(ShaderProgramCtx& programs) {
     cube_map_->unbind();
 }
 
-void Environment::draw_dynamic_cubemap(ShaderProgramCtx& programs, GL_FBO_RBO_Interface& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f) {
+void Environment::draw_dynamic_cubemap(ShaderProgramCtx& programs, GL_FBO_Interface& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f) {
     bind_dynamic();
 
     ShaderPrograms selected = programs.get_selected();
