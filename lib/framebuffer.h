@@ -86,6 +86,11 @@ public:
     }
 };
 
+class GL_FBO_RBO : public GL_FBO_RBO_Interface, public Canvas {
+public:
+    GL_FBO_RBO(int fbo, int rbo, int width, int height) : GL_FBO_RBO_Interface(fbo, rbo), Canvas(width, height) {}
+};
+
 template <typename Tex>
 class GL_FBO_Tex_Interface : public GL_FBO_Interface {
 protected:
@@ -111,6 +116,10 @@ public:
 
     Tex& get_tex() {
         return tex_;
+    }
+
+    void reset_viewport() {
+        tex_.reset_viewport();
     }
 };
 
@@ -138,6 +147,10 @@ public:
     
     Tex& get_tex() {
         return tex_;
+    }
+    
+    void reset_viewport() {
+        tex_.reset_viewport();
     }
 };
 

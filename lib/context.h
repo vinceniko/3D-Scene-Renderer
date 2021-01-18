@@ -50,10 +50,8 @@ public:
 
 // general context, holds all other state
 class Context {
+    int base_width_;
 public:
-    int width_;
-    int height_;
-
     ShaderProgramCtx& programs = ShaderProgramCtx::get();
 
     MeshFactory& mesh_factory = MeshFactory::get();
@@ -64,7 +62,7 @@ public:
     MouseContext mouse_ctx;
 
     GL_Offscreen_FBO offscreen_fbo_;
-    GL_FBO_RBO_Interface main_fbo_;
+    GL_FBO_RBO main_fbo_;
     
     GL_Depth_FBO depth_fbo_;
 
@@ -72,7 +70,7 @@ public:
     bool debug_depth_map_ = false;
     DebugShadows debug_shadows_;
 
-    Context(int width, int height, std::unique_ptr<Environment> env);
+    Context(int width, int height, int base_width, std::unique_ptr<Environment> env);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
     int intersected_mesh_perspective(glm::vec3 world_ray) const;
@@ -122,10 +120,5 @@ public:
     void draw_depth_map();
     void draw_offscreen();
 
-    void set_width(int width);
-    void set_height(int height);
-    int get_width() { return width_; }
-    int get_height() { return height_; }
     void set_viewport(int width, int height);
-    void reset_viewport();
 };

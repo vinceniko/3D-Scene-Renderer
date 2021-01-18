@@ -55,28 +55,22 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(int width, int height, std::unique_ptr<Environment> new_env) : env(std::move(new_env)), width_(width), height_(height), main_fbo_(0, 0), offscreen_fbo_(width_, height_), depth_fbo_(1024, 1024) {
+Context::Context(int width, int height, int base_width, std::unique_ptr<Environment> new_env) : base_width_(base_width), env(std::move(new_env)), main_fbo_(0, 0, width, height), offscreen_fbo_(base_width, height / (static_cast<float>(width) / height)), depth_fbo_(1024, 1024) {
     // set_viewport(width_, height_);
     for (auto& point_light : env->point_lights_) {
         mesh_list.push_back(point_light);
     }
 }
 
-void Context::set_width(int width) {
-    width_ = width;
-}
-void Context::set_height(int height) {
-    height_ = height;
-}
 void Context::set_viewport(int width, int height) {
-    width_ = width;
-    height_ = height;
-    env->camera->set_aspect(width, height);
-    offscreen_fbo_.resize(width, height);
-    glViewport(0, 0, width, height);
-}
-void Context::reset_viewport() {
-    glViewport(0, 0, width_, height_);
+    float aspect =  static_cast<float>(width) / height;
+    env->camera->set_aspect(aspect);
+    
+    int height_ = base_width_ / aspect;
+    offscreen_fbo_.resize(base_width_, height_);
+    
+    main_fbo_.resize(width, height);
+    main_fbo_.reset_viewport();
 }
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
@@ -294,7 +288,7 @@ void Context::draw() {
 
 void Context::draw_offscreen() {
     offscreen_fbo_.unbind(main_fbo_);
-    reset_viewport();
+    main_fbo_.reset_viewport();
     // Clear the framebuffer
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

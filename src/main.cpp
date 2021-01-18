@@ -282,11 +282,8 @@ int main(void)
 #endif
 
     GLFWmonitor* primary = glfwGetPrimaryMonitor();
-    int xpos, ypos, width, height;
-    glfwGetMonitorWorkarea(primary, &xpos, &ypos, &width, &height);
-
-    WIDTH = width;
-    HEIGHT = height;
+    int xpos, ypos;
+    glfwGetMonitorWorkarea(primary, &xpos, &ypos, &WIDTH, &HEIGHT);
 
     // Create a windowed mode window and its OpenGL context
     window = glfwCreateWindow(WIDTH, HEIGHT, "3D Scene Editor", NULL, NULL);
