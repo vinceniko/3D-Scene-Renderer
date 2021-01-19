@@ -238,7 +238,7 @@ public:
     }
 };
 
-class GL_Offscreen_FBO : public GL_FBO_RBO_Tex_Interface<GL_Texture> {
+class GL_Offscreen_FBO : public GL_FBO_Tex_Interface<GL_Texture> {
     GL_Texture depth_tex_;
 
     void init() override {
@@ -273,9 +273,9 @@ class GL_Offscreen_FBO : public GL_FBO_RBO_Tex_Interface<GL_Texture> {
     }
 
 public:
-    GL_Offscreen_FBO(int width, int height) : GL_FBO_RBO_Tex_Interface(width, height), depth_tex_(width, height) { init(); }
+    GL_Offscreen_FBO(int width, int height) : GL_FBO_Tex_Interface(width, height), depth_tex_(width, height) { init(); }
     void bind() override {
-        GL_FBO_RBO_Tex_Interface::bind();
+        GL_FBO_Tex_Interface::bind();
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
