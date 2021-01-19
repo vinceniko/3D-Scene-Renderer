@@ -50,6 +50,11 @@ public:
     }
 };
 
+class GL_FBO : public GL_FBO_Interface, public Canvas {
+public:
+    GL_FBO(int fbo, int rbo, int width, int height) : GL_FBO_Interface(fbo), Canvas(width, height) {}
+};
+
 class GL_FBO_RBO_Interface : public GL_FBO_Interface {
 protected:
     uint32_t rbo_ = 0;
@@ -295,6 +300,15 @@ public:
 #ifdef DEBUG
         check_gl_error();
 #endif
+    }
+
+    void blit(GL_FBO main_fbo) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, get_fbo());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, main_fbo.get_fbo());
+        glBlitFramebuffer(0, 0, get_tex().get_width(), get_tex().get_height(), 0, 0, main_fbo.get_width(), main_fbo.get_height(), GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+    #ifdef DEBUG
+            check_gl_error();
+    #endif
     }
 
     void resize(int width, int height) {

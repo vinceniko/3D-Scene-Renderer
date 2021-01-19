@@ -268,8 +268,8 @@ int main(void)
     if (!glfwInit())
         return -1;
 
-    // Activate supersampling
-    glfwWindowHint(GLFW_SAMPLES, 8);
+    // Activate supersampling; caused issues with blitting and was wasting resources when offscreen buffer was introduced since it wasn't being rendered to directly
+    // glfwWindowHint(GLFW_SAMPLES, 8);
 
     // Ensure that we get at least a 3.2 context
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

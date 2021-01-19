@@ -62,7 +62,7 @@ public:
     MouseContext mouse_ctx;
 
     GL_Offscreen_FBO offscreen_fbo_;
-    GL_FBO_RBO main_fbo_;
+    GL_FBO main_fbo_;
     
     GL_Depth_FBO depth_fbo_;
 
@@ -98,6 +98,7 @@ public:
     void update(std::chrono::duration<float> delta);
     // updates and draws the model using the user bound shader program and the selected draw mode
     void draw();
+    void draw_selected_to_stencil(MeshEntity& mesh_entity);
     void draw_selected(MeshEntity& mesh_entity);
     void draw_grid();
     void draw_static(MeshEntity& mesh_entity);

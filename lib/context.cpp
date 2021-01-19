@@ -166,7 +166,7 @@ void Context::push_mesh_entity(std::vector<int>&& ids) {
     }
 }
 
-void Context::draw_selected(MeshEntity& mesh_entity) {
+void Context::draw_selected_to_stencil(MeshEntity& mesh_entity) {
     glEnable(GL_STENCIL_TEST);
     glClear(GL_STENCIL_BUFFER_BIT);
 
@@ -176,6 +176,11 @@ void Context::draw_selected(MeshEntity& mesh_entity) {
     glStencilMask(0xFF);
     draw_w_mode(mesh_entity);
 
+    glDisable(GL_STENCIL_TEST);
+}
+
+void Context::draw_selected(MeshEntity& mesh_entity) {
+    glEnable(GL_STENCIL_TEST);
     ShaderPrograms selected = mesh_entity.get_shader();
     programs.bind(ShaderPrograms::OUTLINE);
     Uniform aspect("u_aspect");
@@ -226,7 +231,7 @@ void Context::draw(GL_FBO_Interface& main_fbo, MeshEntity& mesh_entity, MeshEnti
 
 void Context::draw_static(MeshEntity& mesh_entity) {
     if (get_selected().has_value() && &mesh_entity == &get_selected().value().get()) {
-        draw_selected(mesh_entity);
+        draw_selected_to_stencil(mesh_entity);
     }
     else {
         draw_w_mode(mesh_entity);
@@ -267,18 +272,23 @@ void Context::draw() {
     depth_fbo_.unbind(offscreen_fbo_);
     
     // swap selected to end of drawing list
-    swap_selected_mesh(mesh_list.size() - 1.0);
+    uint32_t selected_idx = mesh_list.size() - 1.0;
+    swap_selected_mesh(selected_idx);
     for (auto& mesh_entity : mesh_list) {
         draw(offscreen_fbo_, *mesh_entity, mesh_list);
         // draw(main_fbo_, *mesh_entity, mesh_list);
     }
     
     env->draw_static_scene(programs);
-    
+
     draw_offscreen();
 
     if (draw_grid_) {
         draw_grid();
+    }
+    if (get_selected().has_value()) {
+        auto& mesh_entity = *mesh_list[selected_idx];
+        draw_selected(mesh_entity);
     }
 
     if (debug_depth_map_) {
@@ -289,15 +299,17 @@ void Context::draw() {
 void Context::draw_offscreen() {
     offscreen_fbo_.unbind(main_fbo_);
     main_fbo_.reset_viewport();
-    // Clear the framebuffer
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    offscreen_fbo_.blit(main_fbo_);
+    main_fbo_.bind();
     // Uniform("u_aspect").buffer(programs.get_selected_program(), env->camera->get_aspect());
     offscreen_fbo_.bind(programs);
-    glDepthFunc(GL_ALWAYS);
+    // glDepthFunc(GL_ALWAYS);
+    glDisable(GL_DEPTH_TEST); // not writing to depth in shader
     auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
     quad.draw_none(programs.get_selected_program());
-    glDepthFunc(GL_LEQUAL);
+    // glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void Context::draw_surfaces(MeshEntity& mesh_entity) {

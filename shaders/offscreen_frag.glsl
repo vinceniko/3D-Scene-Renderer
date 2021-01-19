@@ -53,5 +53,6 @@ void main()
     // out_color.rgb = mix(out_color.rgb, out_color.rgb * vignette, vignette_intensity);
 
     // write to depth from tex
-    gl_FragDepth = depth;
+    // ! not necessary due to blitting
+    //gl_FragDepth = depth;
 }
