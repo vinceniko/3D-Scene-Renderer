@@ -108,6 +108,7 @@ protected:
 public:
     GL_FBO_Tex_Interface(int width) : tex_(width) {}
     GL_FBO_Tex_Interface(int width, int height) : tex_(width, height) {}
+    GL_FBO_Tex_Interface(GLenum target, int width, int height) : tex_(target, width, height) {}
     
     virtual void bind() override {
         GL_FBO_Interface::bind();
@@ -126,6 +127,13 @@ public:
     void reset_viewport() {
         tex_.reset_viewport();
     }
+
+    int get_width() {
+        return get_tex().get_width();
+    }
+    int get_height() {
+        return get_tex().get_height();
+    }
 };
 
 template <typename Tex>
@@ -139,6 +147,7 @@ protected:
 public:
     GL_FBO_RBO_Tex_Interface(int width) : tex_(width) {}
     GL_FBO_RBO_Tex_Interface(int width, int height) : tex_(width, height) {}
+    GL_FBO_RBO_Tex_Interface(GLenum target, int width, int height) : tex_(target, width, height) {}
 
     virtual void bind() override {
         GL_FBO_RBO_Interface::bind();
@@ -156,6 +165,13 @@ public:
     
     void reset_viewport() {
         tex_.reset_viewport();
+    }
+
+    int get_width() {
+        return get_tex().get_width();
+    }
+    int get_height() {
+        return get_tex().get_height();
     }
 };
 
@@ -302,7 +318,8 @@ public:
 #endif
     }
 
-    void blit(GL_FBO main_fbo) {
+    template <typename FBO>
+    void blit(FBO& main_fbo) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, get_fbo());
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, main_fbo.get_fbo());
         glBlitFramebuffer(0, 0, get_tex().get_width(), get_tex().get_height(), 0, 0, main_fbo.get_width(), main_fbo.get_height(), GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
@@ -321,5 +338,80 @@ public:
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_.get_width(), tex_.get_height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
         depth_tex_.bind();
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, depth_tex_.get_width(), depth_tex_.get_height(), 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+    }
+};
+
+class GL_Offscreen_FBO_Multisample : public GL_FBO_RBO_Tex_Interface<GL_Texture> {
+    void init() override {
+        tex_.bind();
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, tex_.get_width(), tex_.get_height(), GL_TRUE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#ifdef DEBUG
+        check_gl_error();
+#endif
+        // attach it to currently bound framebuffer object
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, tex_.get_id(), 0);
+#ifdef DEBUG
+        check_gl_error();
+#endif
+
+        GL_FBO_RBO_Interface::bind();
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, tex_.get_width(), tex_.get_height());
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo_);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            throw std::runtime_error("framebuffer incomplete");
+        }
+
+#ifdef DEBUG
+        check_gl_error();
+#endif
+    }
+
+public:
+    GL_Offscreen_FBO_Multisample(int width, int height) : GL_FBO_RBO_Tex_Interface(GL_TEXTURE_2D_MULTISAMPLE, width, height) { init(); }
+
+    void bind() override {
+        GL_FBO_RBO_Tex_Interface::bind();
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+
+#ifdef DEBUG
+        check_gl_error();
+#endif
+    }
+    void bind(ShaderProgramCtx& programs) {
+        programs.bind(ShaderPrograms::OFFSCREEN);
+        Uniform("u_offscreen_tex").buffer(programs.get_selected_program(), 0);
+        Uniform("u_depth_map").buffer(programs.get_selected_program(), 1);
+
+        get_tex().bind(GL_TEXTURE0);
+
+#ifdef DEBUG
+        check_gl_error();
+#endif
+    }
+
+    template <typename FBO>
+    void blit(FBO& main_fbo) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, get_fbo());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, main_fbo.get_fbo());
+        glBlitFramebuffer(0, 0, get_tex().get_width(), get_tex().get_height(), 0, 0, main_fbo.get_width(), main_fbo.get_height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+    #ifdef DEBUG
+            check_gl_error();
+    #endif
+    }
+
+    void resize(int width, int height) {
+        tex_.set_width(width);
+        tex_.set_height(height);
+        
+        tex_.bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_.get_width(), tex_.get_height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        
+        GL_FBO_RBO_Tex_Interface::bind();
+        GL_FBO_RBO_Tex_Interface::reset_viewport();
     }
 };
