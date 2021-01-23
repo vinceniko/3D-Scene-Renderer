@@ -105,7 +105,7 @@ public:
     // draws a model based on its mode
     void draw_w_mode(MeshEntity& mesh_entity);
     // draws a model when other model's state's are also necessary; such as dynamic reflections
-    void draw(GL_FBO_Interface& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entity_list);
+    void draw(GL_FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entity_list);
     // draws the model using the user bound shader program
     void draw_surfaces(MeshEntity& mesh_entity);
     // draws a wireframe above the mesh

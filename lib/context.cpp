@@ -55,7 +55,7 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(int width, int height, int base_width, std::unique_ptr<Environment> new_env) : base_width_(base_width), env(std::move(new_env)), main_fbo_(0, 0, width, height), offscreen_fbo_(base_width, base_width / (static_cast<float>(width) / height)), depth_fbo_(1024, 1024) {
+Context::Context(int width, int height, int base_width, std::unique_ptr<Environment> new_env) : base_width_(base_width), env(std::move(new_env)), main_fbo_(0, width, height), offscreen_fbo_(base_width, base_width / (static_cast<float>(width) / height)), depth_fbo_(1024, 1024) {
     // set_viewport(width_, height_);
     for (auto& point_light : env->point_lights_) {
         mesh_list.push_back(point_light);
@@ -214,7 +214,7 @@ void Context::draw_w_mode(MeshEntity& mesh_entity) {
         draw_normals(mesh_entity);
     }
 }
-void Context::draw(GL_FBO_Interface& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
+void Context::draw(GL_FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
     if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
         env->draw_dynamic_cubemap(programs, main_fbo, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) {
             draw_w_mode(sec_mesh);

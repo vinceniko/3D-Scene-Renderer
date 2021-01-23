@@ -219,24 +219,24 @@ protected:
 public:
     Canvas() = default;
     Canvas(int width, int height) : width_(width), height_(height) {}
-    int get_width() const {
+    virtual int get_width() {
         return width_;
     }
-    int get_height() const {
+    virtual int get_height() {
         return height_;
     }
-    void set_width(int width) {
+    virtual void set_width(int width) {
         width_ = width;
     }
-    void set_height(int height) {
+    virtual void set_height(int height) {
         height_ = height;
     }
-    void resize(int width, int height) {
+    virtual void resize(int width, int height) {
         set_width(width);
         set_height(height);
     }
 
-    void reset_viewport() {
+    virtual void reset_viewport() {
         glViewport(0, 0, width_, height_);
     }
 };

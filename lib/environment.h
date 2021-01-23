@@ -28,11 +28,11 @@ public:
     void buffer_lights(ShaderProgram& program);
     void buffer_shadows(ShaderProgram& program);
     void draw_lights(ShaderProgram& program);
-    void draw_shadows(ShaderProgramCtx& programs, GL_FBO_Interface& main, MeshEntityList& mesh_list);
+    void draw_shadows(ShaderProgramCtx& programs, GL_FBO& main, MeshEntityList& mesh_list);
 
     void draw_static_scene(ShaderProgramCtx& programs);
     void draw_static_cubemap(ShaderProgramCtx& programs);
-    void draw_dynamic_cubemap(ShaderProgramCtx& programs, GL_FBO_Interface& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f);
+    void draw_dynamic_cubemap(ShaderProgramCtx& programs, GL_FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f);
 
     void set_cube_map(std::unique_ptr<GL_CubeMapEntity> cube_map);
     void swap_cube_map(std::unique_ptr<GL_CubeMapEntity>& cube_map);
