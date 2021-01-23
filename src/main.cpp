@@ -67,7 +67,8 @@ glm::vec2 get_cursor_pos(GLFWwindow* window) {
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // take into account aspect ratio
+    // ctx->base_width_ = width;
+    // std::cout << width << std::endl;
     ctx->set_viewport(width, height);
 }
 

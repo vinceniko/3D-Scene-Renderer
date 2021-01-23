@@ -50,8 +50,8 @@ public:
 
 // general context, holds all other state
 class Context {
-    int base_width_;
 public:
+    int base_width_;
     ShaderProgramCtx& programs = ShaderProgramCtx::get();
 
     MeshFactory& mesh_factory = MeshFactory::get();
@@ -120,6 +120,7 @@ public:
     void draw_normals();
     void draw_depth_map();
     void draw_offscreen();
+    void draw_fxaa();
 
     void set_viewport(int width, int height);
 };

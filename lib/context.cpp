@@ -55,7 +55,7 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(int width, int height, int base_width, std::unique_ptr<Environment> new_env) : base_width_(base_width), env(std::move(new_env)), main_fbo_(0, 0, width, height), offscreen_fbo_(base_width, height / (static_cast<float>(width) / height)), depth_fbo_(1024, 1024) {
+Context::Context(int width, int height, int base_width, std::unique_ptr<Environment> new_env) : base_width_(base_width), env(std::move(new_env)), main_fbo_(0, 0, width, height), offscreen_fbo_(base_width, base_width / (static_cast<float>(width) / height)), depth_fbo_(1024, 1024) {
     // set_viewport(width_, height_);
     for (auto& point_light : env->point_lights_) {
         mesh_list.push_back(point_light);
@@ -282,13 +282,16 @@ void Context::draw() {
     env->draw_static_scene(programs);
 
     draw_offscreen();
-
-    if (draw_grid_) {
-        draw_grid();
-    }
+    
     if (get_selected().has_value()) {
         auto& mesh_entity = *mesh_list[selected_idx];
         draw_selected(mesh_entity);
+    }
+
+    draw_fxaa();
+
+    if (draw_grid_) {
+        draw_grid();
     }
 
     if (debug_depth_map_) {
@@ -297,16 +300,29 @@ void Context::draw() {
 }
 
 void Context::draw_offscreen() {
-    offscreen_fbo_.unbind(main_fbo_);
-    main_fbo_.reset_viewport();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    offscreen_fbo_.blit(main_fbo_);
-    main_fbo_.bind();
-    // Uniform("u_aspect").buffer(programs.get_selected_program(), env->camera->get_aspect());
-    offscreen_fbo_.bind(programs);
+    programs.bind(ShaderPrograms::OFFSCREEN);
+    offscreen_fbo_.bind(programs.get_selected_program());
     // glDepthFunc(GL_ALWAYS);
     glDisable(GL_DEPTH_TEST); // not writing to depth in shader
     auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    quad.draw_none(programs.get_selected_program());
+    // glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_TEST);
+}
+
+void Context::draw_fxaa() {
+    offscreen_fbo_.unbind(main_fbo_);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    main_fbo_.reset_viewport();
+    offscreen_fbo_.blit(main_fbo_);
+    main_fbo_.bind();
+    programs.bind(ShaderPrograms::FXAA);
+    Uniform("u_offscreen_tex").buffer(programs.get_selected_program(), 0);
+    offscreen_fbo_.get_tex().bind(GL_TEXTURE0);
+    glDisable(GL_DEPTH_TEST); // not writing to depth in shader
+    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    Uniform("inverseScreenSize.x").buffer(programs.get_selected_program(), 1.f / offscreen_fbo_.get_width());
+    Uniform("inverseScreenSize.y").buffer(programs.get_selected_program(), 1.f / offscreen_fbo_.get_height());
     quad.draw_none(programs.get_selected_program());
     // glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);

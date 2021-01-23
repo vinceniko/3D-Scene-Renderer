@@ -262,11 +262,13 @@ public:
 class GL_Offscreen_FBO : public GL_FBO_Tex_Interface<GL_Texture> {
     GL_Texture depth_tex_;
 
-    void init() override {
+    virtual void init() override {
         tex_.bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_.get_width(), tex_.get_height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_.get_width(), tex_.get_height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         // attach it to currently bound framebuffer object
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_.get_id(), 0);
 
@@ -305,10 +307,9 @@ public:
         check_gl_error();
 #endif
     }
-    void bind(ShaderProgramCtx& programs) {
-        programs.bind(ShaderPrograms::OFFSCREEN);
-        Uniform("u_offscreen_tex").buffer(programs.get_selected_program(), 0);
-        Uniform("u_depth_map").buffer(programs.get_selected_program(), 1);
+    void bind(ShaderProgram& program) {
+        Uniform("u_offscreen_tex").buffer(program, 0);
+        Uniform("u_depth_map").buffer(program, 1);
 
         get_tex().bind(GL_TEXTURE0);
         depth_tex_.bind(GL_TEXTURE1);
@@ -335,7 +336,7 @@ public:
         depth_tex_.set_height(height);
         
         tex_.bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_.get_width(), tex_.get_height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_.get_width(), tex_.get_height(), 0, GL_RGBA, GL_FLOAT, NULL);
         depth_tex_.bind();
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, depth_tex_.get_width(), depth_tex_.get_height(), 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
     }
@@ -344,7 +345,9 @@ public:
 class GL_Offscreen_FBO_Multisample : public GL_FBO_RBO_Tex_Interface<GL_Texture> {
     void init() override {
         tex_.bind();
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, tex_.get_width(), tex_.get_height(), GL_TRUE);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA, tex_.get_width(), tex_.get_height(), GL_TRUE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 #ifdef DEBUG

@@ -22,11 +22,14 @@ void main()
     float n = 0.00001;
     float f = 100.0;
 
+    // use for ortho
     float depth = texture(u_depth_map, uv).r;
     float z_ndc = 2.0 * depth - 1.0;
+    // use for perspective
     float z_eye = 2.0 * n * f / (f + n - z_ndc * (f - n));
     
-    out_color = texture(u_offscreen_tex, uv);
+    vec3 tex_color = texture(u_offscreen_tex, uv).rgb;
+    out_color = vec4(tex_color, 1.0);
     
     // fog
     /*
@@ -47,8 +50,9 @@ void main()
     */
     // gamma correction
     out_color.rgb = pow(out_color.rgb, vec3(1 / 1.9));
+
     // fog mix
-    // out_color.rgb = mix(out_color.rgb, fog_base, 1.0 - fog_level);
+    //out_color.rgb = mix(out_color.rgb, fog_base, 1.0 - fog_level);
     // vignette mix
     // out_color.rgb = mix(out_color.rgb, out_color.rgb * vignette, vignette_intensity);
 
