@@ -17,6 +17,7 @@ class GL_CubeMapTex : public GL_Texture {
 public:
     GL_CubeMapTex() : GL_Texture(GL_TEXTURE_CUBE_MAP) {}
     GL_CubeMapTex(int width) : GL_Texture(GL_TEXTURE_CUBE_MAP, width, width) {}
+    GL_CubeMapTex(int width, int height) : GL_Texture(GL_TEXTURE_CUBE_MAP, width, height) {}
 
     // create an empty cubemap
     void init() override;

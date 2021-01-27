@@ -51,6 +51,8 @@ public:
 // general context, holds all other state
 class Context {
 public:
+    int base_width_;
+    int base_height_;
     ShaderProgramCtx& programs = ShaderProgramCtx::get();
 
     MeshFactory& mesh_factory = MeshFactory::get();
@@ -60,11 +62,20 @@ public:
 
     MouseContext mouse_ctx;
 
+    GL_Offscreen_FBO offscreen_fbo_;
+    GL_Offscreen_FBO_Multisample offscreen_fbo_msaa_;
+    GL_FBO main_fbo_;
+
+    bool msaa_use_ = false;
+    bool fxaa_use_ = true;
+    
+    GL_Depth_FBO depth_fbo_;
+
     bool draw_grid_ = true;
     bool debug_depth_map_ = false;
     DebugShadows debug_shadows_;
 
-    Context(std::unique_ptr<Environment> env);
+    Context(int width, int height, int base_width, int base_height, std::unique_ptr<Environment> env);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
     int intersected_mesh_perspective(glm::vec3 world_ray) const;
@@ -92,17 +103,18 @@ public:
     void update(std::chrono::duration<float> delta);
     // updates and draws the model using the user bound shader program and the selected draw mode
     void draw();
+    void draw_selected_to_stencil(MeshEntity& mesh_entity);
     void draw_selected(MeshEntity& mesh_entity);
     void draw_grid();
     void draw_static(MeshEntity& mesh_entity);
     // draws a model based on its mode
     void draw_w_mode(MeshEntity& mesh_entity);
     // draws a model when other model's state's are also necessary; such as dynamic reflections
-    void draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entity_list);
+    void draw(GL_FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entity_list);
     // draws the model using the user bound shader program
     void draw_surfaces(MeshEntity& mesh_entity);
     // draws a wireframe above the mesh
-    void draw_wireframes(MeshEntity& mesh_entity);
+    void draw_wireframe(MeshEntity& mesh_entity);
     // draws the mesh normals
     void draw_normals(MeshEntity& mesh_entity);
     // updates and draws the models using the user bound shader program and the selected draw mode
@@ -111,4 +123,9 @@ public:
     void draw_wireframes();
     // draws the mesh normals
     void draw_normals();
+    void draw_depth_map();
+    void draw_offscreen(GL_Offscreen_FBO& draw_fbo);
+    void draw_fxaa(GL_Offscreen_FBO& draw_fbo);
+
+    void set_viewport(int width, int height);
 };

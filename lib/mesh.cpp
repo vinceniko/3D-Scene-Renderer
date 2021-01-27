@@ -296,6 +296,20 @@ void MeshEntity::draw_minimal(ShaderProgram& program) {
 #endif
 }
 
+void MeshEntity::draw_none(ShaderProgram& program) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
+
+    glBindVertexArray(mesh_ref.VAO_);
+
+    glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
+
+#ifdef DEBUG
+    check_gl_error();
+#endif
+}
+
 void MeshEntity::draw_wireframe(ShaderProgram& program) {
     glDisable(GL_CULL_FACE);
 
@@ -309,6 +323,8 @@ void MeshEntity::draw_wireframe(ShaderProgram& program) {
     // // glLineWidth doesn't work, maybe an Apple driver bug 
     // glLineWidth(2.f);
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
+
+    glEnable(GL_CULL_FACE);
 
 #ifdef DEBUG
     check_gl_error();

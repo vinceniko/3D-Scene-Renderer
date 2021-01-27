@@ -2,17 +2,15 @@
 
 #include "renderer.h"
 
-class GL_Texture : public RenderObject {
+class GL_Texture : public RenderObject, public Canvas {
 protected:
     GLenum target_ = GL_TEXTURE_2D;
 
-    int width_;
-    int height_;
 public:
     uint32_t tex_id_;
     GL_Texture() { init(); }
-    GL_Texture(int width, int height) : width_(width), height_(height) { init(); }
-    GL_Texture(GLenum target, int width, int height) : width_(width), height_(height), target_(target) { init(); }
+    GL_Texture(int width, int height) : Canvas(width, height) { init(); }
+    GL_Texture(GLenum target, int width, int height) : Canvas(width, height), target_(target) { init(); }
     GL_Texture(GLenum target) : target_(target) { init(); }
     ~GL_Texture() { free(); }
     void init() override {
@@ -43,12 +41,5 @@ public:
 
     const uint32_t& get_id() const {
         return tex_id_;
-    }
-
-    int get_width() const {
-        return width_;
-    }
-    int get_height() const {
-        return height_;
     }
 };

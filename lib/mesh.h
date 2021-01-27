@@ -158,8 +158,10 @@ public:
     void buffer(ShaderProgram& program);
 
     void draw(ShaderProgram& program) override;
-    // draw only with the vbo, no render state mutated
+    // draw only with the vbo, no render state mutate, model trans buffered
     void draw_minimal(ShaderProgram& program);
+    // draw only with the vbo, no render state mutate, model trans not buffered
+    void draw_none(ShaderProgram& program);
     void draw_wireframe(ShaderProgram& program);
 
     float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const;

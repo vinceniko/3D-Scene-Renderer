@@ -80,7 +80,7 @@ struct Light {
 struct DirLight : public Light, public Spatial {
     Uniform u_direction_;
 
-    DirLight() : DirLight(-glm::vec3(1.5f, 2.f, 0.f), LightTraits{ glm::vec3(1.f), 0.2, 0.2, 0.2, 0 }) {}
+    DirLight() : DirLight(-glm::vec3(1.5f, 2.f, 0.f), LightTraits{ glm::vec3(0.3f), 0.01f, 0.5f, 1.0f, 0 }) {}
     DirLight(glm::vec3 direction, LightTraits light_traits) : Light("dir_light", light_traits, glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.01f, 20.f)) {
         set_trans(glm::lookAt(-direction, direction, glm::vec3(0.f, 0.f, 1.f)));
     }
@@ -119,9 +119,9 @@ struct PointLight : public Light, public MeshEntity {
 
     Uniform u_position;
 
-    PointLight(glm::vec3 position) : PointLight(position, LightTraits(glm::vec3(1.f), 0.2, 0.5, 0.5, 7)) {}
+    PointLight(glm::vec3 position) : PointLight(position, LightTraits(glm::vec3(1.f), 0.1, 1.0, 1.0, 7)) {}
     PointLight(glm::vec3 position, LightTraits light_traits) : PointLight(position, light_traits, ATTENUATION_50) {}
-    PointLight(glm::vec3 position, LightTraits light_traits, Attenuation attenuation) : PointLight(position, light_traits, ATTENUATION_50, MeshFactory::get().get_mesh_entity(DefMeshList::SPHERE)) {}
+    PointLight(glm::vec3 position, LightTraits light_traits, Attenuation attenuation) : PointLight(position, light_traits, attenuation, MeshFactory::get().get_mesh_entity(DefMeshList::SPHERE)) {}
     PointLight(glm::vec3 position, LightTraits light_traits, Attenuation attenuation, MeshEntity&& model) : Light("point_light", light_traits), attenuation_(attenuation), MeshEntity(std::move(model)) {
         scale(glm::mat4{ 1.f }, Spatial::ScaleDir::Out, 0.5);
         translate(glm::mat4{ 1.f }, position);

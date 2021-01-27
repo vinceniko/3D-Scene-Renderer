@@ -67,8 +67,9 @@ glm::vec2 get_cursor_pos(GLFWwindow* window) {
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // take into account aspect ratio
-    ctx->env->set_viewport(width, height);
+    // ctx->base_width_ = width;
+    // std::cout << width << std::endl;
+    ctx->set_viewport(width, height);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -175,6 +176,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_COMMA:
             ctx->draw_grid_ = !ctx->draw_grid_;
             break;
+        case GLFW_KEY_PERIOD:
+            ctx->msaa_use_ = !ctx->msaa_use_;
+            break;
+        case GLFW_KEY_SLASH:
+            ctx->fxaa_use_ = !ctx->fxaa_use_;
+            break;
         default:
             // model
             if (selected.has_value()) {
@@ -268,8 +275,8 @@ int main(void)
     if (!glfwInit())
         return -1;
 
-    // Activate supersampling
-    glfwWindowHint(GLFW_SAMPLES, 8);
+    // Activate supersampling; caused issues with blitting and was wasting resources when offscreen buffer was introduced since it wasn't being rendered to directly
+    // glfwWindowHint(GLFW_SAMPLES, 8);
 
     // Ensure that we get at least a 3.2 context
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -282,11 +289,8 @@ int main(void)
 #endif
 
     GLFWmonitor* primary = glfwGetPrimaryMonitor();
-    int xpos, ypos, width, height;
-    glfwGetMonitorWorkarea(primary, &xpos, &ypos, &width, &height);
-
-    WIDTH = width;
-    HEIGHT = height;
+    int xpos, ypos;
+    glfwGetMonitorWorkarea(primary, &xpos, &ypos, &WIDTH, &HEIGHT);
 
     // Create a windowed mode window and its OpenGL context
     window = glfwCreateWindow(WIDTH, HEIGHT, "3D Scene Editor", NULL, NULL);
@@ -325,11 +329,6 @@ int main(void)
     std::cout << "DEBUG ENABLED" << std::endl;
 #endif
 
-    ctx = std::make_unique<MyContext>(
-        WIDTH,
-        HEIGHT
-    );
-
     // callbacks
     glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -339,7 +338,12 @@ int main(void)
     glfwShowWindow(window);
     int pixWidth, pixHeight;
     glfwGetFramebufferSize(window, &pixWidth, &pixHeight);
-    framebuffer_size_callback(window, pixWidth, pixHeight);
+    // framebuffer_size_callback(window, pixWidth, pixHeight);
+
+    ctx = std::make_unique<MyContext>(
+        pixWidth,
+        pixHeight
+    );
 
 #ifdef TIMER
     FrameTimer<std::chrono::seconds> frame_timer(std::chrono::seconds(1));
@@ -351,14 +355,6 @@ int main(void)
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
-        // Clear the framebuffer
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-#ifdef DEBUG
-        check_gl_error();
-#endif
-
         // // swivel animation
         // auto camera = dynamic_cast<TrackballCamera*>(&ctx->env->camera.get_camera());
         // if (camera != nullptr) {

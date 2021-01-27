@@ -55,10 +55,37 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(std::unique_ptr<Environment> new_env) : env(std::move(new_env)) {
+Context::Context(int width, int height, int base_width, int base_height, std::unique_ptr<Environment> new_env) : 
+base_width_(base_width), 
+base_height_(base_height), 
+env(std::move(new_env)), 
+main_fbo_(0, width, height), 
+offscreen_fbo_(base_width, base_width / (static_cast<float>(width) / height)),
+offscreen_fbo_msaa_(base_width, base_width / (static_cast<float>(width) / height)), 
+depth_fbo_(1024, 1024) {
+    // set_viewport(width_, height_);
     for (auto& point_light : env->point_lights_) {
         mesh_list.push_back(point_light);
     }
+}
+
+void Context::set_viewport(int width, int height) {
+    float aspect =  static_cast<float>(width) / height;
+    env->camera->set_aspect(aspect);
+    
+    float base_aspect = static_cast<float>(base_width_) / base_height_;
+    int height_ = base_width_ / aspect;
+    int base_height = base_width_ * 1.f / base_aspect;
+    int width_ = base_height * aspect;
+    if (width_ < height_) {
+        offscreen_fbo_.resize(width_, base_height);
+        offscreen_fbo_msaa_.resize(width_, base_height);
+    } else {
+        offscreen_fbo_.resize(base_width_, height_);
+        offscreen_fbo_msaa_.resize(base_width_, height_);
+    }
+    
+    main_fbo_.resize(width, height);
 }
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
@@ -154,9 +181,8 @@ void Context::push_mesh_entity(std::vector<int>&& ids) {
     }
 }
 
-void Context::draw_selected(MeshEntity& mesh_entity) {
+void Context::draw_selected_to_stencil(MeshEntity& mesh_entity) {
     glEnable(GL_STENCIL_TEST);
-    glClear(GL_STENCIL_BUFFER_BIT);
 
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     // glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); // for outline only, no solid fill
@@ -164,13 +190,18 @@ void Context::draw_selected(MeshEntity& mesh_entity) {
     glStencilMask(0xFF);
     draw_w_mode(mesh_entity);
 
+    glDisable(GL_STENCIL_TEST);
+}
+
+void Context::draw_selected(MeshEntity& mesh_entity) {
+    glEnable(GL_STENCIL_TEST);
     ShaderPrograms selected = mesh_entity.get_shader();
     programs.bind(ShaderPrograms::OUTLINE);
     Uniform aspect("u_aspect");
     aspect.buffer(programs.get_selected_program(), env->camera->get_aspect());
     env->camera.buffer(programs.get_selected_program());
-    // glDisable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
+    glDisable(GL_CULL_FACE); // disable to render selected quads better (quads have weird normals)
+    // glCullFace(GL_FRONT); // culling works for selected objects with correct normals
     glDepthFunc(GL_ALWAYS);
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilMask(0x00);
@@ -179,8 +210,8 @@ void Context::draw_selected(MeshEntity& mesh_entity) {
     glDepthFunc(GL_LESS);
     glStencilMask(0xFF);
     glDisable(GL_STENCIL_TEST);
-    glCullFace(GL_BACK);
-    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
     programs.bind(selected);
 }
 
@@ -191,15 +222,15 @@ void Context::draw_w_mode(MeshEntity& mesh_entity) {
         draw_surfaces(mesh_entity);
     }
     if (mesh_entity.get_draw_mode() == DrawMode::WIREFRAME || mesh_entity.get_draw_mode() == DrawMode::WIREFRAME_ONLY) {
-        draw_wireframes(mesh_entity);
+        draw_wireframe(mesh_entity);
     }
     else if (mesh_entity.get_draw_mode() == DrawMode::DRAW_NORMALS) {
         draw_normals(mesh_entity);
     }
 }
-void Context::draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
+void Context::draw(GL_FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
     if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
-        env->draw_dynamic_cubemap(programs, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) {
+        env->draw_dynamic_cubemap(programs, main_fbo, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) {
             draw_w_mode(sec_mesh);
         });
     }
@@ -214,7 +245,7 @@ void Context::draw(MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
 
 void Context::draw_static(MeshEntity& mesh_entity) {
     if (get_selected().has_value() && &mesh_entity == &get_selected().value().get()) {
-        draw_selected(mesh_entity);
+        draw_selected_to_stencil(mesh_entity);
     }
     else {
         draw_w_mode(mesh_entity);
@@ -244,24 +275,83 @@ void Context::draw_grid() {
 }
 
 void Context::draw() {
-    programs.bind(ShaderPrograms::SHADOWS);
-    env->draw_shadows(programs, mesh_list);
+    GL_FBO* draw_fbo = &offscreen_fbo_;
+    if (msaa_use_) {
+        draw_fbo = &offscreen_fbo_msaa_;
+    }
+    draw_fbo->bind();
+    // main_fbo_.bind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    depth_fbo_.bind();
+    // env->draw_shadows(programs, main_fbo_, mesh_list);
+    env->draw_shadows(programs, *draw_fbo, mesh_list);
+    // depth_fbo_.unbind(main_fbo_);
+    depth_fbo_.unbind(*draw_fbo);
     
     // swap selected to end of drawing list
-    swap_selected_mesh(mesh_list.size() - 1.0);
+    uint32_t selected_idx = mesh_list.size() - 1.0;
+    swap_selected_mesh(selected_idx);
     for (auto& mesh_entity : mesh_list) {
-        draw(*mesh_entity, mesh_list);
+        draw(*draw_fbo, *mesh_entity, mesh_list);
+        // draw(main_fbo_, *mesh_entity, mesh_list);
     }
     
     env->draw_static_scene(programs);
+
+    if (msaa_use_) {
+        draw_fbo->unbind(offscreen_fbo_);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        draw_fbo->blit(offscreen_fbo_);
+    }
+    
+    draw_offscreen(offscreen_fbo_);
+    
+    if (get_selected().has_value()) {
+        auto& mesh_entity = *mesh_list[selected_idx];
+        draw_selected(mesh_entity);
+    }
+
+    offscreen_fbo_.unbind(main_fbo_);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    offscreen_fbo_.blit(main_fbo_);
+    if (fxaa_use_) {
+        draw_fxaa(offscreen_fbo_);
+    }
+
     if (draw_grid_) {
         draw_grid();
     }
 
     if (debug_depth_map_) {
-        env->draw_depth_map(programs);
+        draw_depth_map();
     }
 }
+
+void Context::draw_offscreen(GL_Offscreen_FBO& draw_fbo) {
+    programs.bind(ShaderPrograms::OFFSCREEN);
+    draw_fbo.bind(programs.get_selected_program());
+    // glDepthFunc(GL_ALWAYS);
+    glDisable(GL_DEPTH_TEST); // not writing to depth in shader
+    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    quad.draw_none(programs.get_selected_program());
+    // glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_TEST);
+}
+
+void Context::draw_fxaa(GL_Offscreen_FBO& draw_fbo) {
+    programs.bind(ShaderPrograms::FXAA);
+    Uniform("u_offscreen_tex").buffer(programs.get_selected_program(), 0);
+    draw_fbo.get_tex().bind(GL_TEXTURE0);
+    glDisable(GL_DEPTH_TEST); // not writing to depth in shader
+    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    Uniform("inverseScreenSize.x").buffer(programs.get_selected_program(), 1.f / draw_fbo.get_width());
+    Uniform("inverseScreenSize.y").buffer(programs.get_selected_program(), 1.f / draw_fbo.get_height());
+    quad.draw_none(programs.get_selected_program());
+    // glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_TEST);
+}
+
 void Context::draw_surfaces(MeshEntity& mesh_entity) {
     programs.bind(mesh_entity.get_shader());
     // TODO: check if shader has attached uniform at compile time elsewhere
@@ -269,7 +359,7 @@ void Context::draw_surfaces(MeshEntity& mesh_entity) {
         // bind the depth map as well for env mapped objs
         if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
             // * don't need to bind the cubemap texture here because it is already bound after rendering to it
-            env->depth_fbo_.get_tex().bind(GL_TEXTURE1); // bind the depthmap to the second texture slot
+            depth_fbo_.get_tex().bind(GL_TEXTURE1); // bind the depthmap to the second texture slot
             Uniform("u_skybox").buffer(programs.get_selected_program(), 0);
             Uniform("u_shadow_map").buffer(programs.get_selected_program(), 1);
         }
@@ -278,13 +368,14 @@ void Context::draw_surfaces(MeshEntity& mesh_entity) {
         debug_shadows_.buffer(programs.get_selected_program());
     }
     mesh_entity.draw(programs.get_selected_program());
+    depth_fbo_.get_tex().bind(); // bind back to first texture slot
 }
 void Context::draw_surfaces() {
     for (auto& mesh : mesh_list) {
         draw_surfaces(*mesh);
     }
 }
-void Context::draw_wireframes(MeshEntity& mesh_entity) {
+void Context::draw_wireframe(MeshEntity& mesh_entity) {
     ShaderPrograms selected = mesh_entity.get_shader();
 
     programs.bind(ShaderPrograms::DEF_SHADER);
@@ -310,7 +401,7 @@ void Context::draw_wireframes(MeshEntity& mesh_entity) {
 }
 void Context::draw_wireframes() {
     for (auto& mesh : mesh_list) {
-        draw_wireframes(*mesh);
+        draw_wireframe(*mesh);
     }
 }
 void Context::draw_normals(MeshEntity& mesh_entity) {
@@ -326,10 +417,35 @@ void Context::draw_normals(MeshEntity& mesh_entity) {
 
     programs.bind(selected);
 
-    draw_wireframes(mesh_entity);
+    draw_wireframe(mesh_entity);
 }
 void Context::draw_normals() {
     for (auto& mesh : mesh_list) {
         draw_normals(*mesh);
     }
+}
+
+void Context::draw_depth_map() {
+    // debug quad
+    glDisable(GL_DEPTH_TEST);
+    programs.bind(ShaderPrograms::SHADOW_MAP);
+
+    auto old_trans = env->camera->get_trans();
+    auto old_projection = env->camera->get_projection_mode();
+    auto old_aspect = env->camera->get_aspect();
+
+    env->camera->set_projection_mode(Camera::Projection::Ortho);
+    env->camera->set_view(glm::mat4{ 1.f });
+    // camera->set_aspect(1.f);
+
+    env->camera.buffer(programs.get_selected_program());
+    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    quad.translate(env->camera->get_trans(), glm::vec3(-0.5f, 0.5f, -0.01f));
+    // quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 10.f);
+    depth_fbo_.get_tex().bind();
+    quad.draw_minimal(programs.get_selected_program());
+    env->camera->set_trans(old_trans);
+    env->camera->set_projection_mode(old_projection);
+    // camera->set_aspect(old_aspect);
+    glEnable(GL_DEPTH_TEST);
 }

@@ -9,7 +9,7 @@ void main()
     vec2 coord = frag_pos.xz;
 
     // Compute anti-aliased world-space grid lines
-    coord *= 2.0;
+    coord *= 2.0; // frequency of lines
     vec2 grid = abs(fract(coord - 0.5) - 0.5) / (abs(dFdx(coord)) + abs(dFdy(coord)));
     float line = min(grid.x, grid.y);
 

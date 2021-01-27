@@ -211,3 +211,32 @@ private:
         }
     }
 };
+
+class Canvas {
+protected:
+    int width_ = 0;
+    int height_ = 0;
+public:
+    Canvas() = default;
+    Canvas(int width, int height) : width_(width), height_(height) {}
+    virtual int get_width() {
+        return width_;
+    }
+    virtual int get_height() {
+        return height_;
+    }
+    virtual void set_width(int width) {
+        width_ = width;
+    }
+    virtual void set_height(int height) {
+        height_ = height;
+    }
+    virtual void resize(int width, int height) {
+        set_width(width);
+        set_height(height);
+    }
+
+    virtual void reset_viewport() {
+        glViewport(0, 0, width_, height_);
+    }
+};

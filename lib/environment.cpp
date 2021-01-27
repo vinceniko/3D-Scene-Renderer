@@ -31,9 +31,8 @@ void Environment::draw_lights(ShaderProgram& program) {
     buffer(program);
     point_lights_.draw(program);
 }
-void Environment::draw_shadows(ShaderProgramCtx& programs, MeshEntityList& mesh_list) {
+void Environment::draw_shadows(ShaderProgramCtx& programs, GL_FBO& main_fbo, MeshEntityList& mesh_list) {
     programs.bind(ShaderPrograms::SHADOWS);
-    depth_fbo_.bind();
     dir_light_.buffer_shadows(programs.get_selected_program());
     // disable culling to prevent shadow bias issue
     glDisable(GL_CULL_FACE);
@@ -43,8 +42,6 @@ void Environment::draw_shadows(ShaderProgramCtx& programs, MeshEntityList& mesh_
     }
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
-    depth_fbo_.unbind();
-    reset_viewport();
 }
 
 void Environment::draw_static_scene(ShaderProgramCtx& programs) {
@@ -84,7 +81,7 @@ void Environment::draw_static_cubemap(ShaderProgramCtx& programs) {
     cube_map_->unbind();
 }
 
-void Environment::draw_dynamic_cubemap(ShaderProgramCtx& programs, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f) {
+void Environment::draw_dynamic_cubemap(ShaderProgramCtx& programs, GL_FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f) {
     bind_dynamic();
 
     ShaderPrograms selected = programs.get_selected();
@@ -146,29 +143,11 @@ void Environment::draw_dynamic_cubemap(ShaderProgramCtx& programs, MeshEntity& m
     // restore
     camera.set_camera(std::move(old_camera));
 
-    cubemap_fbo_.unbind();
+    cubemap_fbo_.unbind(main_fbo);
 
     programs.bind(selected);
 
-    reset_viewport();
-
     cube_map_->unbind();
-}
-
-void Environment::set_width(int width) {
-    width_ = width;
-}
-void Environment::set_height(int height) {
-    height_ = height;
-}
-void Environment::set_viewport(int width, int height) {
-    width_ = width;
-    height_ = height;
-    camera->set_aspect(width, height);
-    glViewport(0, 0, width, height);
-}
-void Environment::reset_viewport() {
-    glViewport(0, 0, width_, height_);
 }
 
 void Environment::set_cube_map(std::unique_ptr<GL_CubeMapEntity> cube_map) {
@@ -176,25 +155,4 @@ void Environment::set_cube_map(std::unique_ptr<GL_CubeMapEntity> cube_map) {
 }
 void Environment::swap_cube_map(std::unique_ptr<GL_CubeMapEntity>& cube_map) {
     std::swap(cube_map_, cube_map);
-}
-
-void Environment::draw_depth_map(ShaderProgramCtx& programs) {
-    // debug quad
-    programs.bind(ShaderPrograms::SHADOW_MAP);
-
-    auto old_trans = camera->get_trans();
-    auto old_projection = camera->get_projection_mode();
-    auto old_aspect = camera->get_aspect();
-
-    camera->set_projection_mode(Camera::Projection::Ortho);
-    camera->set_view(glm::mat4{ 1.f });
-
-    camera.buffer(programs.get_selected_program());
-    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
-    quad.translate(glm::mat4{ 1.f }, glm::vec3(-1.0f, 0.5f, -0.01f));
-    // quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 10.f);
-    depth_fbo_.get_tex().bind();
-    quad.draw_minimal(programs.get_selected_program());
-    camera->set_trans(old_trans);
-    camera->set_projection_mode(old_projection);
 }
