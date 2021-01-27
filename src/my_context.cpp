@@ -8,6 +8,7 @@ MyContext::MyContext(int width, int height) :
         width,
         height,
         1920,
+        1080,
         std::make_unique<Environment>(
             std::make_unique<TrackballCamera>(static_cast<float>(width) / height),
             1920,

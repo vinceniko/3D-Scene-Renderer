@@ -176,6 +176,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_COMMA:
             ctx->draw_grid_ = !ctx->draw_grid_;
             break;
+        case GLFW_KEY_PERIOD:
+            ctx->msaa_use_ = !ctx->msaa_use_;
+            break;
+        case GLFW_KEY_SLASH:
+            ctx->fxaa_use_ = !ctx->fxaa_use_;
+            break;
         default:
             // model
             if (selected.has_value()) {

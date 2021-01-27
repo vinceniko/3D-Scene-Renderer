@@ -55,7 +55,14 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(int width, int height, int base_width, std::unique_ptr<Environment> new_env) : base_width_(base_width), env(std::move(new_env)), main_fbo_(0, width, height), offscreen_fbo_(base_width, base_width / (static_cast<float>(width) / height)), depth_fbo_(1024, 1024) {
+Context::Context(int width, int height, int base_width, int base_height, std::unique_ptr<Environment> new_env) : 
+base_width_(base_width), 
+base_height_(base_height), 
+env(std::move(new_env)), 
+main_fbo_(0, width, height), 
+offscreen_fbo_(base_width, base_width / (static_cast<float>(width) / height)),
+offscreen_fbo_msaa_(base_width, base_width / (static_cast<float>(width) / height)), 
+depth_fbo_(1024, 1024) {
     // set_viewport(width_, height_);
     for (auto& point_light : env->point_lights_) {
         mesh_list.push_back(point_light);
@@ -66,11 +73,19 @@ void Context::set_viewport(int width, int height) {
     float aspect =  static_cast<float>(width) / height;
     env->camera->set_aspect(aspect);
     
+    float base_aspect = static_cast<float>(base_width_) / base_height_;
     int height_ = base_width_ / aspect;
-    offscreen_fbo_.resize(base_width_, height_);
+    int base_height = base_width_ * 1.f / base_aspect;
+    int width_ = base_height * aspect;
+    if (width_ < height_) {
+        offscreen_fbo_.resize(width_, base_height);
+        offscreen_fbo_msaa_.resize(width_, base_height);
+    } else {
+        offscreen_fbo_.resize(base_width_, height_);
+        offscreen_fbo_msaa_.resize(base_width_, height_);
+    }
     
     main_fbo_.resize(width, height);
-    main_fbo_.reset_viewport();
 }
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
@@ -168,7 +183,6 @@ void Context::push_mesh_entity(std::vector<int>&& ids) {
 
 void Context::draw_selected_to_stencil(MeshEntity& mesh_entity) {
     glEnable(GL_STENCIL_TEST);
-    glClear(GL_STENCIL_BUFFER_BIT);
 
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     // glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); // for outline only, no solid fill
@@ -261,34 +275,49 @@ void Context::draw_grid() {
 }
 
 void Context::draw() {
-    offscreen_fbo_.bind();
+    GL_FBO* draw_fbo = &offscreen_fbo_;
+    if (msaa_use_) {
+        draw_fbo = &offscreen_fbo_msaa_;
+    }
+    draw_fbo->bind();
     // main_fbo_.bind();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     depth_fbo_.bind();
     // env->draw_shadows(programs, main_fbo_, mesh_list);
-    env->draw_shadows(programs, offscreen_fbo_, mesh_list);
+    env->draw_shadows(programs, *draw_fbo, mesh_list);
     // depth_fbo_.unbind(main_fbo_);
-    depth_fbo_.unbind(offscreen_fbo_);
+    depth_fbo_.unbind(*draw_fbo);
     
     // swap selected to end of drawing list
     uint32_t selected_idx = mesh_list.size() - 1.0;
     swap_selected_mesh(selected_idx);
     for (auto& mesh_entity : mesh_list) {
-        draw(offscreen_fbo_, *mesh_entity, mesh_list);
+        draw(*draw_fbo, *mesh_entity, mesh_list);
         // draw(main_fbo_, *mesh_entity, mesh_list);
     }
     
     env->draw_static_scene(programs);
 
-    draw_offscreen();
+    if (msaa_use_) {
+        draw_fbo->unbind(offscreen_fbo_);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        draw_fbo->blit(offscreen_fbo_);
+    }
+    
+    draw_offscreen(offscreen_fbo_);
     
     if (get_selected().has_value()) {
         auto& mesh_entity = *mesh_list[selected_idx];
         draw_selected(mesh_entity);
     }
 
-    draw_fxaa();
+    offscreen_fbo_.unbind(main_fbo_);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    offscreen_fbo_.blit(main_fbo_);
+    if (fxaa_use_) {
+        draw_fxaa(offscreen_fbo_);
+    }
 
     if (draw_grid_) {
         draw_grid();
@@ -299,9 +328,9 @@ void Context::draw() {
     }
 }
 
-void Context::draw_offscreen() {
+void Context::draw_offscreen(GL_Offscreen_FBO& draw_fbo) {
     programs.bind(ShaderPrograms::OFFSCREEN);
-    offscreen_fbo_.bind(programs.get_selected_program());
+    draw_fbo.bind(programs.get_selected_program());
     // glDepthFunc(GL_ALWAYS);
     glDisable(GL_DEPTH_TEST); // not writing to depth in shader
     auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
@@ -310,19 +339,14 @@ void Context::draw_offscreen() {
     glEnable(GL_DEPTH_TEST);
 }
 
-void Context::draw_fxaa() {
-    offscreen_fbo_.unbind(main_fbo_);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    main_fbo_.reset_viewport();
-    offscreen_fbo_.blit(main_fbo_);
-    main_fbo_.bind();
+void Context::draw_fxaa(GL_Offscreen_FBO& draw_fbo) {
     programs.bind(ShaderPrograms::FXAA);
     Uniform("u_offscreen_tex").buffer(programs.get_selected_program(), 0);
-    offscreen_fbo_.get_tex().bind(GL_TEXTURE0);
+    draw_fbo.get_tex().bind(GL_TEXTURE0);
     glDisable(GL_DEPTH_TEST); // not writing to depth in shader
     auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
-    Uniform("inverseScreenSize.x").buffer(programs.get_selected_program(), 1.f / offscreen_fbo_.get_width());
-    Uniform("inverseScreenSize.y").buffer(programs.get_selected_program(), 1.f / offscreen_fbo_.get_height());
+    Uniform("inverseScreenSize.x").buffer(programs.get_selected_program(), 1.f / draw_fbo.get_width());
+    Uniform("inverseScreenSize.y").buffer(programs.get_selected_program(), 1.f / draw_fbo.get_height());
     quad.draw_none(programs.get_selected_program());
     // glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);

@@ -37,6 +37,7 @@ public:
 
     virtual void bind() {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+        reset_viewport();
 
 #ifdef DEBUG
         check_gl_error();
@@ -54,7 +55,8 @@ public:
     virtual void blit(GL_FBO& main_fbo) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, get_fbo());
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, main_fbo.get_fbo());
-        glBlitFramebuffer(0, 0, get_width(), get_height(), 0, 0, main_fbo.get_width(), main_fbo.get_height(), GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+        glBlitFramebuffer(0, 0, get_width(), get_height(), 0, 0, main_fbo.get_width(), main_fbo.get_height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+        main_fbo.bind();
 #ifdef DEBUG
         check_gl_error();
 #endif
@@ -217,7 +219,7 @@ public:
 
 class GL_Depth_FBO : public GL_FBO_Tex_Interface<GL_Texture> {
     void init() override {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, tex_.get_width(), tex_.get_height(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, tex_.get_width(), tex_.get_height(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -322,7 +324,7 @@ public:
         depth_tex_.set_height(height);
 
         tex_.bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_.get_width(), tex_.get_height(), 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_.get_width(), tex_.get_height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         depth_tex_.bind();
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, depth_tex_.get_width(), depth_tex_.get_height(), 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
     }
@@ -388,9 +390,9 @@ public:
         tex_.set_height(height);
 
         tex_.bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_.get_width(), tex_.get_height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-        GL_FBO_RBO_Tex_Interface::bind();
-        GL_FBO_RBO_Tex_Interface::reset_viewport();
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA, tex_.get_width(), tex_.get_height(), GL_TRUE);
+        
+        GL_FBO_RBO::bind();
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, tex_.get_width(), tex_.get_height());
     }
 };

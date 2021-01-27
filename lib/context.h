@@ -52,6 +52,7 @@ public:
 class Context {
 public:
     int base_width_;
+    int base_height_;
     ShaderProgramCtx& programs = ShaderProgramCtx::get();
 
     MeshFactory& mesh_factory = MeshFactory::get();
@@ -62,7 +63,11 @@ public:
     MouseContext mouse_ctx;
 
     GL_Offscreen_FBO offscreen_fbo_;
+    GL_Offscreen_FBO_Multisample offscreen_fbo_msaa_;
     GL_FBO main_fbo_;
+
+    bool msaa_use_ = false;
+    bool fxaa_use_ = true;
     
     GL_Depth_FBO depth_fbo_;
 
@@ -70,7 +75,7 @@ public:
     bool debug_depth_map_ = false;
     DebugShadows debug_shadows_;
 
-    Context(int width, int height, int base_width, std::unique_ptr<Environment> env);
+    Context(int width, int height, int base_width, int base_height, std::unique_ptr<Environment> env);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
     int intersected_mesh_perspective(glm::vec3 world_ray) const;
@@ -119,8 +124,8 @@ public:
     // draws the mesh normals
     void draw_normals();
     void draw_depth_map();
-    void draw_offscreen();
-    void draw_fxaa();
+    void draw_offscreen(GL_Offscreen_FBO& draw_fbo);
+    void draw_fxaa(GL_Offscreen_FBO& draw_fbo);
 
     void set_viewport(int width, int height);
 };
