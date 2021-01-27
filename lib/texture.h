@@ -2,7 +2,7 @@
 
 #include "renderer.h"
 
-class GL_Texture : public RenderObject, public Canvas {
+class GL_Texture : public Canvas {
 protected:
     GLenum target_ = GL_TEXTURE_2D;
 
@@ -13,7 +13,7 @@ public:
     GL_Texture(GLenum target, int width, int height) : Canvas(width, height), target_(target) { init(); }
     GL_Texture(GLenum target) : target_(target) { init(); }
     ~GL_Texture() { free(); }
-    void init() override {
+    virtual void init() {
         glGenTextures(1, &tex_id_);
         bind();
 
@@ -21,7 +21,7 @@ public:
         check_gl_error();
 #endif
     }
-    void bind() override {
+    virtual void bind() {
         bind(GL_TEXTURE0);
     }
     virtual void bind(uint32_t tex_unit) {
@@ -31,7 +31,7 @@ public:
         check_gl_error();
 #endif
     }
-    void free() override {
+    virtual void free() {
         glDeleteTextures(1, &tex_id_);
         tex_id_ = 0;
 #ifdef DEBUG

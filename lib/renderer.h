@@ -146,13 +146,6 @@ public:
     }
 };
 
-class RenderObject {
-public:
-    virtual void init() = 0;
-    virtual void free() = 0;
-    virtual void bind() = 0;
-};
-
 struct Uniform {
     std::string name_;
 
