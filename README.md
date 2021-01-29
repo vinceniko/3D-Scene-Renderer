@@ -53,7 +53,7 @@ Refer to `CMakeLists.txt` for the build configuration and necessary dependencies
 * The `Context` class holds `MouseState`, `Environment` (which contains the Cube Map, Lights, Camera) and `MeshEntityList` (all of the transformable mesh objects). To further generalize the renderer to other applications beyond the assignment, I intend to move the `MeshEntityList` into the `Environment`, which would then be renamed scene.
 * The `lib` directory contains the general editor source code, while `src` adds specific functionality such as a `Context` class descendant to fulfill the assignment. The intention is to separate concerns and make the library extensible.
 
-## Post Assignment Submission Additions
+## Post Assignment-Submission Additions
 
 ### Post-Processing
 
@@ -74,9 +74,9 @@ Selecting a mesh will display an outline around it and will draw its shape irres
 ### Anti-Aliasing
 
 * MSAA
-  * Toggle with `.`
+  * Toggle with key `.`
 * FXAA
-  * Toggle with `/`
+  * Toggle with key `/`
 
 ### Fixed Render Resolution
 
@@ -84,8 +84,12 @@ A fixed render framebuffer resolution is set during initialization (1080p in the
 
 ### Others
 
-* Movable lights
-* Light instancing
+* Movable & deletable point lights
+  * Same controls as with other meshes (point lights are represented with sphere meshes)
+* Point light Insertion
+  * Insert a point light with key `8`
+
+![moveable_point-lights](images/moveable_point-lights.gif)
 
 ## Assignment 4
 

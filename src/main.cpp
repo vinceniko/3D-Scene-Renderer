@@ -134,6 +134,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_7:
             ctx->push_mesh_entity({ MeshList::MONKEY });
             break;
+        case GLFW_KEY_8:
+            {
+                auto point_light = std::make_shared<PointLight>(glm::vec3(0.f));
+                ctx->env->point_lights_.push_back(point_light);
+                ctx->mesh_list.push_back(point_light);
+            }
+            break;
             // mode
         case GLFW_KEY_M:
             ctx->switch_draw_mode();
@@ -188,9 +195,17 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 switch (key) {
                     // despawn
                 case GLFW_KEY_R:
-                    ctx->mesh_list.erase_owned(ctx->mesh_list.begin() + ctx->mouse_ctx.get_selected());
-                    ctx->mouse_ctx.deselect();
-                    break;
+                    {
+                        auto pos = ctx->mesh_list.begin() + ctx->mouse_ctx.get_selected();
+                        auto& mesh_ptr = *pos;
+                        ctx->mesh_list.erase(pos);
+                        // TODO: make this more efficient
+                        if (dynamic_cast<PointLight*>(mesh_ptr.get())) {
+                            ctx->env->point_lights_.erase(std::find(ctx->env->point_lights_.begin(), ctx->env->point_lights_.end(), mesh_ptr));
+                        }
+                        ctx->mouse_ctx.deselect();
+                        break;
+                    }
                     // center to origin
                 case GLFW_KEY_O:
                     selected->get().set_to_origin();

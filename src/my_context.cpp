@@ -12,7 +12,12 @@ MyContext::MyContext(int width, int height) :
         std::make_unique<Environment>(
             std::make_unique<TrackballCamera>(static_cast<float>(width) / height),
             1920,
-            PointLights{ std::make_shared<PointLight>(glm::vec3(1.5f, 1.f, 0.f)), std::make_shared<PointLight>(glm::vec3(-1.5f, 1.f, 0.f)) },
+            PointLights{ 
+                std::make_shared<PointLight>(glm::vec3(2.5f, 1.f, 2.5f)), 
+                std::make_shared<PointLight>(glm::vec3(-2.5f, 1.f, 2.5f)), 
+                std::make_shared<PointLight>(glm::vec3(2.5f, 1.f, -2.5f)), 
+                std::make_shared<PointLight>(glm::vec3(-2.5f, 1.f, -2.5f)), 
+            },
             std::make_unique<GL_CubeMapEntity>(
                 "../data/night_env/",
                 true
@@ -63,4 +68,13 @@ void MyContext::switch_camera() {
     camera_idx = (camera_idx + 1) % cameras.size();
     cameras[camera_idx]->set_aspect(aspect);
     set_camera(cameras[camera_idx]);
+}
+
+void MyContext::update(std::chrono::duration<float> delta) {
+    if (rotate_light) {
+        env->dir_light_.set_trans(glm::rotate(env->dir_light_.get_trans(), glm::radians(45.f) * static_cast<float>(delta.count()), glm::vec3(0.f, 1.f, 0.f)));
+        env->dir_light_.set_trans(glm::lookAt(env->dir_light_.get_position(), glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f)));
+    }
+
+    Context::update(delta);
 }

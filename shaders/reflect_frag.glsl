@@ -93,7 +93,8 @@ struct PointLight {
     float linear;
     float quadratic;  
 };  
-#define NR_POINT_LIGHTS 2
+#define NR_POINT_LIGHTS 30
+uniform int u_num_point_lights;
 uniform PointLight point_lights[NR_POINT_LIGHTS];
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
@@ -135,7 +136,7 @@ void main()
     
     vec3 lighting = CalcDirLight(dir_light, norm, view_dir, shadow);
     // point lights
-    for(int i = 0; i < NR_POINT_LIGHTS; i++)
+    for(int i = 0; i < u_num_point_lights; i++)
         lighting += CalcPointLight(point_lights[i], norm, frag_pos, view_dir);    
     
     vec3 shadow_result;

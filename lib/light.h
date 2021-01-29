@@ -80,7 +80,7 @@ struct Light {
 struct DirLight : public Light, public Spatial {
     Uniform u_direction_;
 
-    DirLight() : DirLight(-glm::vec3(1.5f, 2.f, 0.f), LightTraits{ glm::vec3(0.3f), 0.01f, 0.5f, 1.0f, 0 }) {}
+    DirLight() : DirLight(-glm::vec3(4.f, 4.f, 0.f), LightTraits{ glm::vec3(0.3f), 0.01f, 0.5f, 1.0f, 0 }) {}
     DirLight(glm::vec3 direction, LightTraits light_traits) : Light("dir_light", light_traits, glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.01f, 20.f)) {
         set_trans(glm::lookAt(-direction, direction, glm::vec3(0.f, 0.f, 1.f)));
     }
@@ -119,6 +119,7 @@ struct PointLight : public Light, public MeshEntity {
 
     Uniform u_position;
 
+    PointLight() : PointLight(glm::vec3(0.f), LightTraits(glm::vec3(1.f), 0.1, 1.0, 1.0, 7)) {}
     PointLight(glm::vec3 position) : PointLight(position, LightTraits(glm::vec3(1.f), 0.1, 1.0, 1.0, 7)) {}
     PointLight(glm::vec3 position, LightTraits light_traits) : PointLight(position, light_traits, ATTENUATION_50) {}
     PointLight(glm::vec3 position, LightTraits light_traits, Attenuation attenuation) : PointLight(position, light_traits, attenuation, MeshFactory::get().get_mesh_entity(DefMeshList::SPHERE)) {}
@@ -147,19 +148,25 @@ struct PointLight : public Light, public MeshEntity {
 struct PointLights : public std::vector<std::shared_ptr<PointLight>> {
     using std::vector<std::shared_ptr<PointLight>>::vector;
 
-    PointLights(PointLights&& point_lights) : vector(point_lights) {
+    Uniform u_num_lights{"u_num_point_lights"};
+
+    PointLights(PointLights&& point_lights) : vector(point_lights) {}
+    void buffer(ShaderProgram& program) {
         uint32_t i = 0;
-        for (auto light : *this) {
+        for (auto& light_ptr : *this) {
+            auto& light = *light_ptr;
+            auto old_prefix = light.uniform_prefix_;
+
             std::ostringstream ss;
             ss << "s[" << i << "]";
-            light->uniform_prefix_ += ss.str();
+            light.uniform_prefix_ += ss.str();
+
+            light.buffer(program);
+            light.uniform_prefix_ = old_prefix;
+            
             i++;
         }
-    }
-    void buffer(ShaderProgram& program) {
-        for (auto& light : *this) {
-            light->buffer(program);
-        }
+        u_num_lights.buffer(program, static_cast<int>(size()));
     }
     void draw(ShaderProgram& program) {
         for (auto& light : *this) {
