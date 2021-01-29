@@ -82,7 +82,7 @@ Selecting a mesh will display an outline around it and will draw its shape irres
 
 A fixed render framebuffer resolution is set during initialization (1080p in the example src). The render framebuffer attachments are blitted to render to the window buffer.
 
-### Others
+### Point Lights
 
 * Movable & deletable point lights
   * Same controls as with other meshes (point lights are represented with sphere meshes)
@@ -90,6 +90,16 @@ A fixed render framebuffer resolution is set during initialization (1080p in the
   * Insert a point light with key `8`
 
 ![moveable_point-lights](images/moveable_point-lights.gif)
+
+### Other
+
+### Grid
+
+![grid](images/grid.png)
+
+Directions:
+
+Toggle with key `,`
 
 ## Assignment 4
 
