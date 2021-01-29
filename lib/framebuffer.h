@@ -52,10 +52,20 @@ public:
 #endif
     }
 
-    virtual void blit(GL_FBO& main_fbo) {
+    virtual void blit(GL_FBO& main_fbo, int bits = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, int filter = GL_NEAREST) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, get_fbo());
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, main_fbo.get_fbo());
-        glBlitFramebuffer(0, 0, get_width(), get_height(), 0, 0, main_fbo.get_width(), main_fbo.get_height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+        glBlitFramebuffer(0, 0, get_width(), get_height(), 0, 0, main_fbo.get_width(), main_fbo.get_height(), bits, filter);
+        main_fbo.bind();
+#ifdef DEBUG
+        check_gl_error();
+#endif
+    }
+
+    virtual void blit_from(GL_FBO& main_fbo) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, main_fbo.get_fbo());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, get_fbo());
+        glBlitFramebuffer(0, 0, main_fbo.get_width(), main_fbo.get_height(), 0, 0, get_width(), get_height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
         main_fbo.bind();
 #ifdef DEBUG
         check_gl_error();
