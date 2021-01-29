@@ -83,16 +83,21 @@ public:
     // Release all OpenGL objects
     void free();
 
+    uint32_t create_shader_helper(int32_t type, const std::string& shader_string);
+
+    void attach_link(uint32_t shader_id);
+
     // Return the OpenGL handle of a named shader attribute (-1 if it does not exist)
     int32_t attrib(const std::string& name) const;
-
     // Return the OpenGL handle of a uniform attribute (-1 if it does not exist)
     int32_t uniform(const std::string& name) const;
-
-    uint32_t create_shader_helper(int32_t type, const std::string& shader_string);
+    
+    bool has_geom() {
+        return geometry_shader > 0;
+    }
 };
 
-// represents Shader source code saved on the filesystem
+// Shader source code saved on the filesystem
 class ShaderProgramFile : public ShaderProgram {
     std::string vert_path_;
     std::string geom_path_;
@@ -126,8 +131,6 @@ public:
         return frag_path_;
     }
 
-    void attach_link(uint32_t shader_id);
-
     // reload vert shader
     void reload_vert();
     // reload vert shader from file
@@ -140,10 +143,6 @@ public:
     void reload_frag();
     // reload frag shader from file
     void reload_frag(const std::string& f_path);
-
-    bool has_geom() {
-        return geometry_shader > 0;
-    }
 };
 
 struct Uniform {

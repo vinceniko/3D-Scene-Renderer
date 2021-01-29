@@ -40,7 +40,7 @@ bool ShaderProgramFile::init(const std::string& vertex_path,
     return ShaderProgram::init(vertex_shader_string, geometry_shader_string, fragment_shader_string, fragment_data_name);
 }
 
-void ShaderProgramFile::attach_link(uint32_t shader_id) {
+void ShaderProgram::attach_link(uint32_t shader_id) {
     glAttachShader(program_shader, shader_id);
     glLinkProgram(program_shader);
 
