@@ -1,3 +1,5 @@
+// from: http://blog.simonrodriguez.fr/articles/30-07-2016_implementing_fxaa.html
+
 #version 330 core
 
 in vec2 uv;

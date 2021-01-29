@@ -53,6 +53,40 @@ Refer to `CMakeLists.txt` for the build configuration and necessary dependencies
 * The `Context` class holds `MouseState`, `Environment` (which contains the Cube Map, Lights, Camera) and `MeshEntityList` (all of the transformable mesh objects). To further generalize the renderer to other applications beyond the assignment, I intend to move the `MeshEntityList` into the `Environment`, which would then be renamed scene.
 * The `lib` directory contains the general editor source code, while `src` adds specific functionality such as a `Context` class descendant to fulfill the assignment. The intention is to separate concerns and make the library extensible.
 
+## Post Assignment Submission Additions
+
+### Post-Processing
+
+![post-proceessing_bw](images/post-proceessing_bw.png)
+
+Notes:
+
+`shaders/offscreen_vert.glsl` creates a fullscreen triangle without an additional vertex buffer and `shaders/offscreen_frag.glsl` applies the fragment post processing.
+
+### Selected Mesh Outline Effect
+
+![mesh-selection_outline](images/mesh-selection_outline.png)
+
+Notes:
+
+Selecting a mesh will display an outline around it and will draw its shape irrespective of occlusion.
+
+### Anti-Aliasing
+
+* MSAA
+  * Toggle with `.`
+* FXAA
+  * Toggle with `/`
+
+### Fixed Render Resolution
+
+A fixed render framebuffer resolution is set during initialization (1080p in the example src). The render framebuffer attachments are blitted to render to the window buffer.
+
+### Others
+
+* Movable lights
+* Light instancing
+
 ## Assignment 4
 
 Since Assignment 4 builds on Assignment 3, the same code base was used and the Assignment 3 README was added to accordingly. The description of Assignment 3 is below Assignment 4 in the README and explains foundational functionality.
@@ -221,3 +255,9 @@ Directions:
 * The mouse controls are identical to the Free Camera except now the camera moves along a sphere.
 
 Note: Orthographic projection for the trackball camera has an additional zoom feature using the scroll wheel that just scales the view.
+
+
+# Credits
+
+* Much of the project was built with [LearnOpenGL](https://learnopengl.com/) as reference.
+* Other sources credited where applicable in source code.
