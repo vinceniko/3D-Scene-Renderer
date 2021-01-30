@@ -109,7 +109,7 @@ void GL_CubeMapEntity::init(const std::string& dir_path, bool flip) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
-void GL_CubeMapEntity::draw(ShaderProgram& program) {
+void GL_CubeMapEntity::draw() {
     glDepthFunc(GL_LEQUAL);
 
     glActiveTexture(GL_TEXTURE0);
@@ -117,7 +117,9 @@ void GL_CubeMapEntity::draw(ShaderProgram& program) {
     bind();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    cube_entity_.draw_minimal(program);
+    cube_entity_.draw_minimal();
 
     glDepthFunc(GL_LESS);
+
+    unbind();
 }

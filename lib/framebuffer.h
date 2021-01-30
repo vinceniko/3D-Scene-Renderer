@@ -315,9 +315,10 @@ public:
         check_gl_error();
 #endif
     }
-    void bind(ShaderProgram& program) {
-        Uniform("u_offscreen_tex").buffer(program, 0);
-        Uniform("u_depth_map").buffer(program, 1);
+    void bind_offscreen() {
+        Renderer::get().bind(ShaderPrograms::OFFSCREEN);
+        Uniform("u_offscreen_tex").buffer(0);
+        Uniform("u_depth_map").buffer(1);
 
         get_tex().bind(GL_TEXTURE0);
         depth_tex_.bind(GL_TEXTURE1);
@@ -383,10 +384,10 @@ public:
         check_gl_error();
 #endif
     }
-    void bind(ShaderProgramCtx& programs) {
-        programs.bind(ShaderPrograms::OFFSCREEN);
-        Uniform("u_offscreen_tex").buffer(programs.get_selected_program(), 0);
-        Uniform("u_depth_map").buffer(programs.get_selected_program(), 1);
+    void bind_offscreen() {
+        Renderer::get().bind(ShaderPrograms::OFFSCREEN);
+        Uniform("u_offscreen_tex").buffer(0);
+        Uniform("u_depth_map").buffer(1);
 
         get_tex().bind(GL_TEXTURE0);
 

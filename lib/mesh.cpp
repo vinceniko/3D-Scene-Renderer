@@ -169,7 +169,7 @@ glm::vec3 Mesh::calc_scale() const {
     return glm::vec3{ 1.f / max_dist };
 }
 
-void GLMesh::init(ShaderProgram& program, int VAO, uint32_t VBO, uint32_t EBO) {
+void GLMesh::init(int VAO, uint32_t VBO, uint32_t EBO) {
     // bind to VAO
     glBindVertexArray(VAO);
     // buffer data to VBO
@@ -184,13 +184,13 @@ void GLMesh::init(ShaderProgram& program, int VAO, uint32_t VBO, uint32_t EBO) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * TRI * get_faces().size(), get_faces().data(), GL_STATIC_DRAW);
 
     // vertex positions
-    int32_t position_id = program.attrib("a_pos");
+    int32_t position_id = Renderer::get().attrib("a_pos");
     if (position_id < 0) {
         throw std::runtime_error("gl vertex attribute not found: a_pos");
     }
     glEnableVertexAttribArray(position_id);
 
-    int32_t normal_id = program.attrib("a_normal");
+    int32_t normal_id = Renderer::get().attrib("a_normal");
     if (normal_id < 0) {
         throw std::runtime_error("gl vertex attribute not found: a_normal");
     }
@@ -258,19 +258,19 @@ float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 wo
     return min_dist;
 }
 
-void MeshEntity::buffer(ShaderProgram& program) {
-    model_uniform_.buffer(program, trans_);
-    glUniform3f(program.uniform("u_object_color"), color_.r, color_.g, color_.b);
+void MeshEntity::buffer() {
+    u_model_trans.buffer(trans_);
+    u_object_color.buffer(glm::vec3(color_.r, color_.g, color_.b));
 }
 
-void MeshEntity::draw(ShaderProgram& program) {
+void MeshEntity::draw() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
     const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
     glBindVertexArray(mesh_ref.VAO_);
 
-    buffer(program);
+    buffer();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
@@ -280,29 +280,15 @@ void MeshEntity::draw(ShaderProgram& program) {
 #endif
 }
 
-void MeshEntity::draw_minimal(ShaderProgram& program) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
-
-    glBindVertexArray(mesh_ref.VAO_);
-
-    model_uniform_.buffer(program, trans_);
-
-    glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
-
-#ifdef DEBUG
-    check_gl_error();
-#endif
-}
-
-void MeshEntity::draw_none(ShaderProgram& program) {
+void MeshEntity::draw_minimal() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
 
     glBindVertexArray(mesh_ref.VAO_);
 
+    u_model_trans.buffer(trans_);
+
     glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
 
 #ifdef DEBUG
@@ -310,14 +296,28 @@ void MeshEntity::draw_none(ShaderProgram& program) {
 #endif
 }
 
-void MeshEntity::draw_wireframe(ShaderProgram& program) {
+void MeshEntity::draw_none() {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
+
+    glBindVertexArray(mesh_ref.VAO_);
+
+    glDrawElements(GL_TRIANGLES, mesh_ref.get_faces().size() * TRI, GL_UNSIGNED_INT, 0);
+
+#ifdef DEBUG
+    check_gl_error();
+#endif
+}
+
+void MeshEntity::draw_wireframe() {
     glDisable(GL_CULL_FACE);
 
     const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
 
     glBindVertexArray(mesh_ref.VAO_);
 
-    buffer(program);
+    buffer();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     // // glLineWidth doesn't work, maybe an Apple driver bug 
@@ -331,7 +331,7 @@ void MeshEntity::draw_wireframe(ShaderProgram& program) {
 #endif
 }
 
-MeshEntityList MeshFactory::push(ShaderProgram& program, std::vector<Mesh> meshes) {
+MeshEntityList MeshFactory::push(std::vector<Mesh> meshes) {
     // gen gl objects
     std::vector<uint> VAOs(meshes.size()), VBOs(meshes.size()), EBOs(meshes.size());
     glGenVertexArrays(meshes.size(), VAOs.data());
@@ -344,7 +344,7 @@ MeshEntityList MeshFactory::push(ShaderProgram& program, std::vector<Mesh> meshe
 
     for (uint i = 0; i < meshes.size(); i++) {
         // assign gl objects and commit to mesh list
-        meshes_.push_back(std::make_unique<GLMesh>(program, VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i])));
+        meshes_.push_back(std::make_unique<GLMesh>(VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i])));
 
 #ifdef DEBUG
         check_gl_error();
@@ -367,14 +367,14 @@ MeshEntity MeshFactory::get_mesh_entity(size_t i) {
     return MeshEntity{ *this, i };
 }
 
-void MeshEntityList::draw(ShaderProgram& program) {
+void MeshEntityList::draw() {
     for (auto& mesh : *this) {
-        mesh->draw(program);
+        mesh->draw();
     }
 }
-void MeshEntityList::draw_wireframes(ShaderProgram& program) {
+void MeshEntityList::draw_wireframes() {
     for (auto& mesh : *this) {
-        mesh->draw_wireframe(program);
+        mesh->draw_wireframe();
     }
 }
 

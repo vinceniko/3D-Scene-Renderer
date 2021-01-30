@@ -16,7 +16,7 @@
 #include "rendereable.h"
 #include "spatial.h"
 #include "triangle.h"
-#include "shader.h"
+
 
 #include <optional>
 #include <memory>
@@ -99,18 +99,18 @@ public:
 struct GLMesh : public Mesh {
     uint32_t VAO_, VBO_, EBO_;
 
-    void init(ShaderProgram& program, int VAO, uint32_t VBO, uint32_t EBO);
+    void init(int VAO, uint32_t VBO, uint32_t EBO);
 
 public:
-    GLMesh(ShaderProgram& program, Mesh&& mesh) : Mesh(std::move(mesh)) {
+    GLMesh(Mesh&& mesh) : Mesh(std::move(mesh)) {
         glGenVertexArrays(1, &VAO_);
         glGenBuffers(1, &VBO_);
         glGenBuffers(1, &EBO_);
 
-        init(program, VAO_, VBO_, EBO_);
+        init(VAO_, VBO_, EBO_);
     }
-    GLMesh(ShaderProgram& program, uint32_t VAO, uint32_t VBO, uint32_t EBO, Mesh&& mesh) : VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(std::move(mesh)) {
-        init(program, VAO_, VBO_, EBO_);
+    GLMesh(uint32_t VAO, uint32_t VBO, uint32_t EBO, Mesh&& mesh) : VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(std::move(mesh)) {
+        init(VAO_, VBO_, EBO_);
     }
 
     uint32_t get_VAO() const {
@@ -142,9 +142,9 @@ class MeshEntity : public Spatial, public ShaderObject {
     // the index into the list of meshes in GLMeshCtx
     size_t id_;
 
-    Uniform model_uniform_{ "u_model_trans" };
+    Uniform u_model_trans{ "u_model_trans" };
+    Uniform u_object_color{ "u_object_color" };
     glm::vec3 color_;
-    
 
     MeshEntity(MeshFactory& ctx, size_t id);
 
@@ -155,14 +155,14 @@ public:
     void set_color(glm::vec3 new_color);
     glm::vec3 get_color() const;
 
-    void buffer(ShaderProgram& program);
+    void buffer();
 
-    void draw(ShaderProgram& program) override;
+    void draw() override;
     // draw only with the vbo, no render state mutate, model trans buffered
-    void draw_minimal(ShaderProgram& program);
+    void draw_minimal();
     // draw only with the vbo, no render state mutate, model trans not buffered
-    void draw_none(ShaderProgram& program);
-    void draw_wireframe(ShaderProgram& program);
+    void draw_none();
+    void draw_wireframe();
 
     float intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const;
 
@@ -192,8 +192,8 @@ public:
         std::cout << "Attempting to delete unowned MeshEntity" << std::endl;
 #endif
     }
-    void draw(ShaderProgram& program);
-    void draw_wireframes(ShaderProgram& program);
+    void draw();
+    void draw_wireframes();
 };
 
 // holds mesh prototypes from which to generate MeshEntities
@@ -211,19 +211,19 @@ class MeshFactory {
         return static_cast<int>(n) - static_cast<int>(DefMeshList::NUM_DEF_MESHES);
     }
 
-    MeshFactory(ShaderProgram& program) : meshes_() {
-        push(program, std::vector<Mesh>{ UnitCube{}, Quad{}, Sphere{}, Torus{} });
+    MeshFactory() : meshes_() {
+        push(std::vector<Mesh>{ UnitCube{}, Quad{}, Sphere{}, Torus{} });
     }
 
 public:
     static MeshFactory& get() {
-        static MeshFactory mesh_factory{ ShaderProgramCtx::get().get_selected_program() };
+        static MeshFactory mesh_factory{};
         return mesh_factory;
     }
 
     MeshFactory(const MeshFactory&) = delete;
 
-    MeshEntityList push(ShaderProgram& program, std::vector<Mesh> meshes);
+    MeshEntityList push(std::vector<Mesh> meshes);
 
     const std::vector<std::unique_ptr<GLMesh>>& get_meshes() const;
 

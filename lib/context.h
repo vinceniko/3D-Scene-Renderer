@@ -6,7 +6,7 @@
 
 #include "camera.h"
 #include "mesh.h"
-#include "shader.h"
+
 #include "environment.h"
 
 #ifdef DEBUG
@@ -53,7 +53,6 @@ class Context {
 public:
     int base_width_;
     int base_height_;
-    ShaderProgramCtx& programs = ShaderProgramCtx::get();
 
     MeshFactory& mesh_factory = MeshFactory::get();
     MeshEntityList mesh_list;

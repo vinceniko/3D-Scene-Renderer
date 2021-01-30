@@ -9,7 +9,6 @@
 
 #include "definitions.h"
 #include "renderer.h"
-#include "shader.h"
 #include "spatial.h"
 
 #ifdef DEBUG
@@ -130,8 +129,8 @@ class GLCamera {
     Uniform view_uniform_;
     Uniform projection_uniform_;
 
-    void buffer_view_uniform(ShaderProgram& program);
-    void buffer_projection_uniform(ShaderProgram& program);
+    void buffer_view_uniform();
+    void buffer_projection_uniform();
 public:
     GLCamera(std::unique_ptr<Camera> camera);
 
@@ -143,5 +142,5 @@ public:
     const Camera* operator ->() const;
 
     // buffers the data. used to update gl state after mutating program state
-    void buffer(ShaderProgram& program);
+    void buffer();
 };

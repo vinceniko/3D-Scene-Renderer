@@ -1,7 +1,7 @@
 #pragma once
 
 #include "renderer.h"
-#include "shader.h"
+
 
 class ShaderObject {
     ShaderPrograms shader_ = ShaderPrograms::PHONG;
@@ -28,5 +28,5 @@ public:
         return dynamic_refl_;
     }
 
-    virtual void draw(ShaderProgram& program) = 0;
+    virtual void draw() = 0;
 };

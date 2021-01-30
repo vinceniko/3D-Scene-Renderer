@@ -51,19 +51,19 @@ struct Light {
     Uniform u_light_vp_{ "u_light_vp" };
 
     Light(std::string&& kind, LightTraits light_traits, glm::mat4 projection = glm::mat4{ 1.f }) : uniform_prefix_(kind), light_traits_(light_traits), projection_(projection) {}
-    void buffer(ShaderProgram& program) {
+    void buffer() {
         u_ambient_.name_ = uniform_prefix_ + ".ambient";
         u_diffuse_.name_ = uniform_prefix_ + ".diffuse";
         u_specular_.name_ = uniform_prefix_ + ".specular";
         u_shininess_.name_ = uniform_prefix_ + ".shininess";
 
-        u_ambient_.buffer(program, light_traits_.ambient_.get_trait());
-        u_diffuse_.buffer(program, light_traits_.diffuse_.get_trait());
-        u_specular_.buffer(program, light_traits_.specular_.get_trait());
-        u_shininess_.buffer(program, light_traits_.shininess_);
+        u_ambient_.buffer(light_traits_.ambient_.get_trait());
+        u_diffuse_.buffer(light_traits_.diffuse_.get_trait());
+        u_specular_.buffer(light_traits_.specular_.get_trait());
+        u_shininess_.buffer(light_traits_.shininess_);
     }
-    void buffer_shadows(ShaderProgram& program, glm::mat4 light_vp) {
-        u_light_vp_.buffer(program, light_vp);
+    void buffer_shadows(glm::mat4 light_vp) {
+        u_light_vp_.buffer(light_vp);
     }
     void set_color(glm::vec3 color) {
         light_traits_.ambient_.color_ = color;
@@ -84,16 +84,16 @@ struct DirLight : public Light, public Spatial {
     DirLight(glm::vec3 direction, LightTraits light_traits) : Light("dir_light", light_traits, glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.01f, 20.f)) {
         set_trans(glm::lookAt(-direction, direction, glm::vec3(0.f, 0.f, 1.f)));
     }
-    void buffer(ShaderProgram& program) {
-        Light::buffer(program);
+    void buffer() {
+        Light::buffer();
 
         u_direction_.name_ = uniform_prefix_ + ".direction";
 
-        u_direction_.buffer(program, look_direction());
+        u_direction_.buffer(look_direction());
     }
-    void buffer_shadows(ShaderProgram& program) {
+    void buffer_shadows() {
         glm::mat4 light_vp = projection_ * get_trans();
-        Light::buffer_shadows(program, light_vp);
+        Light::buffer_shadows(light_vp);
     }
 };
 
@@ -128,8 +128,8 @@ struct PointLight : public Light, public MeshEntity {
         translate(glm::mat4{ 1.f }, position);
         MeshEntity::set_color(glm::vec3{ 1.f });
     }
-    void buffer(ShaderProgram& program) {
-        Light::buffer(program);
+    void buffer() {
+        Light::buffer();
 
         u_constant.name_ = uniform_prefix_ + ".constant";
         u_linear.name_ = uniform_prefix_ + ".linear";
@@ -137,11 +137,11 @@ struct PointLight : public Light, public MeshEntity {
 
         u_position.name_ = uniform_prefix_ + ".position";
 
-        u_constant.buffer(program, attenuation_.constant);
-        u_linear.buffer(program, attenuation_.linear);
-        u_quadratic.buffer(program, attenuation_.quadratic);
+        u_constant.buffer(attenuation_.constant);
+        u_linear.buffer(attenuation_.linear);
+        u_quadratic.buffer(attenuation_.quadratic);
 
-        u_position.buffer(program, get_origin());
+        u_position.buffer(get_origin());
     }
 };
 
@@ -151,7 +151,7 @@ struct PointLights : public std::vector<std::shared_ptr<PointLight>> {
     Uniform u_num_lights{"u_num_point_lights"};
 
     PointLights(PointLights&& point_lights) : vector(point_lights) {}
-    void buffer(ShaderProgram& program) {
+    void buffer() {
         uint32_t i = 0;
         for (auto& light_ptr : *this) {
             auto& light = *light_ptr;
@@ -161,16 +161,16 @@ struct PointLights : public std::vector<std::shared_ptr<PointLight>> {
             ss << "s[" << i << "]";
             light.uniform_prefix_ += ss.str();
 
-            light.buffer(program);
+            light.buffer();
             light.uniform_prefix_ = old_prefix;
             
             i++;
         }
-        u_num_lights.buffer(program, static_cast<int>(size()));
+        u_num_lights.buffer(static_cast<int>(size()));
     }
-    void draw(ShaderProgram& program) {
+    void draw() {
         for (auto& light : *this) {
-            light->draw(program);
+            light->draw();
         }
     }
 };
@@ -179,9 +179,9 @@ struct DebugShadows {
     Uniform u_debug{ "u_debug_shadows" };
     bool debug_ = false;
 
-    void buffer(ShaderProgram& program) {
+    void buffer() {
         try {
-            u_debug.buffer(program, debug_);
+            u_debug.buffer(debug_);
         }
         catch (const std::runtime_error& e) {
 #ifdef DEBUG

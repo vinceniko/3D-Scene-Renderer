@@ -45,9 +45,13 @@ bool _check_gl_error(const char* file, int line);
 #endif
 
 #include "definitions.h"
-#include "utilities.h"
 #include "filewatcher.h"
+#include "utilities.h"
+
 #include <exception>
+#include <iostream>
+#include <limits>
+#include <vector>
 
 enum ShaderType {
     FRAG,
@@ -145,13 +149,103 @@ public:
     void reload_frag(const std::string& f_path);
 };
 
+const std::string SHADER_PATH = "../shaders/";
+
+// default available programs. enumerations use negative values so that user extensions can be 0 based
+// these enumerations represent indices
+enum ShaderPrograms {
+    NUM_SHADERS = 13,
+
+    DEF_SHADER = -ShaderPrograms::NUM_SHADERS,
+    FLAT,
+    PHONG,
+    NORMALS,
+    ENV,
+    REFLECT,
+    REFRACT,
+    SHADOWS,
+    SHADOW_MAP,
+    OUTLINE,
+    GRID,
+    OFFSCREEN,
+    FXAA,
+};
+
+// extra modes for drawing. mostly for debug purposes, such as wireframe.
+enum DrawMode {
+    DEF_DRAW_MODE,
+    WIREFRAME,
+    WIREFRAME_ONLY,
+    DRAW_NORMALS,
+
+    NUM_DRAWMODES = 4,
+};
+
+// binds shader programs
+class Renderer : public std::vector<std::unique_ptr<ShaderProgramFile>> {
+    int selected_ = -1;
+
+    int get_selected_idx() const;
+    void set_selected_idx(int n);
+
+    FileWatcher file_watcher_{ 1000 };
+
+    Renderer();
+    Renderer(Renderer&&) = default;
+
+public:
+    static Renderer& get() {
+        static Renderer renderer;
+        return renderer;
+    }
+
+    Renderer(const Renderer&) = delete;
+
+    static size_t get(int n);
+    ShaderProgram& get_program(int n) {
+        return *(*this)[get(n)];
+    }
+    void bind(ShaderPrograms n);
+    ShaderProgram& get_selected_program();
+    ShaderProgram& get_selected_program() const;
+    ShaderPrograms get_selected();
+    void reload();
+
+    // Return the OpenGL handle of a named shader attribute (-1 if it does not exist)
+    int32_t attrib(const std::string& name) const {
+        return get_selected_program().attrib(name);
+    }
+    // Return the OpenGL handle of a uniform attribute (-1 if it does not exist)
+    int32_t uniform(const std::string& name) const {
+        return get_selected_program().uniform(name);
+    }
+};
+
+// cycles through values of T in the vector
+template <typename T>
+class Cycler : std::vector<T> {
+    size_t idx = 0;
+public:
+    using std::vector<T>::vector;
+
+    T cycle() {
+        return (*this)[(idx += 1) %= this->size()];
+    }
+};
+
+// the draw modes that the program will cycle through
+class DrawModeCycler : public Cycler<DrawMode> { using Cycler::Cycler; };
+
+// the shaders that the program will cycle through
+class ShaderCycler : public Cycler<ShaderPrograms> { using Cycler::Cycler; };
+
 struct Uniform {
     std::string name_;
 
     Uniform() {}
     Uniform(std::string name) : name_(name) {}
-    void buffer(ShaderProgram& program, const float& val) {
-        int32_t id = program.uniform(name_);
+    void buffer(const float& val) {
+        int32_t id = Renderer::get().uniform(name_);
         check_error(id);
 
         glUniform1f(id, val);
@@ -159,8 +253,8 @@ struct Uniform {
         check_gl_error();
 #endif
     }
-    void buffer(ShaderProgram& program, const glm::mat4& val) {
-        int32_t id = program.uniform(name_);
+    void buffer(const glm::mat4& val) {
+        int32_t id = Renderer::get().uniform(name_);
         check_error(id);
 
         glUniformMatrix4fv(id, 1, GL_FALSE, (float*)&val[0][0]);
@@ -168,8 +262,8 @@ struct Uniform {
         check_gl_error();
 #endif
     }
-    void buffer(ShaderProgram& program, const glm::vec3& val) {
-        int32_t id = program.uniform(name_);
+    void buffer(const glm::vec3& val) {
+        int32_t id = Renderer::get().uniform(name_);
         check_error(id);
 
         glUniform3f(id, val[0], val[1], val[2]);
@@ -177,8 +271,8 @@ struct Uniform {
         check_gl_error();
 #endif
     }
-    void buffer(ShaderProgram& program, const bool& val) {
-        int32_t id = program.uniform(name_);
+    void buffer(const bool& val) {
+        int32_t id = Renderer::get().uniform(name_);
         check_error(id);
 
         glUniform1ui(id, static_cast<unsigned int>(val));
@@ -186,8 +280,8 @@ struct Uniform {
         check_gl_error();
 #endif
     }
-    virtual void buffer(ShaderProgram& program, const int& val) {
-        int32_t id = program.uniform(name_);
+    virtual void buffer(const int& val) {
+        int32_t id = Renderer::get().uniform(name_);
         check_error(id);
 
         glUniform1i(id, val);

@@ -68,7 +68,7 @@ public:
     GL_CubeMapEntity() {}
 
     void init(const std::string& dir_path, bool flip = false) override;
-    void draw(ShaderProgram& programs);
+    void draw();
 };
 
 class Def_GL_CubeMapEntity : public GL_CubeMapEntity {

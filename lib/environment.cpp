@@ -7,11 +7,11 @@ void Environment::bind_dynamic() {
     cubemap_fbo_.bind();
 }
 
-void Environment::buffer(ShaderProgram& program) {
-    camera.buffer(program);
+void Environment::buffer() {
+    camera.buffer();
     try {
-        dir_light_.buffer_shadows(program);
-        buffer_lights(program);
+        dir_light_.buffer_shadows();
+        buffer_lights();
     }
     catch (const std::runtime_error& e) {
         // doing nothing is acceptable here, shader doesn't have the appropriate light uniform
@@ -20,48 +20,48 @@ void Environment::buffer(ShaderProgram& program) {
 #endif
     }
 }
-void Environment::buffer_lights(ShaderProgram& program) {
-    dir_light_.buffer(program);
-    point_lights_.buffer(program);
+void Environment::buffer_lights() {
+    dir_light_.buffer();
+    point_lights_.buffer();
 }
-void Environment::buffer_shadows(ShaderProgram& program) {
-    dir_light_.buffer_shadows(program);
+void Environment::buffer_shadows() {
+    dir_light_.buffer_shadows();
 }
-void Environment::draw_lights(ShaderProgram& program) {
-    buffer(program);
-    point_lights_.draw(program);
+void Environment::draw_lights() {
+    buffer();
+    point_lights_.draw();
 }
-void Environment::draw_shadows(ShaderProgramCtx& programs, GL_FBO& main_fbo, MeshEntityList& mesh_list) {
-    programs.bind(ShaderPrograms::SHADOWS);
-    dir_light_.buffer_shadows(programs.get_selected_program());
+void Environment::draw_shadows(GL_FBO& main_fbo, MeshEntityList& mesh_list) {
+    Renderer::get().bind(ShaderPrograms::SHADOWS);
+    dir_light_.buffer_shadows();
     // disable culling to prevent shadow bias issue
     glDisable(GL_CULL_FACE);
     // glCullFace(GL_FRONT);
     for (auto& mesh : mesh_list) {
-        mesh->draw_minimal(programs.get_selected_program());
+        mesh->draw_minimal();
     }
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 }
 
-void Environment::draw_static_scene(ShaderProgramCtx& programs) {
+void Environment::draw_static_scene() {
     bind_static();
-    programs.bind(ShaderPrograms::PHONG);
+    Renderer::get().bind(ShaderPrograms::PHONG);
     // // not necesary anymore since the point lights are drawn with MeshEntities
-    // draw_lights(programs.get_selected_program());
-    draw_static_cubemap(programs);
+    // draw_lights();
+    draw_static_cubemap();
 }
 
-void Environment::draw_static_cubemap(ShaderProgramCtx& programs) {
+void Environment::draw_static_cubemap() {
     bind_static();
-    programs.bind(ShaderPrograms::PHONG);
+    Renderer::get().bind(ShaderPrograms::PHONG);
 
     glm::mat4 old_view = camera->get_view();
     glm::mat4 w_out_scale = glm::lookAt(camera->get_position(), glm::vec3(glm::inverse(old_view) * glm::vec4(0.f, 0.f, -1.f, 0.f)), glm::vec3(0.f, camera->get_up(), 0.f));
     camera->set_view(w_out_scale);
 
-    ShaderPrograms selected = programs.get_selected();
-    programs.bind(ShaderPrograms::ENV);
+    ShaderPrograms selected = Renderer::get().get_selected();
+    Renderer::get().bind(ShaderPrograms::ENV);
 
     Camera::Projection old_mode = camera->get_projection_mode();
     float old_fov = camera->get_fov();
@@ -69,22 +69,22 @@ void Environment::draw_static_cubemap(ShaderProgramCtx& programs) {
     camera->set_view(view_w_out_trans);
     camera->set_projection_mode(Camera::Projection::Perspective);
     camera->set_fov(fov_);
-    camera.buffer(programs.get_selected_program());
+    camera.buffer();
 
-    cube_map_->draw(programs.get_selected_program());
+    cube_map_->draw();
 
     camera->set_fov(old_fov);
     camera->set_projection_mode(old_mode);
     camera->set_view(old_view);
-    programs.bind(selected);
+    Renderer::get().bind(selected);
 
     cube_map_->unbind();
 }
 
-void Environment::draw_dynamic_cubemap(ShaderProgramCtx& programs, GL_FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f) {
+void Environment::draw_dynamic_cubemap(GL_FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f) {
     bind_dynamic();
 
-    ShaderPrograms selected = programs.get_selected();
+    ShaderPrograms selected = Renderer::get().get_selected();
 
     std::array<const glm::vec3, 6> dirs = {
         glm::vec3(10.f, 0.f, 0.f),
@@ -119,10 +119,10 @@ void Environment::draw_dynamic_cubemap(ShaderProgramCtx& programs, GL_FBO& main_
         cubemap_fbo_.next_face(i);
 
         // draw env
-        programs.bind(ShaderPrograms::ENV);
+        Renderer::get().bind(ShaderPrograms::ENV);
         camera->set_view(glm::lookAt(glm::vec3(0), glm::vec3(dir), up[i]));
-        camera.buffer(programs.get_selected_program());
-        cube_map_->draw(programs.get_selected_program());
+        camera.buffer();
+        cube_map_->draw();
 
         glm::mat4 looking_at = glm::lookAt(mesh_entity.get_origin(), mesh_entity.get_origin() + dir, up[i]);
         camera->set_view(looking_at);
@@ -145,7 +145,7 @@ void Environment::draw_dynamic_cubemap(ShaderProgramCtx& programs, GL_FBO& main_
 
     cubemap_fbo_.unbind(main_fbo);
 
-    programs.bind(selected);
+    Renderer::get().bind(selected);
 
     cube_map_->unbind();
 }
