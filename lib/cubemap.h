@@ -15,9 +15,9 @@ const std::string DEF_CUBE_MAP_DIR_PATH = "../data/day_sky_env/";
 // init should be explicitly called
 class GL_CubeMapTex : public GL_Texture {
 public:
-    GL_CubeMapTex() : GL_Texture(GL_TEXTURE_CUBE_MAP) {}
-    GL_CubeMapTex(int width) : GL_Texture(GL_TEXTURE_CUBE_MAP, width, width) {}
-    GL_CubeMapTex(int width, int height) : GL_Texture(GL_TEXTURE_CUBE_MAP, width, height) {}
+    GL_CubeMapTex() : GL_Texture(GL_TEXTURE_CUBE_MAP) { init(); }
+    GL_CubeMapTex(int width) : GL_Texture(GL_TEXTURE_CUBE_MAP, width, width) { init(); }
+    GL_CubeMapTex(int width, int height) : GL_Texture(GL_TEXTURE_CUBE_MAP, width, height) { init(); }
 
     // create an empty cubemap
     void init() override;
