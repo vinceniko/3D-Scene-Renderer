@@ -96,7 +96,7 @@ public:
 };
 
 // holds mesh and GL vertex info
-struct GLMesh : public Mesh {
+struct GLMesh : public Mesh, public RenderObj {
     uint32_t VAO_, VBO_, EBO_;
 
     void init(int VAO, uint32_t VBO, uint32_t EBO);

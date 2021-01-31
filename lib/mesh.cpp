@@ -184,13 +184,13 @@ void GLMesh::init(int VAO, uint32_t VBO, uint32_t EBO) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * TRI * get_faces().size(), get_faces().data(), GL_STATIC_DRAW);
 
     // vertex positions
-    int32_t position_id = Renderer::get().attrib("a_pos");
+    int32_t position_id = renderer_->attrib("a_pos");
     if (position_id < 0) {
         throw std::runtime_error("gl vertex attribute not found: a_pos");
     }
     glEnableVertexAttribArray(position_id);
 
-    int32_t normal_id = Renderer::get().attrib("a_normal");
+    int32_t normal_id = renderer_->attrib("a_normal");
     if (normal_id < 0) {
         throw std::runtime_error("gl vertex attribute not found: a_normal");
     }

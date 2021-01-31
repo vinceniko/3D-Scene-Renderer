@@ -5,7 +5,7 @@
 #include "renderer.h"
 #include "cubemap.h"
 
-class GL_FBO : public Canvas {
+class GL_FBO : public Canvas, public RenderObj {
 protected:
     uint32_t fbo_ = 0;
     virtual void init() {
@@ -316,7 +316,7 @@ public:
 #endif
     }
     void bind_offscreen() {
-        Renderer::get().bind(ShaderPrograms::OFFSCREEN);
+        renderer_->bind(ShaderPrograms::OFFSCREEN);
         Uniform("u_offscreen_tex").buffer(0);
         Uniform("u_depth_map").buffer(1);
 
@@ -385,7 +385,7 @@ public:
 #endif
     }
     void bind_offscreen() {
-        Renderer::get().bind(ShaderPrograms::OFFSCREEN);
+        renderer_->bind(ShaderPrograms::OFFSCREEN);
         Uniform("u_offscreen_tex").buffer(0);
         Uniform("u_depth_map").buffer(1);
 

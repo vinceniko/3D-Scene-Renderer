@@ -239,13 +239,22 @@ class DrawModeCycler : public Cycler<DrawMode> { using Cycler::Cycler; };
 // the shaders that the program will cycle through
 class ShaderCycler : public Cycler<ShaderPrograms> { using Cycler::Cycler; };
 
-struct Uniform {
+class RenderObj {
+protected:
+    Renderer* renderer_;
+
+public:
+    RenderObj() : renderer_(&Renderer::get()) {}
+    RenderObj(Renderer* renderer) : renderer_(renderer) {}
+};
+
+struct Uniform : public RenderObj {
     std::string name_;
 
     Uniform() {}
     Uniform(std::string name) : name_(name) {}
     void buffer(const float& val) {
-        int32_t id = Renderer::get().uniform(name_);
+        int32_t id = renderer_->uniform(name_);
         check_error(id);
 
         glUniform1f(id, val);
@@ -254,7 +263,7 @@ struct Uniform {
 #endif
     }
     void buffer(const glm::mat4& val) {
-        int32_t id = Renderer::get().uniform(name_);
+        int32_t id = renderer_->uniform(name_);
         check_error(id);
 
         glUniformMatrix4fv(id, 1, GL_FALSE, (float*)&val[0][0]);
@@ -263,7 +272,7 @@ struct Uniform {
 #endif
     }
     void buffer(const glm::vec3& val) {
-        int32_t id = Renderer::get().uniform(name_);
+        int32_t id = renderer_->uniform(name_);
         check_error(id);
 
         glUniform3f(id, val[0], val[1], val[2]);
@@ -272,7 +281,7 @@ struct Uniform {
 #endif
     }
     void buffer(const bool& val) {
-        int32_t id = Renderer::get().uniform(name_);
+        int32_t id = renderer_->uniform(name_);
         check_error(id);
 
         glUniform1ui(id, static_cast<unsigned int>(val));
@@ -281,7 +290,7 @@ struct Uniform {
 #endif
     }
     virtual void buffer(const int& val) {
-        int32_t id = Renderer::get().uniform(name_);
+        int32_t id = renderer_->uniform(name_);
         check_error(id);
 
         glUniform1i(id, val);

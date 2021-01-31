@@ -6,7 +6,7 @@
 #include "camera.h"
 #include "light.h"
 
-class Environment {
+class Environment : public RenderObj {
     float fov_ = 50.0;
 
 public:
