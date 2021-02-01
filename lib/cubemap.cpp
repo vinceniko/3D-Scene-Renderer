@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-void GL_CubeMapTex::init() {
+void CubeMapTex::init() {
     bind();
 
     for (int i = 0; i < 6; i++) {
@@ -45,7 +45,7 @@ CubeMapLoader::CubeMapFace CubeMapLoader::decode_face(const std::string& kind) {
     throw std::runtime_error("Error decoding CubeMap face: " + kind);
 }
 
-uint32_t GL_CubeMapEntity::gl_decode_face(CubeMapLoader::CubeMapFace face) {
+uint32_t CubeMapEntity::gl_decode_face(CubeMapLoader::CubeMapFace face) {
     switch (face) {
     case CubeMapLoader::BACK:
         return GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
@@ -77,11 +77,11 @@ CubeMapLoader::CubeMapFace CubeMapLoader::parse_path_name(const std::string& pat
     return decode_face(face_str);
 }
 
-uint32_t GL_CubeMapEntity::gl_decode_face(const std::string& path_name) {
+uint32_t CubeMapEntity::gl_decode_face(const std::string& path_name) {
     return gl_decode_face(parse_path_name(path_name));
 }
 
-void GL_CubeMapEntity::init(const std::string& dir_path, bool flip) {
+void CubeMapEntity::init(const std::string& dir_path, bool flip) {
     bind();
 
     stbi_set_flip_vertically_on_load(flip);
@@ -109,7 +109,7 @@ void GL_CubeMapEntity::init(const std::string& dir_path, bool flip) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
-void GL_CubeMapEntity::draw() {
+void CubeMapEntity::draw() {
     glDepthFunc(GL_LEQUAL);
 
     glActiveTexture(GL_TEXTURE0);

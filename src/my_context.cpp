@@ -21,7 +21,7 @@ MyContext::MyContext(Renderer* renderer, int width, int height) :
                 std::make_shared<PointLight>(glm::vec3(2.5f, 1.f, -2.5f)),
                 std::make_shared<PointLight>(glm::vec3(-2.5f, 1.f, -2.5f)),
             },
-            std::make_unique<GL_CubeMapEntity>(
+            std::make_unique<CubeMapEntity>(
                 "../data/night_env/",
                 true
             )

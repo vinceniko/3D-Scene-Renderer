@@ -96,20 +96,20 @@ public:
 };
 
 // holds mesh and GL vertex info
-struct GLMesh : public Mesh, public RenderObj {
+struct RenderMesh : public Mesh, public RenderObj {
     uint32_t VAO_, VBO_, EBO_;
 
     void init(int VAO, uint32_t VBO, uint32_t EBO);
 
 public:
-    GLMesh(Mesh&& mesh) : Mesh(std::move(mesh)) {
+    RenderMesh(Mesh&& mesh) : Mesh(std::move(mesh)) {
         glGenVertexArrays(1, &VAO_);
         glGenBuffers(1, &VBO_);
         glGenBuffers(1, &EBO_);
 
         init(VAO_, VBO_, EBO_);
     }
-    GLMesh(uint32_t VAO, uint32_t VBO, uint32_t EBO, Mesh&& mesh) : VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(std::move(mesh)) {
+    RenderMesh(uint32_t VAO, uint32_t VBO, uint32_t EBO, Mesh&& mesh) : VAO_(VAO), VBO_(VBO), EBO_(EBO), Mesh(std::move(mesh)) {
         init(VAO_, VBO_, EBO_);
     }
 
@@ -123,9 +123,9 @@ public:
         return EBO_;
     }
     // // TODO, cannot use emplace due to vector resizing deleting mem, put freeing into ctx
-    ~GLMesh() {
+    ~RenderMesh() {
 #ifdef DEBUG
-        std::cout << "Deallocating GLMesh Mem" << std::endl;
+        std::cout << "Deallocating RenderMesh Mem" << std::endl;
 #endif
         glDeleteVertexArrays(1, &VAO_);
         glDeleteBuffers(1, &VBO_);
@@ -135,11 +135,11 @@ public:
 
 class MeshFactory;
 
-// a reference to a Mesh inside the GLMeshFactory; represents one model being drawn;
+// a reference to a Mesh inside the RenderMeshFactory; represents one model being drawn;
 class MeshEntity : public Spatial, public ShaderObject {
     std::reference_wrapper<MeshFactory> ctx_;
 
-    // the index into the list of meshes in GLMeshCtx
+    // the index into the list of meshes in RenderMeshCtx
     size_t id_;
 
     Uniform u_model_trans{ "u_model_trans" };
@@ -171,12 +171,12 @@ public:
     glm::vec3 get_origin();
     glm::vec3 get_position() override;
 
-    const GLMesh& get_mesh();
+    const RenderMesh& get_mesh();
 
     // TODO draw with u_model_trans_ and update u_model_trans_ on GL side
 };
 
-// a list of MeshEntity, i.e. references to Meshes inside the GLMeshFactory; whats actually drawn
+// a list of MeshEntity, i.e. references to Meshes inside the RenderMeshFactory; whats actually drawn
 class MeshEntityList : public std::vector<std::shared_ptr<MeshEntity>> {
 public:
     using std::vector<std::shared_ptr<MeshEntity>>::vector;
@@ -197,11 +197,11 @@ public:
 };
 
 // holds mesh prototypes from which to generate MeshEntities
-// i.e. each GLMesh in meshes_ is unique
+// i.e. each RenderMesh in meshes_ is unique
 // all meshes used by the program get loaded in here once and may be drawn multiple times depending on how many MeshEntities are created
 class MeshFactory {
     // store meshes as unique pointers to avoid copy operations and so that mem gets deallocated at the end of the program
-    std::vector<std::unique_ptr<GLMesh>> meshes_;
+    std::vector<std::unique_ptr<RenderMesh>> meshes_;
 
     // n is DefMeshList or user defined MeshList
     static size_t get_from_kind(int n) {
@@ -225,7 +225,7 @@ public:
 
     MeshEntityList push(std::vector<Mesh> meshes);
 
-    const std::vector<std::unique_ptr<GLMesh>>& get_meshes() const;
+    const std::vector<std::unique_ptr<RenderMesh>>& get_meshes() const;
 
     MeshEntity get_mesh_entity(int i);
     MeshEntity get_mesh_entity(size_t i);

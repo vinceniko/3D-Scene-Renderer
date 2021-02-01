@@ -95,7 +95,7 @@ public:
     int32_t attrib(const std::string& name) const;
     // Return the OpenGL handle of a uniform attribute (-1 if it does not exist)
     int32_t uniform(const std::string& name) const;
-    
+
     bool has_geom() {
         return geometry_shader > 0;
     }

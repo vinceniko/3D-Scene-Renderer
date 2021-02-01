@@ -232,7 +232,7 @@ void Context::draw_w_mode(MeshEntity& mesh_entity) {
         draw_normals(mesh_entity);
     }
 }
-void Context::draw(GL_FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
+void Context::draw(FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities) {
     if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
         env->draw_dynamic_cubemap(main_fbo, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) {
             draw_w_mode(sec_mesh);
@@ -279,7 +279,7 @@ void Context::draw_grid() {
 }
 
 void Context::draw() {
-    GL_FBO* draw_fbo = &offscreen_fbo_;
+    FBO* draw_fbo = &offscreen_fbo_;
     if (msaa_use_) {
         draw_fbo = &offscreen_fbo_msaa_;
     }
@@ -332,7 +332,7 @@ void Context::draw() {
     }
 }
 
-void Context::draw_offscreen(GL_Offscreen_FBO& draw_fbo) {
+void Context::draw_offscreen(Offscreen_FBO& draw_fbo) {
     draw_fbo.bind_offscreen();
     // glDepthFunc(GL_ALWAYS);
     glDisable(GL_DEPTH_TEST); // not writing to depth in shader
@@ -342,7 +342,7 @@ void Context::draw_offscreen(GL_Offscreen_FBO& draw_fbo) {
     glEnable(GL_DEPTH_TEST);
 }
 
-void Context::draw_fxaa(GL_Offscreen_FBO& draw_fbo) {
+void Context::draw_fxaa(Offscreen_FBO& draw_fbo) {
     renderer_->bind(ShaderPrograms::FXAA);
     Uniform("u_offscreen_tex").buffer(0);
     draw_fbo.get_tex().bind(GL_TEXTURE0);

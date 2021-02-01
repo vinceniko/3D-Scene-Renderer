@@ -13,11 +13,11 @@ const std::string DEF_CUBE_MAP_DIR_PATH = "../data/day_sky_env/";
 
 // not initialized when constructed
 // init should be explicitly called
-class GL_CubeMapTex : public GL_Texture {
+class CubeMapTex : public Texture {
 public:
-    GL_CubeMapTex() : GL_Texture(GL_TEXTURE_CUBE_MAP) { init(); }
-    GL_CubeMapTex(int width) : GL_Texture(GL_TEXTURE_CUBE_MAP, width, width) { init(); }
-    GL_CubeMapTex(int width, int height) : GL_Texture(GL_TEXTURE_CUBE_MAP, width, height) { init(); }
+    CubeMapTex() : Texture(GL_TEXTURE_CUBE_MAP) { init(); }
+    CubeMapTex(int width) : Texture(GL_TEXTURE_CUBE_MAP, width, width) { init(); }
+    CubeMapTex(int width, int height) : Texture(GL_TEXTURE_CUBE_MAP, width, height) { init(); }
 
     // create an empty cubemap
     void init() override;
@@ -25,7 +25,7 @@ public:
         bind(GL_TEXTURE0);
     }
     void bind(uint32_t tex_unit) override {
-        GL_Texture::bind(tex_unit);
+        Texture::bind(tex_unit);
         glCullFace(GL_FRONT);
     }
     void unbind() {
@@ -57,23 +57,23 @@ public:
     virtual void init(const std::string& dir_path, bool flip = false) = 0;
 };
 
-class GL_CubeMapEntity : public GL_CubeMapTex, public CubeMapLoader {
+class CubeMapEntity : public CubeMapTex, public CubeMapLoader {
     // decode the face into the gl equivelant
     static uint32_t gl_decode_face(CubeMapFace face);
     // parse and decode the full path name into the gl equivelant
     uint32_t gl_decode_face(const std::string& path_name);
 
 public:
-    GL_CubeMapEntity(const std::string& dir_path, bool flip = false) { init(dir_path, flip); }
-    GL_CubeMapEntity() {}
+    CubeMapEntity(const std::string& dir_path, bool flip = false) { init(dir_path, flip); }
+    CubeMapEntity() {}
 
     void init(const std::string& dir_path, bool flip = false) override;
     void draw();
 };
 
-class Def_GL_CubeMapEntity : public GL_CubeMapEntity {
+class Def_CubeMapEntity : public CubeMapEntity {
 public:
-    using GL_CubeMapEntity::GL_CubeMapEntity;
+    using CubeMapEntity::CubeMapEntity;
 
-    Def_GL_CubeMapEntity() : GL_CubeMapEntity(DEF_CUBE_MAP_DIR_PATH) {}
+    Def_CubeMapEntity() : CubeMapEntity(DEF_CUBE_MAP_DIR_PATH) {}
 };

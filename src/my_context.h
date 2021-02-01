@@ -14,7 +14,7 @@ class MyContext : public Context {
     size_t camera_idx = 0;
 
     // TODO: make list, currently supports two CubeMaps, other set in constructor
-    std::unique_ptr<GL_CubeMapEntity> curr_cube_map = std::make_unique<Def_GL_CubeMapEntity>();
+    std::unique_ptr<CubeMapEntity> curr_cube_map = std::make_unique<Def_CubeMapEntity>();
 
 
 public:

@@ -61,14 +61,14 @@ public:
 
     MouseContext mouse_ctx;
 
-    GL_Offscreen_FBO offscreen_fbo_;
-    GL_Offscreen_FBO_Multisample offscreen_fbo_msaa_;
-    GL_FBO main_fbo_;
+    Offscreen_FBO offscreen_fbo_;
+    Offscreen_FBO_Multisample offscreen_fbo_msaa_;
+    FBO main_fbo_;
 
     bool msaa_use_ = false;
     bool fxaa_use_ = true;
     
-    GL_Depth_FBO depth_fbo_;
+    Depth_FBO depth_fbo_;
 
     bool draw_grid_ = true;
     bool debug_depth_map_ = false;
@@ -110,7 +110,7 @@ public:
     // draws a model based on its mode
     void draw_w_mode(MeshEntity& mesh_entity);
     // draws a model when other model's state's are also necessary; such as dynamic reflections
-    void draw(GL_FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entity_list);
+    void draw(FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entity_list);
     // draws the model using the user bound shader program
     void draw_surfaces(MeshEntity& mesh_entity);
     // draws a wireframe above the mesh
@@ -124,8 +124,8 @@ public:
     // draws the mesh normals
     void draw_normals();
     void draw_depth_map();
-    void draw_offscreen(GL_Offscreen_FBO& draw_fbo);
-    void draw_fxaa(GL_Offscreen_FBO& draw_fbo);
+    void draw_offscreen(Offscreen_FBO& draw_fbo);
+    void draw_fxaa(Offscreen_FBO& draw_fbo);
 
     void set_viewport(int width, int height);
 };

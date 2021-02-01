@@ -169,7 +169,7 @@ glm::vec3 Mesh::calc_scale() const {
     return glm::vec3{ 1.f / max_dist };
 }
 
-void GLMesh::init(int VAO, uint32_t VBO, uint32_t EBO) {
+void RenderMesh::init(int VAO, uint32_t VBO, uint32_t EBO) {
     // bind to VAO
     glBindVertexArray(VAO);
     // buffer data to VBO
@@ -235,7 +235,7 @@ glm::vec3 MeshEntity::get_color() const {
 }
 
 float MeshEntity::intersected_triangles(glm::vec3 world_ray_origin, glm::vec3 world_ray_dir) const {
-    const GLMesh& mesh = *ctx_.get().get_meshes()[id_];
+    const RenderMesh& mesh = *ctx_.get().get_meshes()[id_];
 
     glm::vec3 model_ray_origin = glm::inverse(trans_) * glm::vec4(world_ray_origin, 1.f);
     glm::vec3 model_ray_dir = glm::inverse(trans_) * glm::vec4(world_ray_dir, 0.f);
@@ -267,7 +267,7 @@ void MeshEntity::draw() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
-    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
+    const RenderMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
     glBindVertexArray(mesh_ref.VAO_);
 
     buffer();
@@ -283,7 +283,7 @@ void MeshEntity::draw() {
 void MeshEntity::draw_minimal() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
+    const RenderMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
 
     glBindVertexArray(mesh_ref.VAO_);
 
@@ -299,7 +299,7 @@ void MeshEntity::draw_minimal() {
 void MeshEntity::draw_none() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
+    const RenderMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
 
     glBindVertexArray(mesh_ref.VAO_);
 
@@ -313,7 +313,7 @@ void MeshEntity::draw_none() {
 void MeshEntity::draw_wireframe() {
     glDisable(GL_CULL_FACE);
 
-    const GLMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
+    const RenderMesh& mesh_ref = *ctx_.get().get_meshes()[id_];
 
     glBindVertexArray(mesh_ref.VAO_);
 
@@ -344,7 +344,7 @@ MeshEntityList MeshFactory::push(std::vector<Mesh> meshes) {
 
     for (uint i = 0; i < meshes.size(); i++) {
         // assign gl objects and commit to mesh list
-        meshes_.push_back(std::make_unique<GLMesh>(VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i])));
+        meshes_.push_back(std::make_unique<RenderMesh>(VAOs[i], VBOs[i], EBOs[i], std::move(meshes[i])));
 
 #ifdef DEBUG
         check_gl_error();
@@ -356,7 +356,7 @@ MeshEntityList MeshFactory::push(std::vector<Mesh> meshes) {
     return out;
 };
 
-const std::vector<std::unique_ptr<GLMesh>>& MeshFactory::get_meshes() const {
+const std::vector<std::unique_ptr<RenderMesh>>& MeshFactory::get_meshes() const {
     return meshes_;
 }
 
@@ -378,6 +378,6 @@ void MeshEntityList::draw_wireframes() {
     }
 }
 
-const GLMesh& MeshEntity::get_mesh() {
+const RenderMesh& MeshEntity::get_mesh() {
     return *ctx_.get().get_meshes()[id_];
 }

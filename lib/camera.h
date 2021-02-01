@@ -32,7 +32,7 @@ protected:
     Projection projection_mode_;
 
 public:
-    friend class GLCamera;
+    friend class RenderCamera;
 
     // defaults to perspective projection
     Camera(float aspect);
@@ -123,7 +123,7 @@ public:
 };
 
 // stores a Camera or descendent type and necessary gl info to bind to the appropriate uniforms such as the view and projection matrix transforms
-class GLCamera {
+class RenderCamera {
     std::unique_ptr<Camera> camera_;
 
     Uniform view_uniform_;
@@ -132,7 +132,7 @@ class GLCamera {
     void buffer_view_uniform();
     void buffer_projection_uniform();
 public:
-    GLCamera(std::unique_ptr<Camera> camera);
+    RenderCamera(std::unique_ptr<Camera> camera);
 
     Camera& get_camera();
     Camera* get_camera_ptr();

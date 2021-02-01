@@ -5,7 +5,7 @@
 #include "renderer.h"
 #include "cubemap.h"
 
-class GL_FBO : public Canvas, public RenderObj {
+class FBO : public Canvas, public RenderObj {
 protected:
     uint32_t fbo_ = 0;
     virtual void init() {
@@ -20,10 +20,10 @@ protected:
     virtual void unbind_() {};
 
 public:
-    GL_FBO() { init(); }
-    GL_FBO(int fbo) : fbo_(fbo) {}
-    GL_FBO(int fbo, int width, int height) : fbo_(fbo), Canvas(width, height) {}
-    ~GL_FBO() {
+    FBO() { init(); }
+    FBO(int fbo) : fbo_(fbo) {}
+    FBO(int fbo, int width, int height) : fbo_(fbo), Canvas(width, height) {}
+    ~FBO() {
         glDeleteFramebuffers(1, &fbo_);
 
 #ifdef DEBUG
@@ -43,7 +43,7 @@ public:
         check_gl_error();
 #endif
     }
-    virtual void unbind(GL_FBO& main_fbo) {
+    virtual void unbind(FBO& main_fbo) {
         main_fbo.bind();
         unbind_();
 
@@ -52,7 +52,7 @@ public:
 #endif
     }
 
-    void blit(GL_FBO& main_fbo, int bits = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, int filter = GL_NEAREST) {
+    void blit(FBO& main_fbo, int bits = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, int filter = GL_NEAREST) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, get_fbo());
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, main_fbo.get_fbo());
         glBlitFramebuffer(0, 0, get_width(), get_height(), 0, 0, main_fbo.get_width(), main_fbo.get_height(), bits, filter);
@@ -62,7 +62,7 @@ public:
 #endif
     }
 
-    virtual void blit_from(GL_FBO& main_fbo) {
+    virtual void blit_from(FBO& main_fbo) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, main_fbo.get_fbo());
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, get_fbo());
         glBlitFramebuffer(0, 0, main_fbo.get_width(), main_fbo.get_height(), 0, 0, get_width(), get_height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
@@ -73,7 +73,7 @@ public:
     }
 };
 
-class GL_FBO_RBO : public GL_FBO {
+class FBO_RBO : public FBO {
 protected:
     uint32_t rbo_ = 0;
     virtual void init() override {
@@ -86,11 +86,11 @@ protected:
     }
 
 public:
-    GL_FBO_RBO() { init(); }
-    GL_FBO_RBO(int fbo, int rbo) : GL_FBO(fbo), rbo_(rbo) {}
-    GL_FBO_RBO(int fbo, int rbo, int width, int height) : GL_FBO(fbo, width, height), rbo_(rbo) {}
+    FBO_RBO() { init(); }
+    FBO_RBO(int fbo, int rbo) : FBO(fbo), rbo_(rbo) {}
+    FBO_RBO(int fbo, int rbo, int width, int height) : FBO(fbo, width, height), rbo_(rbo) {}
 
-    ~GL_FBO_RBO() {
+    ~FBO_RBO() {
         glDeleteRenderbuffers(1, &rbo_);
 
 #ifdef DEBUG
@@ -102,7 +102,7 @@ public:
     }
 
     virtual void bind() override {
-        GL_FBO::bind();
+        FBO::bind();
         glBindRenderbuffer(GL_RENDERBUFFER, rbo_);
 
 #ifdef DEBUG
@@ -112,14 +112,14 @@ public:
 };
 
 template <typename Tex>
-class GL_FBO_Tex_Interface_Common {
+class FBO_Tex_Interface_Common {
 protected:
     Tex tex_;
 
 public:
-    GL_FBO_Tex_Interface_Common(int width) : tex_(width) {}
-    GL_FBO_Tex_Interface_Common(int width, int height) : tex_(width, height) {}
-    GL_FBO_Tex_Interface_Common(GLenum target, int width, int height) : tex_(target, width, height) {}
+    FBO_Tex_Interface_Common(int width) : tex_(width) {}
+    FBO_Tex_Interface_Common(int width, int height) : tex_(width, height) {}
+    FBO_Tex_Interface_Common(GLenum target, int width, int height) : tex_(target, width, height) {}
 
     void bind() {
         tex_.bind();
@@ -136,54 +136,54 @@ public:
 };
 
 template <typename Tex>
-class GL_FBO_Tex_Interface : public GL_FBO, public GL_FBO_Tex_Interface_Common<Tex> {
+class FBO_Tex_Interface : public FBO, public FBO_Tex_Interface_Common<Tex> {
 protected:
     virtual void unbind_() override {
-        GL_FBO_Tex_Interface_Common<Tex>::tex_.bind();
+        FBO_Tex_Interface_Common<Tex>::tex_.bind();
     }
 public:
     virtual void bind() override {
-        GL_FBO::bind();
-        GL_FBO_Tex_Interface_Common<Tex>::bind();
+        FBO::bind();
+        FBO_Tex_Interface_Common<Tex>::bind();
     }
-    using GL_FBO_Tex_Interface_Common<Tex>::GL_FBO_Tex_Interface_Common;
+    using FBO_Tex_Interface_Common<Tex>::FBO_Tex_Interface_Common;
 
     virtual int get_width() override {
-        return GL_FBO_Tex_Interface_Common<Tex>::get_tex().get_width();
+        return FBO_Tex_Interface_Common<Tex>::get_tex().get_width();
     }
     virtual int get_height() override {
-        return GL_FBO_Tex_Interface_Common<Tex>::get_tex().get_height();
+        return FBO_Tex_Interface_Common<Tex>::get_tex().get_height();
     }
     virtual void reset_viewport() override {
-        GL_FBO_Tex_Interface_Common<Tex>::tex_.reset_viewport();
+        FBO_Tex_Interface_Common<Tex>::tex_.reset_viewport();
     }
 };
 
 template <typename Tex>
-class GL_FBO_RBO_Tex_Interface : public GL_FBO_RBO, public GL_FBO_Tex_Interface_Common<Tex> {
+class FBO_RBO_Tex_Interface : public FBO_RBO, public FBO_Tex_Interface_Common<Tex> {
 protected:
     virtual void unbind_() override {
-        GL_FBO_Tex_Interface_Common<Tex>::tex_.bind();
+        FBO_Tex_Interface_Common<Tex>::tex_.bind();
     }
 public:
     virtual void bind() override {
-        GL_FBO_RBO::bind();
-        GL_FBO_Tex_Interface_Common<Tex>::bind();
+        FBO_RBO::bind();
+        FBO_Tex_Interface_Common<Tex>::bind();
     }
-    using GL_FBO_Tex_Interface_Common<Tex>::GL_FBO_Tex_Interface_Common;
+    using FBO_Tex_Interface_Common<Tex>::FBO_Tex_Interface_Common;
 
     virtual int get_width() override {
-        return GL_FBO_Tex_Interface_Common<Tex>::get_tex().get_width();
+        return FBO_Tex_Interface_Common<Tex>::get_tex().get_width();
     }
     virtual int get_height() override {
-        return GL_FBO_Tex_Interface_Common<Tex>::get_tex().get_height();
+        return FBO_Tex_Interface_Common<Tex>::get_tex().get_height();
     }
     virtual void reset_viewport() override {
-        GL_FBO_Tex_Interface_Common<Tex>::tex_.reset_viewport();
+        FBO_Tex_Interface_Common<Tex>::tex_.reset_viewport();
     }
 };
 
-class GL_CubeMap_FBO : public GL_FBO_RBO_Tex_Interface<GL_CubeMapTex> {
+class CubeMap_FBO : public FBO_RBO_Tex_Interface<CubeMapTex> {
     void init() override {
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, tex_.get_width(), tex_.get_width());
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo_);
@@ -203,11 +203,11 @@ class GL_CubeMap_FBO : public GL_FBO_RBO_Tex_Interface<GL_CubeMapTex> {
     }
 
 public:
-    GL_CubeMap_FBO(int width) : GL_FBO_RBO_Tex_Interface(width) { init(); }
-    GL_CubeMap_FBO(int width, int height) : GL_FBO_RBO_Tex_Interface(width, height) { init(); }
+    CubeMap_FBO(int width) : FBO_RBO_Tex_Interface(width) { init(); }
+    CubeMap_FBO(int width, int height) : FBO_RBO_Tex_Interface(width, height) { init(); }
 
     void bind() override {
-        GL_FBO_RBO_Tex_Interface::bind();
+        FBO_RBO_Tex_Interface::bind();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -227,7 +227,7 @@ public:
     }
 };
 
-class GL_Depth_FBO : public GL_FBO_Tex_Interface<GL_Texture> {
+class Depth_FBO : public FBO_Tex_Interface<Texture> {
     void init() override {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, tex_.get_width(), tex_.get_height(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -251,11 +251,11 @@ class GL_Depth_FBO : public GL_FBO_Tex_Interface<GL_Texture> {
     }
 
 public:
-    GL_Depth_FBO(int width, int height) : GL_FBO_Tex_Interface(width, height) { init(); }
-    GL_Depth_FBO(int width, int height, bool) : GL_FBO_Tex_Interface(width, height) { init(); }
+    Depth_FBO(int width, int height) : FBO_Tex_Interface(width, height) { init(); }
+    Depth_FBO(int width, int height, bool) : FBO_Tex_Interface(width, height) { init(); }
 
     void bind() override {
-        GL_FBO_Tex_Interface::bind();
+        FBO_Tex_Interface::bind();
 
         glClear(GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
@@ -267,8 +267,8 @@ public:
     }
 };
 
-class GL_Offscreen_FBO : public GL_FBO_Tex_Interface<GL_Texture> {
-    GL_Texture depth_tex_;
+class Offscreen_FBO : public FBO_Tex_Interface<Texture> {
+    Texture depth_tex_;
 
     virtual void init() override {
         tex_.bind();
@@ -290,7 +290,7 @@ class GL_Offscreen_FBO : public GL_FBO_Tex_Interface<GL_Texture> {
         glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth_tex_.get_id(), 0);
 
-        // GL_FBO_RBO::bind();
+        // FBO_RBO::bind();
         // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, tex_.get_width(), tex_.get_height());
         // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo_);
 
@@ -304,9 +304,9 @@ class GL_Offscreen_FBO : public GL_FBO_Tex_Interface<GL_Texture> {
     }
 
 public:
-    GL_Offscreen_FBO(int width, int height) : GL_FBO_Tex_Interface(width, height), depth_tex_(width, height) { init(); }
+    Offscreen_FBO(int width, int height) : FBO_Tex_Interface(width, height), depth_tex_(width, height) { init(); }
     void bind() override {
-        GL_FBO_Tex_Interface::bind();
+        FBO_Tex_Interface::bind();
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -341,7 +341,7 @@ public:
     }
 };
 
-class GL_Offscreen_FBO_Multisample : public GL_FBO_RBO_Tex_Interface<GL_Texture> {
+class Offscreen_FBO_Multisample : public FBO_RBO_Tex_Interface<Texture> {
     void init() override {
         tex_.bind();
         glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA, tex_.get_width(), tex_.get_height(), GL_TRUE);
@@ -358,7 +358,7 @@ class GL_Offscreen_FBO_Multisample : public GL_FBO_RBO_Tex_Interface<GL_Texture>
         check_gl_error();
 #endif
 
-        GL_FBO_RBO::bind();
+        FBO_RBO::bind();
         glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, tex_.get_width(), tex_.get_height());
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo_);
 
@@ -372,10 +372,10 @@ class GL_Offscreen_FBO_Multisample : public GL_FBO_RBO_Tex_Interface<GL_Texture>
     }
 
 public:
-    GL_Offscreen_FBO_Multisample(int width, int height) : GL_FBO_RBO_Tex_Interface(GL_TEXTURE_2D_MULTISAMPLE, width, height) { init(); }
+    Offscreen_FBO_Multisample(int width, int height) : FBO_RBO_Tex_Interface(GL_TEXTURE_2D_MULTISAMPLE, width, height) { init(); }
 
     void bind() override {
-        GL_FBO_RBO_Tex_Interface::bind();
+        FBO_RBO_Tex_Interface::bind();
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -403,7 +403,7 @@ public:
         tex_.bind();
         glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA, tex_.get_width(), tex_.get_height(), GL_TRUE);
         
-        GL_FBO_RBO::bind();
+        FBO_RBO::bind();
         glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, tex_.get_width(), tex_.get_height());
     }
 };

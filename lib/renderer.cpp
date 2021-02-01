@@ -16,7 +16,7 @@ ShaderProgramFile::ShaderProgramFile(const std::string& vertex_path,
     const Optional<std::string> geometry_path,
     const std::string& fragment_path,
     const std::string& fragment_data_name,
-    FileWatcher& file_watcher) : 
+    FileWatcher& file_watcher) :
     ShaderProgramFile(vertex_path, geometry_path, fragment_path, fragment_data_name) {
     file_watcher.add_path(get_vert_path(), {});
     if (get_geom_path().size() > 0) file_watcher.add_path(get_geom_path(), {});
@@ -63,9 +63,9 @@ void ShaderProgramFile::reload_vert() {
     free_vert();
 
     std::string vert_str = get_file_str(get_vert_path());
-// #ifdef DEBUG
-//     std::cout << "true vert" << std::endl;
-// #endif
+    // #ifdef DEBUG
+    //     std::cout << "true vert" << std::endl;
+    // #endif
     vertex_shader = create_shader_helper(GL_VERTEX_SHADER, vert_str);
 
     attach_link(vertex_shader);
@@ -99,9 +99,9 @@ void ShaderProgramFile::reload_frag() {
     free_frag();
 
     std::string frag_str = get_file_str(get_frag_path());
-// #ifdef DEBUG
-//     std::cout << "true" << std::endl;
-// #endif
+    // #ifdef DEBUG
+    //     std::cout << "true" << std::endl;
+    // #endif
     fragment_shader = create_shader_helper(GL_FRAGMENT_SHADER, frag_str);
 
     attach_link(fragment_shader);
@@ -299,7 +299,7 @@ DefRenderer::DefRenderer() {
     push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "grid_frag.glsl", "out_color", file_watcher_ }));
     push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "offscreen_vert.glsl", {}, SHADER_PATH + "offscreen_frag.glsl", "out_color", file_watcher_ }));
     push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "offscreen_vert.glsl", {}, SHADER_PATH + "fxaa_frag.glsl", "out_color", file_watcher_ }));
-    
+
     bind(ShaderPrograms::PHONG);
 }
 
@@ -354,7 +354,8 @@ void Renderer::reload() {
                 errored = ShaderType::FRAG;
                 shader->reload_frag();
             }
-        } catch (const std::runtime_error& e) {
+        }
+        catch (const std::runtime_error& e) {
             std::cout << e.what() << std::endl;
             // *shader = clone;
 

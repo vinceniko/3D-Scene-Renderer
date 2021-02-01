@@ -31,7 +31,7 @@ void Environment::draw_lights() {
     buffer();
     point_lights_.draw();
 }
-void Environment::draw_shadows(GL_FBO& main_fbo, MeshEntityList& mesh_list) {
+void Environment::draw_shadows(FBO& main_fbo, MeshEntityList& mesh_list) {
     renderer_->bind(ShaderPrograms::SHADOWS);
     dir_light_.buffer_shadows();
     // disable culling to prevent shadow bias issue
@@ -81,7 +81,7 @@ void Environment::draw_static_cubemap() {
     cube_map_->unbind();
 }
 
-void Environment::draw_dynamic_cubemap(GL_FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f) {
+void Environment::draw_dynamic_cubemap(FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_entities, std::function<void(MeshEntity&)> draw_f) {
     bind_dynamic();
 
     ShaderPrograms selected = renderer_->get_selected();
@@ -150,9 +150,9 @@ void Environment::draw_dynamic_cubemap(GL_FBO& main_fbo, MeshEntity& mesh_entity
     cube_map_->unbind();
 }
 
-void Environment::set_cube_map(std::unique_ptr<GL_CubeMapEntity> cube_map) {
+void Environment::set_cube_map(std::unique_ptr<CubeMapEntity> cube_map) {
     cube_map_ = std::move(cube_map);
 }
-void Environment::swap_cube_map(std::unique_ptr<GL_CubeMapEntity>& cube_map) {
+void Environment::swap_cube_map(std::unique_ptr<CubeMapEntity>& cube_map) {
     std::swap(cube_map_, cube_map);
 }

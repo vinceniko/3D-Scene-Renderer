@@ -199,37 +199,37 @@ void TrackballCamera::swivel() {
     trans_ = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 }
 
-GLCamera::GLCamera(std::unique_ptr<Camera> camera) :
+RenderCamera::RenderCamera(std::unique_ptr<Camera> camera) :
     camera_(std::move(camera)),
     view_uniform_("u_view_trans"),
     projection_uniform_("u_projection") {}
 
-void GLCamera::buffer_view_uniform() {
+void RenderCamera::buffer_view_uniform() {
     view_uniform_.buffer(camera_->get_view());
 }
-void GLCamera::buffer_projection_uniform() {
+void RenderCamera::buffer_projection_uniform() {
     projection_uniform_.buffer(camera_->get_projection());
 }
-void GLCamera::buffer() {
+void RenderCamera::buffer() {
     buffer_view_uniform();
     buffer_projection_uniform();
 }
 
-Camera& GLCamera::get_camera() {
+Camera& RenderCamera::get_camera() {
     return *camera_.get();
 }
-Camera* GLCamera::get_camera_ptr() {
+Camera* RenderCamera::get_camera_ptr() {
     return camera_.get();
 }
-std::unique_ptr<Camera> GLCamera::get_camera_move() {
+std::unique_ptr<Camera> RenderCamera::get_camera_move() {
     return std::move(camera_);
 }
-void GLCamera::set_camera(std::unique_ptr<Camera> camera) {
+void RenderCamera::set_camera(std::unique_ptr<Camera> camera) {
     camera_ = std::move(camera);
 }
-Camera* GLCamera::operator ->() {
+Camera* RenderCamera::operator ->() {
     return camera_.get();
 }
-const Camera* GLCamera::operator ->() const {
+const Camera* RenderCamera::operator ->() const {
     return camera_.get();
 }
