@@ -55,13 +55,23 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(int width, int height, int base_width, int base_height) : 
+Context::Context(int width, int height, int base_width, int base_height, std::unique_ptr<Environment>&& new_env) : 
+Context(RENDERER, width, height, base_width, base_height, std::move(new_env)) {}
+
+Context::Context(Renderer* new_renderer, int width, int height, int base_width, int base_height, std::unique_ptr<Environment>&& new_env) : 
+RenderObj(new_renderer),
+env(std::move(new_env)),
 base_width_(base_width), 
-base_height_(base_height), 
+base_height_(base_height),
 main_fbo_(0, width, height), 
 offscreen_fbo_(base_width, base_width / (static_cast<float>(width) / height)),
 offscreen_fbo_msaa_(base_width, base_width / (static_cast<float>(width) / height)), 
-depth_fbo_(1024, 1024) {}
+depth_fbo_(1024, 1024) {
+    // set_viewport(width_, height_);
+    for (auto& point_light : env->point_lights_) {
+        mesh_list.push_back(point_light);
+    }
+}
 
 void Context::set_viewport(int width, int height) {
     float aspect =  static_cast<float>(width) / height;
@@ -157,7 +167,7 @@ Optional<MeshEntity> Context::get_selected() {
 }
 
 void Context::update(std::chrono::duration<float> delta) {
-    renderer->reload();
+    renderer_->reload();
 
     if (mouse_ctx.is_held()) {
         glm::vec2 old_point = mouse_ctx.get_prev_position();
@@ -190,7 +200,7 @@ void Context::draw_selected_to_stencil(MeshEntity& mesh_entity) {
 void Context::draw_selected(MeshEntity& mesh_entity) {
     glEnable(GL_STENCIL_TEST);
     ShaderPrograms selected = mesh_entity.get_shader();
-    renderer->bind(ShaderPrograms::OUTLINE);
+    renderer_->bind(ShaderPrograms::OUTLINE);
     Uniform aspect("u_aspect");
     aspect.buffer(env->camera->get_aspect());
     env->camera.buffer();
@@ -206,11 +216,11 @@ void Context::draw_selected(MeshEntity& mesh_entity) {
     glDisable(GL_STENCIL_TEST);
     // glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
-    renderer->bind(selected);
+    renderer_->bind(selected);
 }
 
 void Context::draw_w_mode(MeshEntity& mesh_entity) {
-    renderer->bind(mesh_entity.get_shader());
+    renderer_->bind(mesh_entity.get_shader());
     env->camera.buffer();
     if (mesh_entity.get_draw_mode() != DrawMode::WIREFRAME_ONLY) {
         draw_surfaces(mesh_entity);
@@ -261,7 +271,7 @@ void Context::draw_grid() {
     auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
     quad.rotate(glm::mat4{ 1.f }, -90.f, glm::vec3(1.f, 0.f, 0.f));
     quad.scale(glm::mat4{ 1.f }, Spatial::ScaleDir::In, 20.f);
-    renderer->bind(ShaderPrograms::GRID);
+    renderer_->bind(ShaderPrograms::GRID);
     env->camera.buffer();
     glDisable(GL_CULL_FACE);
     quad.draw_minimal();
@@ -333,7 +343,7 @@ void Context::draw_offscreen(GL_Offscreen_FBO& draw_fbo) {
 }
 
 void Context::draw_fxaa(GL_Offscreen_FBO& draw_fbo) {
-    renderer->bind(ShaderPrograms::FXAA);
+    renderer_->bind(ShaderPrograms::FXAA);
     Uniform("u_offscreen_tex").buffer(0);
     draw_fbo.get_tex().bind(GL_TEXTURE0);
     glDisable(GL_DEPTH_TEST); // not writing to depth in shader
@@ -346,7 +356,7 @@ void Context::draw_fxaa(GL_Offscreen_FBO& draw_fbo) {
 }
 
 void Context::draw_surfaces(MeshEntity& mesh_entity) {
-    renderer->bind(mesh_entity.get_shader());
+    renderer_->bind(mesh_entity.get_shader());
     // TODO: check if shader has attached uniform at compile time elsewhere
     if (mesh_entity.get_shader() == ShaderPrograms::PHONG || mesh_entity.get_shader() == ShaderPrograms::FLAT || mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
         // bind the depth map as well for env mapped objs
@@ -374,7 +384,7 @@ void Context::draw_surfaces() {
 void Context::draw_wireframe(MeshEntity& mesh_entity) {
     ShaderPrograms selected = mesh_entity.get_shader();
 
-    renderer->bind(ShaderPrograms::DEF_SHADER);
+    renderer_->bind(ShaderPrograms::DEF_SHADER);
 
     if (env->camera->get_projection_mode() == Camera::Projection::Perspective) {
         float min_zoom = 1.f / std::pow(2, 8);  // to prevent z-fighting
@@ -393,7 +403,7 @@ void Context::draw_wireframe(MeshEntity& mesh_entity) {
         mesh_entity.set_trans(old_trans);
     }
 
-    renderer->bind(selected);
+    renderer_->bind(selected);
 }
 void Context::draw_wireframes() {
     for (auto& mesh : mesh_list) {
@@ -403,7 +413,7 @@ void Context::draw_wireframes() {
 void Context::draw_normals(MeshEntity& mesh_entity) {
     ShaderPrograms selected = mesh_entity.get_shader();
 
-    renderer->bind(ShaderPrograms::NORMALS);;
+    renderer_->bind(ShaderPrograms::NORMALS);;
     env->camera.buffer();
 
     auto temp = mesh_entity.get_color();
@@ -411,7 +421,7 @@ void Context::draw_normals(MeshEntity& mesh_entity) {
     mesh_entity.draw();
     mesh_entity.set_color(temp);
 
-    renderer->bind(selected);
+    renderer_->bind(selected);
 
     draw_wireframe(mesh_entity);
 }
@@ -424,7 +434,7 @@ void Context::draw_normals() {
 void Context::draw_depth_map() {
     // debug quad
     glDisable(GL_DEPTH_TEST);
-    renderer->bind(ShaderPrograms::SHADOW_MAP);
+    renderer_->bind(ShaderPrograms::SHADOW_MAP);
 
     auto old_trans = env->camera->get_trans();
     auto old_projection = env->camera->get_projection_mode();

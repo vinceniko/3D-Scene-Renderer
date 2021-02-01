@@ -49,12 +49,10 @@ public:
 };
 
 // general context, holds all other state
-class Context {
+class Context : public RenderObj {
 public:
     int base_width_;
     int base_height_;
-
-    Renderer* renderer = &Renderer::get();
 
     MeshFactory& mesh_factory = MeshFactory::get();
     MeshEntityList mesh_list;
@@ -76,14 +74,8 @@ public:
     bool debug_depth_map_ = false;
     DebugShadows debug_shadows_;
 
-    Context(int width, int height, int base_width, int base_height);
-
-    void set_env(std::unique_ptr<Environment> new_env) {
-        env = std::move(new_env);
-        for (auto& point_light : env->point_lights_) {
-            mesh_list.push_back(point_light);
-        }
-    }
+    Context(Renderer* renderer, int width, int height, int base_width, int base_height, std::unique_ptr<Environment>&& env);
+    Context(int width, int height, int base_width, int base_height, std::unique_ptr<Environment>&& env);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
     int intersected_mesh_perspective(glm::vec3 world_ray) const;

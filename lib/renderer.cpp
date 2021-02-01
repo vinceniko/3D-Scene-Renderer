@@ -284,7 +284,7 @@ void Renderer::set_selected_idx(int n) {
     selected_ = n;
 }
 
-Renderer::Renderer() {
+DefRenderer::DefRenderer() {
     push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "def_frag.glsl", "out_color", file_watcher_ }));
     push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "flat_frag.glsl", "out_color", file_watcher_ }));
     push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "def_vert.glsl", {}, SHADER_PATH + "phong_frag.glsl", "out_color", file_watcher_ }));
@@ -301,6 +301,13 @@ Renderer::Renderer() {
     push_back(std::unique_ptr<ShaderProgramFile>(new ShaderProgramFile{ SHADER_PATH + "offscreen_vert.glsl", {}, SHADER_PATH + "fxaa_frag.glsl", "out_color", file_watcher_ }));
     
     bind(ShaderPrograms::PHONG);
+}
+
+// global renderer
+Renderer* RENDERER = nullptr;
+
+void set_global_renderer(Renderer* renderer) {
+    RENDERER = renderer;
 }
 
 size_t Renderer::get(int n) {

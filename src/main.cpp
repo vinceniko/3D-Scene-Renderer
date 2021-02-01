@@ -201,7 +201,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                         ctx->mesh_list.erase(pos);
                         // TODO: make this more efficient
                         if (dynamic_cast<PointLight*>(mesh_ptr.get())) {
-                            ctx->env->point_lights_.erase(std::find(ctx->env->point_lights_.begin(), ctx->env->point_lights_.end(), mesh_ptr));
+                            for (auto light_itr = ctx->env->point_lights_.begin(); light_itr != ctx->env->point_lights_.end(); light_itr++) {
+                                if (dynamic_cast<MeshEntity*>(light_itr->get()) == mesh_ptr.get()) {
+                                    ctx->env->point_lights_.erase(light_itr);
+                                    break;
+                                }
+                            }
                         }
                         ctx->mouse_ctx.deselect();
                         break;
@@ -355,6 +360,8 @@ int main(void)
     glfwGetFramebufferSize(window, &pixWidth, &pixHeight);
     // framebuffer_size_callback(window, pixWidth, pixHeight);
 
+    std::unique_ptr<DefRenderer> renderer = std::make_unique<DefRenderer>();
+    set_global_renderer(renderer.get());
     ctx = std::make_unique<MyContext>(
         pixWidth,
         pixHeight

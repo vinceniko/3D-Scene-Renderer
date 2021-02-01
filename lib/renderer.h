@@ -183,6 +183,7 @@ enum DrawMode {
 
 // binds shader programs
 class Renderer : public std::vector<std::unique_ptr<ShaderProgramFile>> {
+protected:
     int selected_ = -1;
 
     int get_selected_idx() const;
@@ -190,15 +191,10 @@ class Renderer : public std::vector<std::unique_ptr<ShaderProgramFile>> {
 
     FileWatcher file_watcher_{ 1000 };
 
-    Renderer();
+    Renderer() = default;
     Renderer(Renderer&&) = default;
 
 public:
-    static Renderer& get() {
-        static Renderer renderer;
-        return renderer;
-    }
-
     Renderer(const Renderer&) = delete;
 
     static size_t get(int n);
@@ -221,6 +217,34 @@ public:
     }
 };
 
+// default renderer, loads default shaders
+class DefRenderer : public Renderer {
+public:
+    DefRenderer();
+};
+
+extern Renderer* RENDERER;
+
+// sets RENDERER
+void set_global_renderer(Renderer* renderer);
+
+// contains pointer to renderer, can be set per object manually or defaults to global
+class RenderObj {
+protected:
+    Renderer* renderer_;
+
+public:
+    // sets renderer to global renderer
+    RenderObj() : renderer_(RENDERER) {}
+    RenderObj(Renderer* renderer) : renderer_(renderer) {}
+    virtual void set_renderer(Renderer* renderer) {
+        renderer_ = renderer;
+    }
+    Renderer& get_renderer() {
+        return *renderer_;
+    }
+};
+
 // cycles through values of T in the vector
 template <typename T>
 class Cycler : std::vector<T> {
@@ -233,20 +257,11 @@ public:
     }
 };
 
-// the draw modes that the program will cycle through
+// the draw modes that will be cycled through
 class DrawModeCycler : public Cycler<DrawMode> { using Cycler::Cycler; };
 
-// the shaders that the program will cycle through
+// the shaders that will be cycled through
 class ShaderCycler : public Cycler<ShaderPrograms> { using Cycler::Cycler; };
-
-class RenderObj {
-protected:
-    Renderer* renderer_;
-
-public:
-    RenderObj() : renderer_(&Renderer::get()) {}
-    RenderObj(Renderer* renderer) : renderer_(renderer) {}
-};
 
 struct Uniform : public RenderObj {
     std::string name_;
