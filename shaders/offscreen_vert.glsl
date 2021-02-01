@@ -6,9 +6,11 @@ out vec2 uv;
 
 void main()
 {   
-    float x = float((uint(gl_VertexID) << 1u) & uint(2)) / uint(2); 
-    float y = float(uint(gl_VertexID) & uint(2)) / uint(2); 
+    float x = -1.0 + float((gl_VertexID & 1) << 2);
+    float y = -1.0 + float((gl_VertexID & 2) << 1);
+    float u = (x+1.0)*0.5;
+    float v = (y+1.0)*0.5;
 
-    uv = vec2(x, y);
-    gl_Position = vec4(uv * 2.0f + -1.0f, 0.0f, 1.0f);; 
+    uv = vec2(u, v);
+    gl_Position = vec4(x, y, 0.0, 1.0); 
 }
