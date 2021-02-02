@@ -317,7 +317,7 @@ void MeshEntity::draw_wireframe() {
 
     glBindVertexArray(mesh_ref.VAO_);
 
-    buffer();
+    u_model_trans.buffer(trans_);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     // // glLineWidth doesn't work, maybe an Apple driver bug 
