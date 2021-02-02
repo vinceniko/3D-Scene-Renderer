@@ -1,13 +1,10 @@
 # 3D Scene Renderer
 
-Vincent Nikolayev  
-Professor Silva  
-Interactive Computer Graphics  
-12/16/20  
+A cross-platform 3D Scene Editor and Renderer written in C++ with OpenGL. Originally written for a Computer Graphics course, it has since been added to.
 
 ![1](images/main.png)
 
-A cross-platform 3D Scene Editor and Renderer written in C++ with OpenGL that can:
+## Features
 
 * Load triangulated 3D models from .off files
 * Spawn models in a realtime 3D scene
