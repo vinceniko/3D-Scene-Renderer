@@ -55,9 +55,9 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(int width, int height, int base_width, int base_height) : 
-base_width_(base_width), 
-base_height_(base_height) {
+Context::Context(int width, int height, int base_width, int base_height) :
+    base_width_(base_width),
+    base_height_(base_height) {
     renderer = std::make_unique<DefRenderer>();
     set_global_renderer(renderer.get());
     mesh_factory = std::make_unique<DefMeshFactory>();
@@ -80,22 +80,24 @@ void Context::set_env(std::unique_ptr<Environment>&& new_env) {
 }
 
 void Context::set_viewport(int width, int height) {
-    float aspect =  static_cast<float>(width) / height;
+    float aspect = static_cast<float>(width) / height;
     env->camera->set_aspect(aspect);
-    
+
     float base_aspect = static_cast<float>(base_width_) / base_height_;
-    int height_ = base_width_ / aspect;
-    int base_height = base_width_ * 1.f / base_aspect;
-    int width_ = base_height * aspect;
-    if (width_ < height_) {
-        offscreen_fbo_->resize(width_, base_height);
-        offscreen_fbo_msaa_->resize(width_, base_height);
-    } else {
-        offscreen_fbo_->resize(base_width_, height_);
-        offscreen_fbo_msaa_->resize(base_width_, height_);
+    if (!isnan(base_aspect)) {
+        int height_ = base_width_ / aspect;
+        int base_height = base_width_ * 1.f / base_aspect;
+        int width_ = base_height * aspect;
+        if (width_ < height_) {
+            offscreen_fbo_->resize(width_, base_height);
+            offscreen_fbo_msaa_->resize(width_, base_height);
+        }
+        else {
+            offscreen_fbo_->resize(base_width_, height_);
+            offscreen_fbo_msaa_->resize(base_width_, height_);
+        }
+        main_fbo_->resize(width, height);
     }
-    
-    main_fbo_->resize(width, height);
 }
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
@@ -242,7 +244,7 @@ void Context::draw(FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_
     if (mesh_entity.get_dyn_reflections() && (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT)) {
         env->draw_dynamic_cubemap(main_fbo, mesh_entity, mesh_entities, [&](MeshEntity& sec_mesh) {
             draw_w_mode(sec_mesh);
-        });
+            });
     }
     else if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
         env->bind_static();
@@ -298,7 +300,7 @@ void Context::draw() {
     env->draw_shadows(*draw_fbo, mesh_list);
     // depth_fbo_->unbind(*main_fbo_.get());
     depth_fbo_->unbind(*draw_fbo);
-    
+
     // swap selected to end of drawing list
     uint32_t selected_idx = mesh_list.size() - 1.0;
     swap_selected_mesh(selected_idx);
@@ -306,7 +308,7 @@ void Context::draw() {
         draw(*draw_fbo, *mesh_entity, mesh_list);
         // draw(main_fbo_, *mesh_entity, mesh_list);
     }
-    
+
     env->draw_static_scene();
 
     if (msaa_use_) {
@@ -314,9 +316,9 @@ void Context::draw() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         draw_fbo->blit(*offscreen_fbo_.get());
     }
-    
+
     draw_offscreen(*offscreen_fbo_.get());
-    
+
     if (get_selected().has_value()) {
         auto& mesh_entity = *mesh_list[selected_idx];
         draw_selected(mesh_entity);
@@ -371,13 +373,14 @@ void Context::draw_surfaces(MeshEntity& mesh_entity) {
         debug_shadows_->buffer();
     }
     if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
-         // * don't need to bind the cubemap texture here because it is already bound after rendering to it
+        // * don't need to bind the cubemap texture here because it is already bound after rendering to it
         depth_fbo_->get_tex().bind(GL_TEXTURE1); // bind the depthmap to the second texture slot
         Uniform("u_skybox").buffer(0);
         Uniform("u_shadow_map").buffer(1);
         glCullFace(GL_BACK);
         mesh_entity.draw_minimal();
-    } else {
+    }
+    else {
         mesh_entity.draw();
     }
     depth_fbo_->get_tex().bind(); // bind back to first texture slot
@@ -401,7 +404,8 @@ void Context::draw_wireframe(MeshEntity& mesh_entity) {
         env->camera.buffer();
         mesh_entity.draw_wireframe();
         env->camera->set_view(temp);
-    } else {
+    }
+    else {
         env->camera.buffer();
         auto old_trans = mesh_entity.get_trans();
         mesh_entity.scale(env->camera->get_view(), Spatial::ScaleDir::In, 1.f / std::pow(2, 8));
