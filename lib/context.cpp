@@ -78,18 +78,20 @@ void Context::set_viewport(int width, int height) {
     env->camera->set_aspect(aspect);
     
     float base_aspect = static_cast<float>(base_width_) / base_height_;
-    int height_ = base_width_ / aspect;
-    int base_height = base_width_ * 1.f / base_aspect;
-    int width_ = base_height * aspect;
-    if (width_ < height_) {
-        offscreen_fbo_.resize(width_, base_height);
-        offscreen_fbo_msaa_.resize(width_, base_height);
-    } else {
-        offscreen_fbo_.resize(base_width_, height_);
-        offscreen_fbo_msaa_.resize(base_width_, height_);
+    if (!isnan(base_aspect)) {
+        int height_ = base_width_ / aspect;
+        int base_height = base_width_ * 1.f / base_aspect;
+        int width_ = base_height * aspect;
+        if (width_ < height_) {
+            offscreen_fbo_.resize(width_, base_height);
+            offscreen_fbo_msaa_.resize(width_, base_height);
+        } else {
+            offscreen_fbo_.resize(base_width_, height_);
+            offscreen_fbo_msaa_.resize(base_width_, height_);
+        }
+        
+        main_fbo_.resize(width, height);
     }
-    
-    main_fbo_.resize(width, height);
 }
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
