@@ -381,3 +381,9 @@ void MeshEntityList::draw_wireframes() {
 const RenderMesh& MeshEntity::get_mesh() {
     return *ctx_.get().get_meshes()[id_];
 }
+
+MeshFactory* MESH_FACTORY = nullptr;
+
+void set_global_mesh_factory(MeshFactory* mesh_factory) {
+    MESH_FACTORY = mesh_factory;
+}

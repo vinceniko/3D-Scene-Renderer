@@ -52,7 +52,7 @@ protected:
     static CubeMapFace parse_path_name(const std::string& path_name);
 
 public:
-    CubeMapLoader() : cube_entity_(MeshFactory::get().get_mesh_entity(DefMeshList::CUBE)) {}
+    CubeMapLoader() : cube_entity_(MESH_FACTORY->get_mesh_entity(DefMeshList::CUBE)) {}
 
     virtual void init(const std::string& dir_path, bool flip = false) = 0;
 };

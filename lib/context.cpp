@@ -55,18 +55,24 @@ double MouseContext::get_scroll() const {
     return scroll_;
 }
 
-Context::Context(int width, int height, int base_width, int base_height, std::unique_ptr<Environment>&& new_env) : 
-Context(RENDERER, width, height, base_width, base_height, std::move(new_env)) {}
-
-Context::Context(Renderer* new_renderer, int width, int height, int base_width, int base_height, std::unique_ptr<Environment>&& new_env) : 
-RenderObj(new_renderer),
-env(std::move(new_env)),
+Context::Context(int width, int height, int base_width, int base_height) : 
 base_width_(base_width), 
-base_height_(base_height),
-main_fbo_(0, width, height), 
-offscreen_fbo_(base_width, base_width / (static_cast<float>(width) / height)),
-offscreen_fbo_msaa_(base_width, base_width / (static_cast<float>(width) / height)), 
-depth_fbo_(1024, 1024) {
+base_height_(base_height) {
+    renderer = std::make_unique<DefRenderer>();
+    set_global_renderer(renderer.get());
+    mesh_factory = std::make_unique<DefMeshFactory>();
+    set_global_mesh_factory(mesh_factory.get());
+
+    auto aspect = base_width / (static_cast<float>(width) / height);
+    main_fbo_ = std::make_unique<FBO>(0, width, height);
+    offscreen_fbo_ = std::make_unique<Offscreen_FBO>(base_width, aspect);
+    offscreen_fbo_msaa_ = std::make_unique<Offscreen_FBO_Multisample>(base_width, aspect);
+    depth_fbo_ = std::make_unique<Depth_FBO>(1024, 1024);
+    debug_shadows_ = std::make_unique<DebugShadows>();
+}
+
+void Context::set_env(std::unique_ptr<Environment>&& new_env) {
+    env = std::move(new_env);
     // set_viewport(width_, height_);
     for (auto& point_light : env->point_lights_) {
         mesh_list.push_back(point_light);
@@ -82,14 +88,14 @@ void Context::set_viewport(int width, int height) {
     int base_height = base_width_ * 1.f / base_aspect;
     int width_ = base_height * aspect;
     if (width_ < height_) {
-        offscreen_fbo_.resize(width_, base_height);
-        offscreen_fbo_msaa_.resize(width_, base_height);
+        offscreen_fbo_->resize(width_, base_height);
+        offscreen_fbo_msaa_->resize(width_, base_height);
     } else {
-        offscreen_fbo_.resize(base_width_, height_);
-        offscreen_fbo_msaa_.resize(base_width_, height_);
+        offscreen_fbo_->resize(base_width_, height_);
+        offscreen_fbo_msaa_->resize(base_width_, height_);
     }
     
-    main_fbo_.resize(width, height);
+    main_fbo_->resize(width, height);
 }
 
 int Context::intersected_mesh_perspective(glm::vec3 world_ray) const {
@@ -167,7 +173,7 @@ Optional<MeshEntity> Context::get_selected() {
 }
 
 void Context::update(std::chrono::duration<float> delta) {
-    renderer_->reload();
+    renderer->reload();
 
     if (mouse_ctx.is_held()) {
         glm::vec2 old_point = mouse_ctx.get_prev_position();
@@ -177,11 +183,11 @@ void Context::update(std::chrono::duration<float> delta) {
 }
 
 void Context::init_mesh_prototypes(std::vector<Mesh>&& meshes) {
-    mesh_factory.push(meshes);
+    MESH_FACTORY->push(meshes);
 }
 void Context::push_mesh_entity(std::vector<int>&& ids) {
     for (const auto& id : ids) {
-        mesh_list.push_back(std::make_shared<MeshEntity>(mesh_factory.get_mesh_entity(id)));
+        mesh_list.push_back(std::make_shared<MeshEntity>(MESH_FACTORY->get_mesh_entity(id)));
     }
 }
 
@@ -200,7 +206,7 @@ void Context::draw_selected_to_stencil(MeshEntity& mesh_entity) {
 void Context::draw_selected(MeshEntity& mesh_entity) {
     glEnable(GL_STENCIL_TEST);
     ShaderPrograms selected = mesh_entity.get_shader();
-    renderer_->bind(ShaderPrograms::OUTLINE);
+    renderer->bind(ShaderPrograms::OUTLINE);
     Uniform aspect("u_aspect");
     aspect.buffer(env->camera->get_aspect());
     env->camera.buffer();
@@ -216,11 +222,11 @@ void Context::draw_selected(MeshEntity& mesh_entity) {
     glDisable(GL_STENCIL_TEST);
     // glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
-    renderer_->bind(selected);
+    renderer->bind(selected);
 }
 
 void Context::draw_w_mode(MeshEntity& mesh_entity) {
-    renderer_->bind(mesh_entity.get_shader());
+    renderer->bind(mesh_entity.get_shader());
     env->camera.buffer();
     if (mesh_entity.get_draw_mode() != DrawMode::WIREFRAME_ONLY) {
         draw_surfaces(mesh_entity);
@@ -242,7 +248,7 @@ void Context::draw(FBO& main_fbo, MeshEntity& mesh_entity, MeshEntityList& mesh_
         env->bind_static();
     }
     // else {
-    //     env->depth_fbo_.get_tex().bind();
+    //     env->depth_fbo_->get_tex().bind();
     // }
     draw_static(mesh_entity);
 }
@@ -268,10 +274,10 @@ void Context::swap_selected_mesh(const uint32_t idx) {
 }
 
 void Context::draw_grid() {
-    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    auto quad = MESH_FACTORY->get_mesh_entity(DefMeshList::QUAD);
     quad.rotate(glm::mat4{ 1.f }, -90.f, glm::vec3(1.f, 0.f, 0.f));
     quad.scale(glm::mat4{ 1.f }, Spatial::ScaleDir::In, 20.f);
-    renderer_->bind(ShaderPrograms::GRID);
+    renderer->bind(ShaderPrograms::GRID);
     env->camera.buffer();
     glDisable(GL_CULL_FACE);
     quad.draw_minimal();
@@ -279,19 +285,19 @@ void Context::draw_grid() {
 }
 
 void Context::draw() {
-    FBO* draw_fbo = &offscreen_fbo_;
+    FBO* draw_fbo = offscreen_fbo_.get();
     if (msaa_use_) {
-        draw_fbo = &offscreen_fbo_msaa_;
+        draw_fbo = offscreen_fbo_msaa_.get();
     }
     draw_fbo->bind();
-    // main_fbo_.bind();
+    // main_fbo_->bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    depth_fbo_.bind();
+    depth_fbo_->bind();
     // env->draw_shadows(main_fbo_, mesh_list);
     env->draw_shadows(*draw_fbo, mesh_list);
-    // depth_fbo_.unbind(main_fbo_);
-    depth_fbo_.unbind(*draw_fbo);
+    // depth_fbo_->unbind(*main_fbo_.get());
+    depth_fbo_->unbind(*draw_fbo);
     
     // swap selected to end of drawing list
     uint32_t selected_idx = mesh_list.size() - 1.0;
@@ -304,23 +310,23 @@ void Context::draw() {
     env->draw_static_scene();
 
     if (msaa_use_) {
-        draw_fbo->unbind(offscreen_fbo_);
+        draw_fbo->unbind(*offscreen_fbo_.get());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        draw_fbo->blit(offscreen_fbo_);
+        draw_fbo->blit(*offscreen_fbo_.get());
     }
     
-    draw_offscreen(offscreen_fbo_);
+    draw_offscreen(*offscreen_fbo_.get());
     
     if (get_selected().has_value()) {
         auto& mesh_entity = *mesh_list[selected_idx];
         draw_selected(mesh_entity);
     }
 
-    offscreen_fbo_.unbind(main_fbo_);
+    offscreen_fbo_->unbind(*main_fbo_.get());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    offscreen_fbo_.blit(main_fbo_);
+    offscreen_fbo_->blit(*main_fbo_.get());
     if (fxaa_use_) {
-        draw_fxaa(offscreen_fbo_);
+        draw_fxaa(*offscreen_fbo_.get());
     }
 
     if (draw_grid_) {
@@ -336,18 +342,18 @@ void Context::draw_offscreen(Offscreen_FBO& draw_fbo) {
     draw_fbo.bind_offscreen();
     // glDepthFunc(GL_ALWAYS);
     glDisable(GL_DEPTH_TEST); // not writing to depth in shader
-    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    auto quad = MESH_FACTORY->get_mesh_entity(DefMeshList::QUAD);
     quad.draw_none();
     // glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
 }
 
 void Context::draw_fxaa(Offscreen_FBO& draw_fbo) {
-    renderer_->bind(ShaderPrograms::FXAA);
+    renderer->bind(ShaderPrograms::FXAA);
     Uniform("u_offscreen_tex").buffer(0);
     draw_fbo.get_tex().bind(GL_TEXTURE0);
     glDisable(GL_DEPTH_TEST); // not writing to depth in shader
-    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    auto quad = MESH_FACTORY->get_mesh_entity(DefMeshList::QUAD);
     Uniform("inverseScreenSize.x").buffer(1.f / draw_fbo.get_width());
     Uniform("inverseScreenSize.y").buffer(1.f / draw_fbo.get_height());
     quad.draw_none();
@@ -356,17 +362,17 @@ void Context::draw_fxaa(Offscreen_FBO& draw_fbo) {
 }
 
 void Context::draw_surfaces(MeshEntity& mesh_entity) {
-    renderer_->bind(mesh_entity.get_shader());
+    renderer->bind(mesh_entity.get_shader());
     // TODO: check if shader has attached uniform at compile time elsewhere
     if (mesh_entity.get_shader() == ShaderPrograms::PHONG || mesh_entity.get_shader() == ShaderPrograms::FLAT || mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
         // bind the depth map as well for env mapped objs
         env->buffer_lights();
         env->buffer_shadows();
-        debug_shadows_.buffer();
+        debug_shadows_->buffer();
     }
     if (mesh_entity.get_shader() == ShaderPrograms::REFLECT || mesh_entity.get_shader() == ShaderPrograms::REFRACT) {
          // * don't need to bind the cubemap texture here because it is already bound after rendering to it
-        depth_fbo_.get_tex().bind(GL_TEXTURE1); // bind the depthmap to the second texture slot
+        depth_fbo_->get_tex().bind(GL_TEXTURE1); // bind the depthmap to the second texture slot
         Uniform("u_skybox").buffer(0);
         Uniform("u_shadow_map").buffer(1);
         glCullFace(GL_BACK);
@@ -374,7 +380,7 @@ void Context::draw_surfaces(MeshEntity& mesh_entity) {
     } else {
         mesh_entity.draw();
     }
-    depth_fbo_.get_tex().bind(); // bind back to first texture slot
+    depth_fbo_->get_tex().bind(); // bind back to first texture slot
 }
 void Context::draw_surfaces() {
     for (auto& mesh : mesh_list) {
@@ -384,7 +390,7 @@ void Context::draw_surfaces() {
 void Context::draw_wireframe(MeshEntity& mesh_entity) {
     ShaderPrograms selected = mesh_entity.get_shader();
 
-    renderer_->bind(ShaderPrograms::DEF_SHADER);
+    renderer->bind(ShaderPrograms::DEF_SHADER);
 
     if (env->camera->get_projection_mode() == Camera::Projection::Perspective) {
         float min_zoom = 1.f / std::pow(2, 8);  // to prevent z-fighting
@@ -403,7 +409,7 @@ void Context::draw_wireframe(MeshEntity& mesh_entity) {
         mesh_entity.set_trans(old_trans);
     }
 
-    renderer_->bind(selected);
+    renderer->bind(selected);
 }
 void Context::draw_wireframes() {
     for (auto& mesh : mesh_list) {
@@ -413,7 +419,7 @@ void Context::draw_wireframes() {
 void Context::draw_normals(MeshEntity& mesh_entity) {
     ShaderPrograms selected = mesh_entity.get_shader();
 
-    renderer_->bind(ShaderPrograms::NORMALS);;
+    renderer->bind(ShaderPrograms::NORMALS);;
     env->camera.buffer();
 
     auto temp = mesh_entity.get_color();
@@ -421,7 +427,7 @@ void Context::draw_normals(MeshEntity& mesh_entity) {
     mesh_entity.draw();
     mesh_entity.set_color(temp);
 
-    renderer_->bind(selected);
+    renderer->bind(selected);
 
     draw_wireframe(mesh_entity);
 }
@@ -434,7 +440,7 @@ void Context::draw_normals() {
 void Context::draw_depth_map() {
     // debug quad
     glDisable(GL_DEPTH_TEST);
-    renderer_->bind(ShaderPrograms::SHADOW_MAP);
+    renderer->bind(ShaderPrograms::SHADOW_MAP);
 
     auto old_trans = env->camera->get_trans();
     auto old_projection = env->camera->get_projection_mode();
@@ -445,10 +451,10 @@ void Context::draw_depth_map() {
     // camera->set_aspect(1.f);
 
     env->camera.buffer();
-    auto quad = MeshFactory::get().get_mesh_entity(DefMeshList::QUAD);
+    auto quad = MESH_FACTORY->get_mesh_entity(DefMeshList::QUAD);
     quad.translate(env->camera->get_trans(), glm::vec3(-0.5f, 0.5f, -0.01f));
     // quad.scale(glm::mat4{ 1.f }, MeshEntity::ScaleDir::In, 10.f);
-    depth_fbo_.get_tex().bind();
+    depth_fbo_->get_tex().bind();
     quad.draw_minimal();
     env->camera->set_trans(old_trans);
     env->camera->set_projection_mode(old_projection);

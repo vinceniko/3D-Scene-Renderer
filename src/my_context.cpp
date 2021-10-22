@@ -2,32 +2,29 @@
 #include "mesh_data.h"
 #include "cubemap.h"
 
-MyContext::MyContext(int width, int height) : MyContext(RENDERER, width, height) {}
-
-MyContext::MyContext(Renderer* renderer, int width, int height) :
+MyContext::MyContext(int width, int height) :
     // the issue with creating the env->camera first is, due to inheritance, Context is initialized firstpo
     Context {
-        renderer,
         width,
         height,
-        1920,
-        1080,
-        std::make_unique<Environment>(
-            std::make_unique<TrackballCamera>(static_cast<float>(width) / height),
-            1920,
-            PointLights{
-                std::make_shared<PointLight>(glm::vec3(2.5f, 1.f, 2.5f)),
-                std::make_shared<PointLight>(glm::vec3(-2.5f, 1.f, 2.5f)),
-                std::make_shared<PointLight>(glm::vec3(2.5f, 1.f, -2.5f)),
-                std::make_shared<PointLight>(glm::vec3(-2.5f, 1.f, -2.5f)),
-            },
-            std::make_unique<CubeMapEntity>(
-                "../data/night_env/",
-                true
-            )
-        )
+        256,
+        256,
     }
 {
+    set_env(std::make_unique<Environment>(
+        std::make_unique<TrackballCamera>(static_cast<float>(width) / height),
+        1920,
+        PointLights{
+            std::make_shared<PointLight>(glm::vec3(2.5f, 1.f, 2.5f)),
+            std::make_shared<PointLight>(glm::vec3(-2.5f, 1.f, 2.5f)),
+            std::make_shared<PointLight>(glm::vec3(2.5f, 1.f, -2.5f)),
+            std::make_shared<PointLight>(glm::vec3(-2.5f, 1.f, -2.5f)),
+        },
+        std::make_unique<CubeMapEntity>(
+            "../data/night_env/",
+            true
+        )
+    ));
     cameras = {
         env->camera.get_camera_ptr(),
         new FreeCamera{ static_cast<float>(width) / height }

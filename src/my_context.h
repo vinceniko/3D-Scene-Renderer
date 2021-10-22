@@ -20,7 +20,6 @@ class MyContext : public Context {
 public:
     bool rotate_light = true;
     
-    MyContext(Renderer* renderer, int width, int height);
     MyContext(int width, int height);
 
     // cycles through the available shader programs enumerated in ProgramList

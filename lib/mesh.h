@@ -211,17 +211,8 @@ class MeshFactory {
         return static_cast<int>(n) - static_cast<int>(DefMeshList::NUM_DEF_MESHES);
     }
 
-    MeshFactory() : meshes_() {
-        push(std::vector<Mesh>{ UnitCube{}, Quad{}, Sphere{}, Torus{} });
-    }
-
 public:
-    static MeshFactory& get() {
-        static MeshFactory mesh_factory{};
-        return mesh_factory;
-    }
-
-    MeshFactory(const MeshFactory&) = delete;
+    MeshFactory() {}
 
     MeshEntityList push(std::vector<Mesh> meshes);
 
@@ -230,3 +221,14 @@ public:
     MeshEntity get_mesh_entity(int i);
     MeshEntity get_mesh_entity(size_t i);
 };
+
+class DefMeshFactory : public MeshFactory {
+public:
+    DefMeshFactory() {
+        push(std::vector<Mesh>{ UnitCube{}, Quad{}, Sphere{}, Torus{} });
+    }
+};
+
+extern MeshFactory* MESH_FACTORY;
+
+void set_global_mesh_factory(MeshFactory* mesh_factory);

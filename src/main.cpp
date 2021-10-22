@@ -175,7 +175,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             ctx->debug_depth_map_ = !ctx->debug_depth_map_;
             break;
         case GLFW_KEY_N:
-            ctx->debug_shadows_.debug_ = !ctx->debug_shadows_.debug_;
+            ctx->debug_shadows_->debug_ = !ctx->debug_shadows_->debug_;
             break;
         case GLFW_KEY_U:
             ctx->rotate_light = !ctx->rotate_light;
@@ -360,8 +360,6 @@ int main(void)
     glfwGetFramebufferSize(window, &pixWidth, &pixHeight);
     // framebuffer_size_callback(window, pixWidth, pixHeight);
 
-    std::unique_ptr<DefRenderer> renderer = std::make_unique<DefRenderer>();
-    set_global_renderer(renderer.get());
     ctx = std::make_unique<MyContext>(
         pixWidth,
         pixHeight

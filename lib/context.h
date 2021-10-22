@@ -49,33 +49,34 @@ public:
 };
 
 // general context, holds all other state
-class Context : public RenderObj {
+class Context {
 public:
     int base_width_;
     int base_height_;
 
-    MeshFactory& mesh_factory = MeshFactory::get();
+    std::unique_ptr<DefRenderer> renderer;
+    std::unique_ptr<DefMeshFactory> mesh_factory;
+
     MeshEntityList mesh_list;
 
     std::unique_ptr<Environment> env;
 
     MouseContext mouse_ctx;
 
-    Offscreen_FBO offscreen_fbo_;
-    Offscreen_FBO_Multisample offscreen_fbo_msaa_;
-    FBO main_fbo_;
+    std::unique_ptr<FBO> main_fbo_;
+    std::unique_ptr<Offscreen_FBO> offscreen_fbo_;
+    std::unique_ptr<Offscreen_FBO_Multisample> offscreen_fbo_msaa_;
 
     bool msaa_use_ = false;
     bool fxaa_use_ = true;
     
-    Depth_FBO depth_fbo_;
+    std::unique_ptr<Depth_FBO> depth_fbo_;
 
     bool draw_grid_ = true;
     bool debug_depth_map_ = false;
-    DebugShadows debug_shadows_;
+    std::unique_ptr<DebugShadows> debug_shadows_;
 
-    Context(Renderer* renderer, int width, int height, int base_width, int base_height, std::unique_ptr<Environment>&& env);
-    Context(int width, int height, int base_width, int base_height, std::unique_ptr<Environment>&& env);
+    Context(int width, int height, int base_width, int base_height);
 
     // tests whether a ray in world space intersected with a mesh stored in mesh_list
     int intersected_mesh_perspective(glm::vec3 world_ray) const;
@@ -128,4 +129,5 @@ public:
     void draw_fxaa(Offscreen_FBO& draw_fbo);
 
     void set_viewport(int width, int height);
+    void set_env(std::unique_ptr<Environment>&& env);
 };
